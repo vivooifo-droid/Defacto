@@ -1,0 +1,430 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MANIFEST="defo.json"
+
+usage() {
+  cat <<'USAGE'
+defo - naive package manager for Defacto
+
+Usage:
+  defo init [name]
+  defo add <package[@version]>
+  defo remove <package>
+  defo list
+  defo install
+  defo install <package[@version]>
+  defo install <owner/repo[#ref]>
+  defo install <git_url[#ref]>
+USAGE
+}
+
+ensure_manifest() {
+  if [[ ! -f "$MANIFEST" ]]; then
+    echo "error: $MANIFEST not found. Run 'defo init' first." >&2
+    exit 1
+  fi
+}
+
+init_manifest() {
+  local project_name="${1:-$(basename "$PWD")}";
+  cat > "$MANIFEST" <<JSON
+{
+  "name": "$project_name",
+  "version": "0.1.0",
+  "dependencies": {
+  }
+}
+JSON
+  echo "created: $MANIFEST"
+}
+
+has_dependency() {
+  local pkg="$1"
+  grep -Eq "^[[:space:]]*\"${pkg}\"[[:space:]]*:" "$MANIFEST"
+}
+
+normalize_deps_commas() {
+  local tmp
+  tmp="$(mktemp)"
+
+  awk '
+    BEGIN { in_deps=0; n=0 }
+    {
+      if ($0 ~ /^[[:space:]]*"dependencies"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/) {
+        in_deps=1
+        print
+        next
+      }
+
+      if (in_deps && $0 ~ /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*"[^"]+"[[:space:]]*,?[[:space:]]*$/) {
+        line=$0
+        sub(/,[[:space:]]*$/, "", line)
+        deps[++n]=line
+        next
+      }
+
+      if (in_deps && $0 ~ /^[[:space:]]*\}[[:space:]]*$/) {
+        for (i=1; i<=n; i++) {
+          printf "%s", deps[i]
+          if (i < n) printf ","
+          printf "\n"
+        }
+        print
+        in_deps=0
+        n=0
+        delete deps
+        next
+      }
+
+      print
+    }
+  ' "$MANIFEST" > "$tmp"
+
+  mv "$tmp" "$MANIFEST"
+}
+
+set_dependency_value() {
+  local pkg="$1"
+  local value="$2"
+  local tmp
+  tmp="$(mktemp)"
+
+  if has_dependency "$pkg"; then
+    sed -E "s#^([[:space:]]*\"${pkg}\"[[:space:]]*:[[:space:]]*)\"[^\"]*\"#\\1\"${value}\"#" "$MANIFEST" > "$tmp"
+    mv "$tmp" "$MANIFEST"
+    normalize_deps_commas
+    return
+  fi
+
+  awk -v pkg="$pkg" -v value="$value" '
+    BEGIN { in_deps=0; added=0 }
+    {
+      if ($0 ~ /^[[:space:]]*"dependencies"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/) {
+        in_deps=1
+        print
+        next
+      }
+
+      if (in_deps && $0 ~ /^[[:space:]]*\}[[:space:]]*$/ && !added) {
+        print "    \"" pkg "\": \"" value "\""
+        added=1
+      }
+
+      print
+
+      if (in_deps && $0 ~ /^[[:space:]]*\}[[:space:]]*$/) {
+        in_deps=0
+      }
+    }
+  ' "$MANIFEST" > "$tmp"
+
+  mv "$tmp" "$MANIFEST"
+  normalize_deps_commas
+}
+
+add_dependency() {
+  ensure_manifest
+
+  local spec="$1"
+  local pkg version
+  if [[ "$spec" == *"@"* ]]; then
+    pkg="${spec%@*}"
+    version="${spec##*@}"
+  else
+    pkg="$spec"
+    version="latest"
+  fi
+
+  if [[ -z "$pkg" || -z "$version" ]]; then
+    echo "error: invalid package spec '$spec'" >&2
+    exit 1
+  fi
+
+  set_dependency_value "$pkg" "$version"
+  if has_dependency "$pkg"; then
+    echo "added/updated: ${pkg}@${version}"
+  fi
+}
+
+remove_dependency() {
+  ensure_manifest
+  local pkg="$1"
+
+  if ! has_dependency "$pkg"; then
+    echo "not found: $pkg"
+    return
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v pkg="$pkg" '
+    BEGIN { in_deps=0 }
+    {
+      if ($0 ~ /^[[:space:]]*"dependencies"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/) {
+        in_deps=1
+        print
+        next
+      }
+
+      if (in_deps && $0 ~ "^[[:space:]]*\\\"" pkg "\\\"[[:space:]]*:") {
+        next
+      }
+
+      print
+
+      if (in_deps && $0 ~ /^[[:space:]]*\}[[:space:]]*$/) {
+        in_deps=0
+      }
+    }
+  ' "$MANIFEST" > "$tmp"
+
+  mv "$tmp" "$MANIFEST"
+  normalize_deps_commas
+  echo "removed: $pkg"
+}
+
+list_dependencies() {
+  ensure_manifest
+  awk '
+    BEGIN { in_deps=0; count=0 }
+    /^[[:space:]]*"dependencies"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/ { in_deps=1; next }
+    in_deps && /^[[:space:]]*\}[[:space:]]*$/ { in_deps=0; if (count==0) print "(empty)"; next }
+    in_deps && /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*"[^"]+"[[:space:]]*,?[[:space:]]*$/ {
+      line=$0
+      gsub(/^[[:space:]]*"/, "", line)
+      split(line, parts, /"[[:space:]]*:[[:space:]]*"/)
+      pkg=parts[1]
+      val=parts[2]
+      gsub(/"[[:space:]]*,?[[:space:]]*$/, "", val)
+      print pkg "@" val
+      count++
+    }
+  ' "$MANIFEST"
+}
+
+dependency_entries() {
+  ensure_manifest
+  awk '
+    BEGIN { in_deps=0 }
+    /^[[:space:]]*"dependencies"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/ { in_deps=1; next }
+    in_deps && /^[[:space:]]*\}[[:space:]]*$/ { in_deps=0; next }
+    in_deps && /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*"[^"]+"[[:space:]]*,?[[:space:]]*$/ {
+      line=$0
+      gsub(/^[[:space:]]*"/, "", line)
+      split(line, parts, /"[[:space:]]*:[[:space:]]*"/)
+      pkg=parts[1]
+      val=parts[2]
+      gsub(/"[[:space:]]*,?[[:space:]]*$/, "", val)
+      print pkg "\t" val
+    }
+  ' "$MANIFEST"
+}
+
+is_git_spec() {
+  local spec="$1"
+  if [[ "$spec" =~ ^https?:// ]]; then return 0; fi
+  if [[ "$spec" =~ ^file:// ]]; then return 0; fi
+  if [[ "$spec" =~ ^git@ ]]; then return 0; fi
+  if [[ "$spec" =~ ^ssh:// ]]; then return 0; fi
+  if [[ "$spec" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+(#.+)?$ ]]; then return 0; fi
+  return 1
+}
+
+resolve_git_source() {
+  local spec="$1"
+  local base ref url
+
+  base="$spec"
+  ref=""
+  if [[ "$spec" == *"#"* ]]; then
+    base="${spec%%#*}"
+    ref="${spec#*#}"
+  fi
+
+  if [[ "$base" =~ ^https?:// ]] || [[ "$base" =~ ^file:// ]] || [[ "$base" =~ ^git@ ]] || [[ "$base" =~ ^ssh:// ]]; then
+    url="$base"
+  elif [[ "$base" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
+    url="https://github.com/${base}.git"
+  else
+    echo "error: invalid git spec '$spec'" >&2
+    return 1
+  fi
+
+  printf '%s\t%s\n' "$url" "$ref"
+}
+
+package_name_from_git() {
+  local url="$1"
+  local name
+  name="$(basename "$url")"
+  name="${name%.git}"
+  echo "$name"
+}
+
+install_local_dependency() {
+  local pkg="$1"
+  local version="$2"
+  local root="defo_modules"
+  local path="${root}/${pkg}"
+
+  mkdir -p "$path"
+  cat > "${path}/package.json" <<JSON
+{
+  "name": "${pkg}",
+  "version": "${version}",
+  "installedBy": "defo",
+  "source": "naive-local-registry"
+}
+JSON
+  echo "installed: ${pkg}@${version}"
+}
+
+install_git_dependency() {
+  local pkg="$1"
+  local url="$2"
+  local ref="${3:-}"
+  local root="defo_modules"
+  local path="${root}/${pkg}"
+
+  command -v git >/dev/null 2>&1 || {
+    echo "error: git is required for git dependencies" >&2
+    exit 1
+  }
+
+  rm -rf "$path"
+  if [[ -n "$ref" ]]; then
+    git clone --depth 1 --branch "$ref" "$url" "$path" >/dev/null 2>&1 || {
+      echo "error: failed to clone ${url}#${ref}" >&2
+      exit 1
+    }
+  else
+    git clone --depth 1 "$url" "$path" >/dev/null 2>&1 || {
+      echo "error: failed to clone ${url}" >&2
+      exit 1
+    }
+  fi
+
+  cat > "${path}/defo-source.json" <<JSON
+{
+  "name": "${pkg}",
+  "source": "git",
+  "url": "${url}",
+  "ref": "${ref}"
+}
+JSON
+
+  if [[ -n "$ref" ]]; then
+    echo "installed: ${pkg} from ${url}#${ref}"
+  else
+    echo "installed: ${pkg} from ${url}"
+  fi
+}
+
+install_all_dependencies() {
+  ensure_manifest
+  mkdir -p defo_modules
+
+  local items
+  items="$(dependency_entries || true)"
+  if [[ -z "$items" ]]; then
+    echo "no dependencies to install"
+    return
+  fi
+
+  while IFS=$'\t' read -r pkg val; do
+    [[ -z "$pkg" || -z "$val" ]] && continue
+    if [[ "$val" == git+* ]]; then
+      local spec="${val#git+}"
+      local url ref
+      if [[ "$spec" == *"#"* ]]; then
+        url="${spec%%#*}"
+        ref="${spec#*#}"
+      else
+        url="$spec"
+        ref=""
+      fi
+      install_git_dependency "$pkg" "$url" "$ref"
+    else
+      install_local_dependency "$pkg" "$val"
+    fi
+  done <<< "$items"
+}
+
+install_single_local() {
+  local spec="$1"
+  add_dependency "$spec"
+  local pkg version
+  if [[ "$spec" == *"@"* ]]; then
+    pkg="${spec%@*}"
+    version="${spec##*@}"
+  else
+    pkg="$spec"
+    version="latest"
+  fi
+  install_local_dependency "$pkg" "$version"
+}
+
+install_single_git() {
+  ensure_manifest
+  mkdir -p defo_modules
+
+  local spec="$1"
+  local resolved url ref pkg dep_value
+
+  resolved="$(resolve_git_source "$spec")"
+  url="${resolved%%$'\t'*}"
+  ref="${resolved#*$'\t'}"
+  pkg="$(package_name_from_git "$url")"
+
+  dep_value="git+${url}"
+  if [[ -n "$ref" ]]; then
+    dep_value="${dep_value}#${ref}"
+  fi
+
+  set_dependency_value "$pkg" "$dep_value"
+  install_git_dependency "$pkg" "$url" "$ref"
+}
+
+install_single() {
+  local spec="$1"
+  if is_git_spec "$spec"; then
+    install_single_git "$spec"
+  else
+    install_single_local "$spec"
+  fi
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  init)
+    init_manifest "${2:-}"
+    ;;
+  add)
+    [[ -n "${2:-}" ]] || { echo "error: package required" >&2; usage; exit 1; }
+    add_dependency "$2"
+    ;;
+  remove)
+    [[ -n "${2:-}" ]] || { echo "error: package required" >&2; usage; exit 1; }
+    remove_dependency "$2"
+    ;;
+  list)
+    list_dependencies
+    ;;
+  install)
+    if [[ -n "${2:-}" ]]; then
+      install_single "$2"
+    else
+      install_all_dependencies
+    fi
+    ;;
+  -h|--help|help|"")
+    usage
+    ;;
+  *)
+    echo "error: unknown command '$cmd'" >&2
+    usage
+    exit 1
+    ;;
+esac

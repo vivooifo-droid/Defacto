@@ -1,0 +1,77 @@
+{
+  "name": "Defacto Light",
+  "type": "light",
+  "colors": {
+    "editor.background": "#FAFAFA",
+    "editor.foreground": "#222222",
+    "editorLineNumber.foreground": "#9AA0A6",
+    "editorCursor.foreground": "#0050B3"
+  },
+  "tokenColors": [
+    {
+      "name": "Comments",
+      "scope": "comment",
+      "settings": { "foreground": "#9AA0A6", "fontStyle": "italic" }
+    },
+    {
+      "name": "Directives",
+      "scope": "keyword.control.directive.defacto",
+      "settings": { "foreground": "#0050B3", "fontStyle": "bold" }
+    },
+    {
+      "name": "Processor commands",
+      "scope": "keyword.control.processor.defacto",
+      "settings": { "foreground": "#C17600", "fontStyle": "bold" }
+    },
+    {
+      "name": "Section markers",
+      "scope": ["punctuation.section.open.defacto", "punctuation.section.close.defacto", "keyword.control.section.defacto"],
+      "settings": { "foreground": "#666666" }
+    },
+    {
+      "name": "Control flow",
+      "scope": "keyword.control.defacto",
+      "settings": { "foreground": "#5C6BC0" }
+    },
+    {
+      "name": "Declarations",
+      "scope": "keyword.declaration.defacto",
+      "settings": { "foreground": "#0B5FFF", "fontStyle": "bold" }
+    },
+    {
+      "name": "Registers",
+      "scope": "variable.language.register.defacto",
+      "settings": { "foreground": "#8D6E63", "fontStyle": "bold" }
+    },
+    {
+      "name": "Types",
+      "scope": "storage.type.defacto",
+      "settings": { "foreground": "#0F8B8D" }
+    },
+    {
+      "name": "Strings",
+      "scope": "string.quoted.double.defacto",
+      "settings": { "foreground": "#22863A" }
+    },
+    {
+      "name": "Numbers",
+      "scope": "constant.numeric",
+      "settings": { "foreground": "#B35C00" }
+    },
+    {
+      "name": "Function names",
+      "scope": "entity.name.function.defacto",
+      "settings": { "foreground": "#0B5FFF", "fontStyle": "bold" }
+    },
+    {
+      "name": "Memory free",
+      "scope": "keyword.control.memory.defacto",
+      "settings": { "foreground": "#C17600" }
+    },
+    {
+      "name": "Operators",
+      "scope": "keyword.operator",
+      "settings": { "foreground": "#0050B3" }
+    }
+  ]
+}

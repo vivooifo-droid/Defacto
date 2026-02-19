@@ -1,0 +1,19 @@
+# Compiler
+compiler/defacto
+compiler/*.o
+compiler/*.asm
+
+# Build artifacts
+start
+
+# VS Code extension
+vscode-extension/*.vsix
+vscode-extension/node_modules/
+vscode-extension/out/
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*~

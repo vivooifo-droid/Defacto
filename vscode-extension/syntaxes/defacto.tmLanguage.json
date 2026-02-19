@@ -1,0 +1,111 @@
+{
+  "name": "Defacto",
+  "scopeName": "source.defacto",
+  "fileTypes": ["de", "defacto", "def", "defo"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#directives" },
+    { "include": "#sections" },
+    { "include": "#keywords" },
+    { "include": "#registers" },
+    { "include": "#types" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#operators" },
+    { "include": "#functions" },
+    { "include": "#free" }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.double-slash.defacto",
+      "match": "//.*$"
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "keyword.control.directive.defacto",
+          "match": "#(Mainprogramm\\.start|Mainprogramm\\.end|NO_RUNTIME|SAFE)"
+        },
+        {
+          "name": "keyword.control.processor.defacto",
+          "match": "#(MOV|STATIC|STOP|INTERRUPT)"
+        }
+      ]
+    },
+    "sections": {
+      "patterns": [
+        {
+          "name": "punctuation.section.open.defacto",
+          "match": "<\\.de"
+        },
+        {
+          "name": "punctuation.section.close.defacto",
+          "match": "\\.>"
+        },
+        {
+          "name": "keyword.control.section.defacto",
+          "match": "static\\.pl>"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.defacto",
+          "match": "\\b(loop|if|stop|call|display|free|color|readkey|readchar|putchar|clear|reboot)\\b"
+        },
+        {
+          "name": "keyword.declaration.defacto",
+          "match": "\\b(var|const|function)\\b"
+        },
+        {
+          "name": "keyword.operator.defacto",
+          "match": "==|!=|<=|>=|<|>"
+        }
+      ]
+    },
+    "registers": {
+      "name": "variable.language.register.defacto",
+      "match": "#R(1[0-6]|[1-9])\\b"
+    },
+    "types": {
+      "name": "storage.type.defacto",
+      "match": "\\b(i32|i64|u8|string|pointer)\\b"
+    },
+    "strings": {
+      "name": "string.quoted.double.defacto",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.defacto",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.defacto",
+          "match": "0[xX][0-9a-fA-F]+"
+        },
+        {
+          "name": "constant.numeric.decimal.defacto",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "name": "keyword.operator.arithmetic.defacto",
+      "match": "[+\\-*/=]"
+    },
+    "functions": {
+      "name": "entity.name.function.defacto",
+      "match": "(?<=function\\s==\\s)[a-zA-Z_][a-zA-Z0-9_]*"
+    },
+    "free": {
+      "name": "keyword.control.memory.defacto",
+      "match": "\\bfree\\b"
+    }
+  }
+}
