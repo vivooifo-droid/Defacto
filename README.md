@@ -4,7 +4,6 @@ Low-level programming language for x86-32, bare-metal experiments, and custom to
 Pre-alpha status: the language and toolchain are unstable and will change.
 
 Русская версия: `README.ru.md`
-Full syntax and details: `DOCS.md`
 
 ## Repository contents
 
