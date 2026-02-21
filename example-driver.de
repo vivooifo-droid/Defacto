@@ -1,5 +1,5 @@
 #Mainprogramm.start
-#DRIVER
+#NO_RUNTIME
 #SAFE
 
 // Driver definition
@@ -12,19 +12,15 @@ keyboard_driver <<func = keyboard>>
 <.de
     var key: i32 = 0
     var msg: string = "Press a key"
-    
+
     static.pl>
-    
+
     display{msg}
-    
+
     // Call driver
     call #keyboard_driver
-    
+
     display{key}
-    
-    free{key}
-    free{msg}
 .>
 
 #Mainprogramm.end
-#DRIVER.stop

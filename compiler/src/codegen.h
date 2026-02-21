@@ -11,6 +11,9 @@ class CodeGen {
 
     std::map<std::string,std::string> var_lbl;
     std::map<std::string,bool> var_is_ptr;
+    std::map<std::string,std::string> var_type;  // variable name -> type name
+    std::map<std::string, std::map<std::string, int>> struct_field_offsets;  // struct_type -> (field_name -> offset)
+    std::map<std::string, int> struct_sizes;  // struct_type -> total size in bytes
     std::set<std::string> declared, freed, const_declared, driver_constants;
     std::vector<std::string> loop_ends;
     int lcnt = 0, scnt = 0;
@@ -112,6 +115,7 @@ class CodeGen {
     void gen_var(VarDecl* v){
         std::string lb="var_"+v->name;
         var_lbl[v->name]=lb;
+        var_type[v->name]=v->type;  // Store variable type
         var_is_ptr[v->name]=(v->type=="string"||v->type=="pointer");
         if(v->is_const) const_declared.insert(v->name);
         else declared.insert(v->name);
@@ -143,12 +147,33 @@ class CodeGen {
             }
             return;
         }
+        // Check if type is a struct
+        auto sit = struct_sizes.find(v->type);
+        if(sit != struct_sizes.end()){
+            // Variable of struct type - allocate space for all fields
+            data<<"    "<<lb<<": times "<<sit->second<<" db 0\n";
+            return;
+        }
         if(macos_terminal && v->type=="pointer"){
             data<<"    align 8\n";
             data<<"    "<<lb<<": dq "<<(v->init.empty()?"0":v->init)<<"\n";
         } else {
             data<<"    "<<lb<<": dd "<<(v->init.empty()?"0":v->init)<<"\n";
         }
+    }
+
+    void gen_struct(StructDecl* s){
+        // Register struct layout for field offset calculations
+        int offset = 0;
+        for(auto& f : s->fields){
+            int fsize = 4;  // default size
+            if(f.second == "u8") fsize = 1;
+            else if(f.second == "i64" || f.second == "string" || f.second == "pointer") fsize = 8;
+            else if(f.second == "i32") fsize = 4;
+            struct_field_offsets[s->name][f.first] = offset;
+            offset += fsize;
+        }
+        struct_sizes[s->name] = offset;
     }
 
     void gen_display(DisplayNode* d){
@@ -500,6 +525,41 @@ class CodeGen {
             std::string dst=reg(a->target);
             if(a->value[0]=='(') expr(dst,a->value); else load(dst,a->value); return;
         }
+        // Check for struct field access: struct.field
+        auto dot_pos = a->target.find('.');
+        if(dot_pos != std::string::npos){
+            std::string struct_var = a->target.substr(0, dot_pos);
+            std::string field_name = a->target.substr(dot_pos + 1);
+            // Look up the variable's type
+            auto tvit = var_type.find(struct_var);
+            if(tvit == var_type.end()){
+                throw std::runtime_error("undefined variable '"+struct_var+"'");
+            }
+            std::string struct_type = tvit->second;
+            // Look up struct layout by type
+            auto sit = struct_field_offsets.find(struct_type);
+            if(sit == struct_field_offsets.end()){
+                // Not a struct, treat as regular variable (backward compatibility)
+            } else {
+                auto fit = sit->second.find(field_name);
+                if(fit == sit->second.end()){
+                    throw std::runtime_error("unknown field '"+field_name+"' in struct '"+struct_type+"'");
+                }
+                auto vit = var_lbl.find(struct_var);
+                if(vit == var_lbl.end()){
+                    throw std::runtime_error("undefined struct variable '"+struct_var+"'");
+                }
+                int offset = fit->second;
+                load("eax", a->value);
+                if(offset == 0){
+                    code<<"    mov dword ["<<addr(vit->second)<<"], eax\n";
+                } else {
+                    code<<"    mov ebx, "<<addr(vit->second)<<"\n";
+                    code<<"    mov dword [ebx + "<<offset<<"], eax\n";
+                }
+                return;
+            }
+        }
         if(a->is_arr){
             auto it=var_lbl.find(a->target);
             if(it==var_lbl.end()) throw std::runtime_error("undefined array '"+a->target+"'");
@@ -528,7 +588,7 @@ class CodeGen {
     }
 
     void gen_if(IfNode* n){
-        std::string L=lbl("if_skip");
+        std::string L=lbl("if_skip"), Le=lbl("if_end");
         load("eax",n->left);
         if(is_num(n->right))      code<<"    cmp eax, "<<n->right<<"\n";
         else if(is_reg(n->right)) code<<"    cmp eax, "<<reg(n->right)<<"\n";
@@ -538,7 +598,14 @@ class CodeGen {
         else if(n->op=="<")  code<<"    jge "<<L<<"\n";
         else if(n->op==">")  code<<"    jle "<<L<<"\n";
         for(auto& s:n->then_body) gen_stmt(s.get());
-        code<<L<<":\n";
+        if(!n->else_body.empty()){
+            code<<"    jmp "<<Le<<"\n";
+            code<<L<<":\n";
+            for(auto& s:n->else_body) gen_stmt(s.get());
+            code<<Le<<":\n";
+        } else {
+            code<<L<<":\n";
+        }
     }
 
     void gen_stmt(Node* n){
@@ -559,9 +626,23 @@ class CodeGen {
                                    throw std::runtime_error("cannot free const '"+static_cast<FreeNode*>(n)->var+"'");
                                freed.insert(static_cast<FreeNode*>(n)->var);
                                break;
-            case NT::FUNC_CALL:{std::string nm=static_cast<FuncCall*>(n)->name;
-                               if(!nm.empty()&&nm[0]=='#') nm=nm.substr(1);
-                               code<<"    call "<<nm<<"\n"; break;}
+            case NT::FUNC_CALL:{
+                std::string nm=static_cast<FuncCall*>(n)->name;
+                if(!nm.empty()&&nm[0]=='#') {
+                    nm=nm.substr(1);
+                    // Check if this is a driver call (keyboard, mouse, volume)
+                    if(nm == "keyboard_driver" || nm == "mouse_driver" || nm == "volume_driver") {
+                        // Extract driver type from name (e.g., "keyboard_driver" -> "keyboard")
+                        std::string drv_type = nm.substr(0, nm.find("_driver"));
+                        code<<"    call __defacto_drv_"<<drv_type<<"\n";
+                    } else {
+                        code<<"    call "<<nm<<"\n";
+                    }
+                } else {
+                    code<<"    call "<<nm<<"\n";
+                }
+                break;
+            }
             case NT::DRV_CALL: {
                 auto dc=static_cast<DriverCall*>(n);
                 if (dc->use_builtin) {
@@ -638,14 +719,30 @@ class CodeGen {
         code<<"    mov esp, ebp\n    pop ebp\n    ret\n";
     }
 
-    void check_mem(){
-        bool ok=true;
-        for(auto& v:declared)
+    void gen_auto_free(){
+        // Automatically free all declared variables at the end of the section
+        for(auto& v:declared){
             if(!freed.count(v) && !driver_constants.count(v)){
-                err("Memory Abandonment: '"+v+"' never freed");
-                ok=false;
+                auto it=var_lbl.find(v);
+                if(it!=var_lbl.end()){
+                    // Generate free code based on variable type
+                    if(var_is_ptr[v]){
+                        // For string/pointer types, free the allocated string data
+                        code<<"    ; auto-free: "+v+"\n";
+                        // String data is static, no runtime free needed for bare-metal
+                    } else {
+                        // For i32/i64/u8 types, just mark as freed (static allocation)
+                        code<<"    ; auto-free: "+v+"\n";
+                    }
+                    freed.insert(v);
+                }
             }
-        if(!ok) throw std::runtime_error("memory abandonment errors");
+        }
+    }
+
+    void check_mem(){
+        // Auto-free all variables - compiler handles memory management
+        gen_auto_free();
     }
 
 public:
@@ -655,7 +752,10 @@ public:
         code<<"global _start\n";
         if(macos_terminal) code<<"section .text\n";
         code<<"_start:\n";
-        
+
+        // Generate struct definitions first
+        for(auto& s:prog->structs) gen_struct(s.get());
+
         // Generate driver code first if present
         for(auto& s:prog->main_sec) {
             if (s->kind == NT::DRIVER_SECTION) {

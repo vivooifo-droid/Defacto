@@ -1,4 +1,4 @@
-# Defacto (pre-alpha)
+# Defacto v0.30 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 Pre-alpha status: the language and toolchain are unstable and will change.
@@ -18,7 +18,7 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 
 ### Windows (Recommended)
 
-Download and run the installer: [defacto-0.25-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.25/defacto-0.25-installer.exe)
+Download and run the installer: [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
 
 The installer will:
 - Install the Defacto compiler to `C:\Program Files\Defacto`
@@ -30,30 +30,22 @@ The installer will:
 - Download from: https://www.nasm.us/
 - Or use Chocolatey: `choco install nasm`
 
-### Windows (Build from source with MSYS2)
-
-1. Install MSYS2.
-2. Open **MSYS2 MINGW64** terminal.
-3. Install tools:
-
-```
-pacman -S --needed mingw-w64-x86_64-toolchain make nasm git
-```
-
 ### macOS
 
 ```
 xcode-select --install
-brew install nasm mingw-w64 nsis
-./build-windows-installer.sh
+brew install nasm mingw-w64
+cd compiler && make
+./defacto -h
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```
 sudo apt update
-sudo apt install build-essential nasm nsis mingw-w64
-./build-windows-installer.sh
+sudo apt install build-essential nasm
+cd compiler && make
+./defacto -h
 ```
 
 ## Build compiler
@@ -96,11 +88,11 @@ Verbose:
 - `-terminal` Linux syscalls
 - `-terminal-macos` macOS syscalls (Mach-O x86_64)
 
-## Full language syntax (summary)
+## Full language syntax
 
 ### Required file directives
 
-```
+```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
@@ -119,7 +111,7 @@ Notes:
 
 All code must be inside sections:
 
-```
+```de
 <.de
     var x: i32 = 0
     var msg: string = "hello"
@@ -128,8 +120,6 @@ All code must be inside sections:
 
     display{msg}
     x = (x + 1)
-    free{x}
-    free{msg}
 .>
 ```
 
@@ -141,7 +131,7 @@ Rules:
 
 ### Types and variables
 
-```
+```de
 var count: i32 = 42
 const big: i64 = 1000000
 ```
@@ -155,10 +145,11 @@ Supported types:
 | `u8` | 1 byte | unsigned byte |
 | `string` | pointer | null-terminated string |
 | `pointer` | 4 bytes | raw address |
+| `struct_name` | varies | user-defined struct type |
 
 Arrays:
 
-```
+```de
 var buf: u8[64]
 var arr: i32[10]
 ```
@@ -168,11 +159,34 @@ Rules:
 - `const` arrays are not supported.
 - `const` values must be initialized.
 
+### Structs (v0.30+)
+
+Define custom data structures:
+
+```de
+struct Point {
+    x: i32
+    y: i32
+    z: i32
+}
+
+var p: Point
+p.x = 10
+p.y = 20
+p.z = 30
+```
+
+Rules:
+
+- Struct fields can be any built-in type.
+- Structs are stored inline (no pointers).
+- Field access uses dot notation: `struct.field`
+
 ### Expressions
 
 Only simple expressions are supported:
 
-```
+```de
 x = (a + b)
 x = (x - 1)
 x = (x * 2)
@@ -188,55 +202,74 @@ Limitations:
 
 ### Statements
 
-Assignment:
+#### Assignment
 
-```
+```de
 x = 1
 x = other
 x = (x + 1)
 arr[i] = x
+p.x = 100        // struct field
 ```
 
-Loop:
+#### Loop
 
-```
+```de
 loop {
     if x == 10 { stop }
 }
 ```
 
-If:
+#### If/Else (v0.30+)
 
-```
-if x == y { stop }
+```de
+if x == y {
+    display{msg}
+} else {
+    display{err}
+}
 ```
 
 Rules:
 
-- Only `==` is supported.
+- Only `==` is supported for comparison.
 - Left and right sides must be a single token (number, variable, register).
-- No else/elseif.
+- `else` block is optional.
 
 ### Functions
 
-```
+```de
 function == my_func {
     <.de
         var a: i32 = 0
         static.pl>
         a = (a + 1)
-        free{a}
     .>
 }
 
 call #my_func
 ```
 
+### Drivers
+
+Define and use hardware drivers:
+
+```de
+<drv.
+Const.driver = keyboard_driver
+keyboard_driver <<func = keyboard>>
+.dr>
+
+// Use the driver
+call #keyboard_driver
+```
+
+Supported driver types: `keyboard`, `mouse`, `volume`
+
 ### Builtins
 
-```
+```de
 display{msg}
-free{x}
 color{10}
 readkey{key}
 readchar{ch}
@@ -254,7 +287,7 @@ Notes:
 
 ### Registers
 
-```
+```de
 #MOV {#R1, x}
 #MOV {x, #R1}
 #R1 = (#R1 + #R2)
@@ -265,16 +298,33 @@ Notes:
 - Register mapping is fixed to x86-32.
 - `#STATIC` is parsed but not emitted yet.
 
-## Memory rules
+## Memory management
 
-- Every `var` must be freed with `free{}`.
-- `const` cannot be freed.
-- Strings and arrays allocated as `var` must be freed.
+**Automatic memory management (v0.30+):**
+
+The compiler automatically frees all variables at the end of each section. You don't need to call `free{}` manually.
+
+```de
+<.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    static.pl>
+    display{msg}
+.>
+// x and msg are automatically freed here
+```
+
+Legacy `free{}` is still supported for backward compatibility.
 
 ## Comments and strings
 
 - Line comments use `//`.
 - Strings support `\n` and `\t` escapes.
+
+```de
+// This is a comment
+var msg: string = "Hello\nWorld"
+```
 
 ## defo package manager
 
@@ -286,10 +336,9 @@ Notes:
 ./defo list
 ```
 
-##  limitations
+## Limitations
 
-- Only `==` in `if`.
-- No else/elseif.
+- Only `==` in `if` conditions.
 - One operator per expression.
 - No negative number literals.
 - No expression indexes in arrays.
@@ -331,3 +380,11 @@ make
 ```
 
 See [`addons/cpp/`](addons/cpp/) for examples.
+
+## What's new in v0.30
+
+- **Automatic memory management** - No more `free{}` required!
+- **if/else statements** - Full conditional branching support
+- **Struct types** - Define custom data structures with fields
+- **Field access** - Access struct fields with dot notation
+- **Improved Windows installer** - Simplified installation process

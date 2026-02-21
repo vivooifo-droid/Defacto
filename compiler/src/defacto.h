@@ -26,13 +26,14 @@ inline void warn(const std::string& msg, int line = -1) {
 enum class TT {
     PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT, DRIVER, DRIVER_STOP,
     SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
-    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, STOP, DISPLAY, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, ELSE, STOP, DISPLAY, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    STRUCT,
     MOV, REG_STATIC, REG_STOP,
     I32, I64, U8, STR, PTR,
     REGISTER, IDENT, NUMBER, STR_LIT, HEX,
     EQ, EQEQ, PLUS, MINUS, MUL, DIV, LSHIFT,
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
-    COLON, COMMA,
+    COLON, COMMA, DOT,
     DRV_FUNC_ASSIGN, DRV_CALL, DRV_CALL_NOT,
     EOF_T
 };
@@ -48,7 +49,8 @@ struct Token {
 enum class NT {
     PROGRAM, SECTION, VAR_DECL, FUNC_DECL, FUNC_CALL,
     ASSIGN, LOOP, IF_STMT, REG_OP, DISPLAY, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
-    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL
+    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL,
+    STRUCT_DECL, STRUCT_FIELD_ACCESS
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -60,9 +62,17 @@ struct SectionNode : Node {
     SectionNode() { kind = NT::SECTION; }
 };
 
+// Struct support - must be before ProgramNode
+struct StructDecl : Node {
+    std::string name;
+    std::vector<std::pair<std::string, std::string>> fields;  // field name -> type
+    StructDecl() { kind = NT::STRUCT_DECL; }
+};
+
 struct ProgramNode : Node {
     bool no_runtime = false, safe = false;
     NodeList interrupts, functions, main_sec;
+    std::vector<std::unique_ptr<StructDecl>> structs;
     ProgramNode() { kind = NT::PROGRAM; }
 };
 
@@ -98,7 +108,7 @@ struct LoopNode : Node {
 
 struct IfNode : Node {
     std::string left, op, right;
-    NodeList then_body;
+    NodeList then_body, else_body;
     IfNode() { kind = NT::IF_STMT; }
 };
 
@@ -179,4 +189,10 @@ struct DriverCall : Node {
     std::string builtin_name;
     bool use_builtin = true;
     DriverCall() { kind = NT::DRV_CALL; }
+};
+
+struct StructFieldAccess : Node {
+    std::string struct_var;
+    std::string field_name;
+    StructFieldAccess() { kind = NT::STRUCT_FIELD_ACCESS; }
 };

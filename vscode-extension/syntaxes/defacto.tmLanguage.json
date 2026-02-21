@@ -24,11 +24,11 @@
       "patterns": [
         {
           "name": "keyword.control.directive.defacto",
-          "match": "#(Mainprogramm\\.start|Mainprogramm\\.end|NO_RUNTIME|SAFE|DRIVER|DRIVER\\.stop)"
+          "match": "#(Mainprogramm\\.start|Mainprogramm\\.end|NO_RUNTIME|SAFE|DRIVER|DRIVER\\.stop)\\b"
         },
         {
           "name": "keyword.control.processor.defacto",
-          "match": "#(MOV|STATIC|STOP|INTERRUPT)"
+          "match": "#(MOV|STATIC|STOP|INTERRUPT)\\b"
         },
         {
           "name": "keyword.control.driver.directive.defacto",

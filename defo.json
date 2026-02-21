@@ -1,7 +1,6 @@
 {
-  "name": "myapp",
-  "version": "0.1.0",
-  "dependencies": {
-    "mylib": "git+https://github.com/myorg/mylib.git"
-  }
+  "name": "defacto",
+  "version": "0.30.0",
+  "description": "Low-level programming language for x86-32 and bare-metal development",
+  "dependencies": {}
 }

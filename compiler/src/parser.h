@@ -43,9 +43,15 @@ class Parser {
         if(!at(TT::IDENT)) throw std::runtime_error("expected variable name at line "+std::to_string(cur().line));
         n->name=cur().val; adv();
         expect(TT::COLON,"expected ':' after variable name at line "+std::to_string(cur().line));
-        if(at(TT::I32)||at(TT::I64)||at(TT::U8)||at(TT::STR)||at(TT::PTR))
-            { n->type=cur().val; adv(); }
-        else throw std::runtime_error("expected type at line "+std::to_string(cur().line));
+        // Accept built-in types or struct names (IDENT)
+        if(at(TT::I32)||at(TT::I64)||at(TT::U8)||at(TT::STR)||at(TT::PTR)){
+            n->type=cur().val; adv();
+        } else if(at(TT::IDENT)){
+            // Struct type or unknown type
+            n->type=cur().val; adv();
+        } else {
+            throw std::runtime_error("expected type at line "+std::to_string(cur().line));
+        }
         if(at(TT::LBRACK)) {
             if(is_const_decl) throw std::runtime_error("const arrays are not supported at line "+std::to_string(cur().line));
             adv();
@@ -113,29 +119,6 @@ class Parser {
             adv();
             auto n=std::make_unique<FuncCall>(); n->name=cur().val; adv(); return n;
         }
-        if (at(TT::DRV_CALL)) {
-            adv();
-            auto n=std::make_unique<DriverCall>();
-            if (at(TT::IDENT)) {
-                std::string id = cur().val;
-                if (id == "not") {
-                    n->use_builtin = false;
-                    adv();
-                    expect(TT::LSHIFT, "expected '<<'");
-                    n->builtin_name = cur().val;
-                    adv();
-                    expect(TT::RBRACK, "expected '>>'");
-                } else {
-                    n->builtin_name = id;
-                }
-            }
-            if (at(TT::LSHIFT)) { adv(); }  // ->
-            if (at(TT::IDENT)) {
-                n->driver_target = cur().val;
-                adv();
-            }
-            return n;
-        }
         if (at(TT::LOOP)) {
             adv(); expect(TT::LBRACE,"expected '{'");
             auto n=std::make_unique<LoopNode>();
@@ -148,7 +131,15 @@ class Parser {
             n->left=cur().val; adv(); n->op=cur().val; adv(); n->right=cur().val; adv();
             expect(TT::LBRACE,"expected '{'");
             while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->then_body.push_back(std::move(s)); }
-            expect(TT::RBRACE,"expected '}'"); return n;
+            expect(TT::RBRACE,"expected '}'");
+            // Check for else block
+            if (at(TT::ELSE)) {
+                adv();  // consume 'else'
+                expect(TT::LBRACE,"expected '{' after 'else'");
+                while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->else_body.push_back(std::move(s)); }
+                expect(TT::RBRACE,"expected '}'");
+            }
+            return n;
         }
         if (at(TT::STOP)) { adv(); return std::make_unique<BreakNode>(); }
         if (at(TT::MOV)) {
@@ -165,7 +156,22 @@ class Parser {
             expect(TT::RBRACE,"expected '}'"); return n;
         }
         if (at(TT::IDENT)||at(TT::REGISTER)) {
-            auto n=std::make_unique<Assign>(); n->target=cur().val; adv();
+            auto n=std::make_unique<Assign>();
+            std::string target_name = cur().val;
+            adv();
+            // Check for struct field access: struct.field
+            if (at(TT::DOT)) {
+                adv();  // consume '.'
+                if (at(TT::IDENT)) {
+                    n->target = target_name + "." + cur().val;
+                    n->is_arr = true;  // Use is_arr flag to indicate struct field access
+                    adv();
+                } else {
+                    throw std::runtime_error("expected field name after '.' at line " + std::to_string(cur().line));
+                }
+            } else {
+                n->target = target_name;
+            }
             if (n->target.size()>=2&&n->target[0]=='#'&&n->target[1]=='R') n->is_reg=true;
             if(!n->is_reg && const_vars.count(n->target))
                 throw std::runtime_error("cannot assign to const '"+n->target+"' at line "+std::to_string(cur().line));
@@ -190,6 +196,30 @@ class Parser {
         expect(TT::STATIC_PL,"expected 'static.pl>'");
         while(!at(TT::SEC_CLOSE)&&!at(TT::EOF_T)) { auto st=parse_stmt(); if(st) s->stmts.push_back(std::move(st)); }
         expect(TT::SEC_CLOSE,"expected '.>'");
+        return s;
+    }
+
+    std::unique_ptr<StructDecl> parse_struct() {
+        expect(TT::STRUCT, "expected 'struct'");
+        auto s = std::make_unique<StructDecl>();
+        s->name = cur().val;
+        expect(TT::IDENT, "expected struct name");
+        expect(TT::LBRACE, "expected '{'");
+        while (!at(TT::RBRACE) && !at(TT::EOF_T)) {
+            // Parse field: name: type
+            std::string fname = cur().val;
+            expect(TT::IDENT, "expected field name");
+            expect(TT::COLON, "expected ':'");
+            std::string ftype;
+            if (at(TT::I32) || at(TT::I64) || at(TT::U8) || at(TT::STR) || at(TT::PTR)) {
+                ftype = cur().val;
+                adv();
+            } else {
+                throw std::runtime_error("expected type at line " + std::to_string(cur().line));
+            }
+            s->fields.push_back({fname, ftype});
+        }
+        expect(TT::RBRACE, "expected '}'");
         return s;
     }
 
@@ -274,6 +304,7 @@ public:
             if(at(TT::SAFE)){p->safe=true;adv();}
             if(at(TT::DRIVER)){p->no_runtime=true;adv();}  // DRIVER implies NO_RUNTIME
         }
+        while(at(TT::STRUCT))      p->structs.push_back(parse_struct());
         while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
         while(at(TT::FUNCTION))  p->functions.push_back(parse_function());
         if(at(TT::DRV_OPEN))     p->main_sec.push_back(parse_driver_section());

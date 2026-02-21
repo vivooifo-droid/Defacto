@@ -1,0 +1,89 @@
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// ============================================
+// Defacto Language - New Syntax Test
+// ============================================
+// Features demonstrated:
+// - Driver definitions
+// - Auto memory management (no free{} needed)
+// - if/else statements
+// - Struct definitions and usage
+// ============================================
+
+// Struct definition
+struct Point {
+    x: i32
+    y: i32
+    z: i32
+}
+
+struct Player {
+    pos: i32
+    score: i32
+    health: i32
+}
+
+// Driver definition section
+<drv.
+Const.driver = keyboard_driver
+keyboard_driver <<func = keyboard>>
+.dr>
+
+// Main program section
+<.de
+    // Variable declarations (auto-freed by compiler)
+    var title: string = "=== Defacto Test ==="
+    var counter: i32 = 10
+    var value: i32 = 0
+    var key: i32 = 0
+    var ch: i32 = 0
+    
+    // Struct instances
+    var p: Point
+    var player: Player
+
+    static.pl>
+
+    // Display title
+    display{title}
+
+    // Test if/else
+    counter = 5
+    if counter == 5 {
+        value = 100
+    } else {
+        value = 0
+    }
+
+    // Countdown loop with else
+    loop {
+        if counter == 0 { stop }
+        counter = (counter - 1)
+    }
+
+    // Initialize keyboard driver
+    call #keyboard_driver
+
+    // Wait for character input
+    readchar{ch}
+
+    // Test struct field assignment
+    p.x = 10
+    p.y = 20
+    p.z = 30
+    
+    player.pos = 1
+    player.score = 500
+    player.health = 100
+
+    // Display pressed key
+    display{ch}
+
+    // Arithmetic operations
+    value = (value + 1)
+    value = (value * 2)
+.>
+
+#Mainprogramm.end

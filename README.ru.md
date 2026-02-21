@@ -1,4 +1,4 @@
-# Defacto (pre-alpha)
+# Defacto v0.30 (pre-alpha)
 
 Низкоуровневый язык для x86-32, bare-metal экспериментов и собственных тулчейнов.
 Статус pre-alpha: язык и тулчейн нестабильны и будут меняться.
@@ -9,7 +9,7 @@ English version: `README.md`
 
 - Компилятор (`compiler/`)
 - VS Code расширение (`vscode-extension/`)
-- Наивный пакетный менеджер `defo`
+- Пакетный менеджер `defo`
 - C++ аддоны (`addons/cpp/`)
 - **Rust аддоны** (`addons/rust/`) — пишите библиотеки на Rust!
 - **Backend фреймворк** (`addons/rust-backend/`) — HTTP веб-фреймворк для Defacto
@@ -18,7 +18,7 @@ English version: `README.md`
 
 ### Windows (Рекомендуется)
 
-Скачайте и запустите установщик: [defacto-0.25-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.25/defacto-0.25-installer.exe)
+Скачайте и запустите установщик: [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
 
 Установщик:
 - Установит компилятор Defacto в `C:\Program Files\Defacto`
@@ -30,30 +30,22 @@ English version: `README.md`
 - Скачать: https://www.nasm.us/
 - Или через Chocolatey: `choco install nasm`
 
-### Windows (Сборка из исходников через MSYS2)
-
-1. Установить MSYS2.
-2. Открыть **MSYS2 MINGW64** терминал.
-3. Установить инструменты:
-
-```
-pacman -S --needed mingw-w64-x86_64-toolchain make nasm git
-```
-
 ### macOS
 
 ```
 xcode-select --install
-brew install nasm mingw-w64 nsis
-./build-windows-installer.sh
+brew install nasm mingw-w64
+cd compiler && make
+./defacto -h
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```
 sudo apt update
-sudo apt install build-essential nasm nsis mingw-w64
-./build-windows-installer.sh
+sudo apt install build-essential nasm
+cd compiler && make
+./defacto -h
 ```
 
 ## Сборка компилятора
@@ -96,11 +88,11 @@ make
 - `-terminal` Linux syscalls
 - `-terminal-macos` macOS syscalls (Mach-O x86_64)
 
-## Полный синтаксис (кратко)
+## Полный синтаксис языка
 
 ### Обязательные директивы
 
-```
+```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
@@ -119,7 +111,7 @@ make
 
 Код должен быть в секциях:
 
-```
+```de
 <.de
     var x: i32 = 0
     var msg: string = "hello"
@@ -128,8 +120,6 @@ make
 
     display{msg}
     x = (x + 1)
-    free{x}
-    free{msg}
 .>
 ```
 
@@ -141,24 +131,25 @@ make
 
 ### Типы и переменные
 
-```
+```de
 var count: i32 = 42
 const big: i64 = 1000000
 ```
 
 Поддерживаемые типы:
 
-| Type | Size | Notes |
+| Тип | Размер | Описание |
 | --- | --- | --- |
-| `i32` | 4 bytes | signed integer |
-| `i64` | 8 bytes | signed integer |
-| `u8` | 1 byte | unsigned byte |
-| `string` | pointer | null-terminated string |
-| `pointer` | 4 bytes | raw address |
+| `i32` | 4 байта | знаковое целое |
+| `i64` | 8 байт | знаковое целое |
+| `u8` | 1 байт | беззнаковый байт |
+| `string` | указатель | null-терминированная строка |
+| `pointer` | 4 байта | сырой адрес |
+| `struct_name` | varies | пользовательский тип структуры |
 
 Массивы:
 
-```
+```de
 var buf: u8[64]
 var arr: i32[10]
 ```
@@ -168,11 +159,34 @@ var arr: i32[10]
 - `const` массивы не поддерживаются.
 - `const` должны быть инициализированы.
 
+### Структуры (v0.30+)
+
+Определение пользовательских структур данных:
+
+```de
+struct Point {
+    x: i32
+    y: i32
+    z: i32
+}
+
+var p: Point
+p.x = 10
+p.y = 20
+p.z = 30
+```
+
+Правила:
+
+- Поля структур могут быть любого встроенного типа.
+- Структуры хранятся inline (без указателей).
+- Доступ к полям через точку: `struct.field`
+
 ### Выражения
 
 Поддерживаются только простые выражения:
 
-```
+```de
 x = (a + b)
 x = (x - 1)
 x = (x * 2)
@@ -183,60 +197,79 @@ x = (x / 4)
 
 - Только один оператор.
 - Нет вложенных выражений `(a + b + c)`.
-- Отрицательные литералы не поддерживаются. Используй `(0 - 1)` или временную переменную.
+- Отрицательные литералы не поддерживаются. Используйте `(0 - 1)` или временную переменную.
 - Индексы массивов в выражениях — только число/переменная/регистр.
 
 ### Инструкции
 
-Присваивание:
+#### Присваивание
 
-```
+```de
 x = 1
 x = other
 x = (x + 1)
 arr[i] = x
+p.x = 100        // поле структуры
 ```
 
-Цикл:
+#### Цикл
 
-```
+```de
 loop {
     if x == 10 { stop }
 }
 ```
 
-Условие:
+#### If/Else (v0.30+)
 
-```
-if x == y { stop }
+```de
+if x == y {
+    display{msg}
+} else {
+    display{err}
+}
 ```
 
 Правила:
 
-- Поддерживается только `==`.
+- Поддерживается только `==` для сравнения.
 - Слева и справа один токен: число, переменная или регистр.
-- Нет else/elseif.
+- Блок `else` необязателен.
 
 ### Функции
 
-```
+```de
 function == my_func {
     <.de
         var a: i32 = 0
         static.pl>
         a = (a + 1)
-        free{a}
     .>
 }
 
 call #my_func
 ```
 
-### Встроенные
+### Драйверы
 
+Определение и использование аппаратных драйверов:
+
+```de
+<drv.
+Const.driver = keyboard_driver
+keyboard_driver <<func = keyboard>>
+.dr>
+
+// Использование драйвера
+call #keyboard_driver
 ```
+
+Поддерживаемые типы драйверов: `keyboard`, `mouse`, `volume`
+
+### Встроенные функции
+
+```de
 display{msg}
-free{x}
 color{10}
 readkey{key}
 readchar{ch}
@@ -254,7 +287,7 @@ reboot{}
 
 ### Регистры
 
-```
+```de
 #MOV {#R1, x}
 #MOV {x, #R1}
 #R1 = (#R1 + #R2)
@@ -265,16 +298,33 @@ reboot{}
 - Привязка регистров фиксирована к x86-32.
 - `#STATIC` парсится, но не генерируется.
 
-## Правила памяти
+## Управление памятью
 
-- Каждая `var` должна освобождаться через `free{}`.
-- `const` освобождать нельзя.
-- Строки и массивы, объявленные как `var`, должны быть освобождены.
+**Автоматическое управление памятью (v0.30+):**
+
+Компилятор автоматически освобождает все переменные в конце каждой секции. Вам больше не нужно вызывать `free{}` вручную.
+
+```de
+<.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    static.pl>
+    display{msg}
+.>
+// x и msg автоматически освобождаются здесь
+```
+
+`free{}` по-прежнему поддерживается для обратной совместимости.
 
 ## Комментарии и строки
 
 - Комментарии строки: `//`.
 - Строки поддерживают `\n` и `\t`.
+
+```de
+// Это комментарий
+var msg: string = "Привет\nМир"
+```
 
 ## Пакетный менеджер defo
 
@@ -288,8 +338,7 @@ reboot{}
 
 ## Ограничения
 
-- Только `==` в `if`.
-- Нет else/elseif.
+- Только `==` в условиях `if`.
 - Один оператор на выражение.
 - Нет отрицательных числовых литералов.
 - Нельзя использовать выражения в индексах массивов.
@@ -331,3 +380,11 @@ make
 ```
 
 Примеры: [`addons/cpp/`](addons/cpp/)
+
+## Что нового в v0.30
+
+- **Автоматическое управление памятью** - Больше не нужен `free{}`!
+- **if/else** - Полная поддержка условных переходов
+- **Структуры** - Определение пользовательских структур данных
+- **Доступ к полям** - Доступ к полям структур через точку
+- **Улучшенный установщик Windows** - Упрощённый процесс установки

@@ -50,9 +50,11 @@ class Lexer {
         if(w=="const")         return TT::CONST;
         if(w=="Const.driver")  return TT::CONST_DRIVER;
         if(w=="function")      return TT::FUNCTION;
-        if(w=="call")          return TT::DRV_CALL;
+        if(w=="call")          return TT::CALL;
         if(w=="loop")          return TT::LOOP;
         if(w=="if")            return TT::IF;
+        if(w=="else")          return TT::ELSE;
+        if(w=="struct")        return TT::STRUCT;
         if(w=="stop")          return TT::STOP;
         if(w=="display")       return TT::DISPLAY;
         if(w=="free")          return TT::FREE;
@@ -159,6 +161,7 @@ public:
             else if(ch==']'){adv();out.emplace_back(TT::RBRACK,"]",l,c);}
             else if(ch==':'){adv();out.emplace_back(TT::COLON, ":",l,c);}
             else if(ch==','){adv();out.emplace_back(TT::COMMA, ",",l,c);}
+            else if(ch=='.'){adv();out.emplace_back(TT::DOT, ".",l,c);}
             else { err("unknown character '"+std::string(1,ch)+"'", line); adv(); }
         }
         out.emplace_back(TT::EOF_T,"",line,col);

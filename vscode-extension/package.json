@@ -44,6 +44,12 @@
         "label": "Defacto Icons",
         "path": "./defacto-icon-theme.json"
       }
+    ],
+    "snippets": [
+      {
+        "language": "defacto",
+        "path": "./snippets/defacto-snippets.json"
+      }
     ]
   }
 }

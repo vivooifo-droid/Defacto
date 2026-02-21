@@ -1,0 +1,157 @@
+{
+  "Main Program Start": {
+    "prefix": "#Mainprogramm.start",
+    "body": "#Mainprogramm.start",
+    "description": "Directive to start main program"
+  },
+  "Main Program End": {
+    "prefix": "#Mainprogramm.end",
+    "body": "#Mainprogramm.end",
+    "description": "Directive to end main program"
+  },
+  "No Runtime": {
+    "prefix": "#NO_RUNTIME",
+    "body": "#NO_RUNTIME",
+    "description": "Directive to disable runtime"
+  },
+  "Safe Mode": {
+    "prefix": "#SAFE",
+    "body": "#SAFE",
+    "description": "Directive for safe mode"
+  },
+  "Driver": {
+    "prefix": "#DRIVER",
+    "body": "#DRIVER",
+    "description": "Directive for driver mode"
+  },
+  "Driver Stop": {
+    "prefix": "#DRIVER.stop",
+    "body": "#DRIVER.stop",
+    "description": "Directive to stop driver"
+  },
+  "MOV Processor": {
+    "prefix": "#MOV",
+    "body": "#MOV",
+    "description": "MOV processor directive"
+  },
+  "STATIC Processor": {
+    "prefix": "#STATIC",
+    "body": "#STATIC",
+    "description": "STATIC processor directive"
+  },
+  "STOP Processor": {
+    "prefix": "#STOP",
+    "body": "#STOP",
+    "description": "STOP processor directive"
+  },
+  "INTERRUPT Processor": {
+    "prefix": "#INTERRUPT",
+    "body": "#INTERRUPT",
+    "description": "INTERRUPT processor directive"
+  },
+  "Main Program Block": {
+    "prefix": "mainblock",
+    "body": "#Mainprogramm.start\n#SAFE\n<.de\n    ${0}\n.>\n#Mainprogramm.end",
+    "description": "Complete main program block"
+  },
+  "Driver Block": {
+    "prefix": "driverblock",
+    "body": "#DRIVER\n<drv.\nConst.driver = ${1:driver_name}\n${1:driver_name} <<func = ${2:func}>>\n.dr>\n#DRIVER.stop",
+    "description": "Complete driver definition block"
+  },
+  "Section Block": {
+    "prefix": "section",
+    "body": "<.de\n    ${0}\n.>",
+    "description": "Code section block"
+  },
+  "Driver Section": {
+    "prefix": "drvsection",
+    "body": "<drv.\n${0}\n.dr>",
+    "description": "Driver section block"
+  },
+  "Variable Declaration": {
+    "prefix": "var",
+    "body": "var ${1:name}: ${2:i32} = ${3:0}",
+    "description": "Declare a variable"
+  },
+  "Constant Declaration": {
+    "prefix": "const",
+    "body": "Const.${1:name} = ${2:value}",
+    "description": "Declare a constant"
+  },
+  "Function Declaration": {
+    "prefix": "function",
+    "body": "function ${1:name} == ${2:body}",
+    "description": "Declare a function"
+  },
+  "Display": {
+    "prefix": "display",
+    "body": "display{${1:value}}",
+    "description": "Display a value"
+  },
+  "Free Memory": {
+    "prefix": "free",
+    "body": "free{${1:variable}}",
+    "description": "Free memory for a variable"
+  },
+  "Call": {
+    "prefix": "call",
+    "body": "call ${1:target}",
+    "description": "Call a function or driver"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": "if ${1:condition} {\n    ${0}\n}",
+    "description": "If statement"
+  },
+  "Loop": {
+    "prefix": "loop",
+    "body": "loop {\n    ${0}\n}",
+    "description": "Loop statement"
+  },
+  "Stop": {
+    "prefix": "stop",
+    "body": "stop",
+    "description": "Stop execution"
+  },
+  "Static Placeholder": {
+    "prefix": "static.pl>",
+    "body": "static.pl>",
+    "description": "Static placeholder marker"
+  },
+  "Keyboard Driver": {
+    "prefix": "#keyboard",
+    "body": "#keyboard",
+    "description": "Keyboard driver directive"
+  },
+  "Mouse Driver": {
+    "prefix": "#mouse",
+    "body": "#mouse",
+    "description": "Mouse driver directive"
+  },
+  "Volume Driver": {
+    "prefix": "#volume",
+    "body": "#volume",
+    "description": "Volume driver directive"
+  },
+  "Register": {
+    "prefix": "#R",
+    "body": "#R${1:1}",
+    "description": "Processor register (R1-R16)"
+  },
+  "Color": {
+    "prefix": "color",
+    "body": "color{${1:value}}",
+    "description": "Set color"
+  },
+  "Clear": {
+    "prefix": "clear",
+    "body": "clear",
+    "description": "Clear screen"
+  },
+  "Reboot": {
+    "prefix": "reboot",
+    "body": "reboot",
+    "description": "Reboot system"
+  }
+}
