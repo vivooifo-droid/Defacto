@@ -1,15 +1,19 @@
 # Compiler
 compiler/defacto
+compiler/defacto.exe
 compiler/*.o
 compiler/*.asm
-
-# Build artifacts
-start
 
 # VS Code extension
 vscode-extension/*.vsix
 vscode-extension/node_modules/
 vscode-extension/out/
+
+# Build artifacts
+*.save
+build/
+dist/
+*.exe
 
 # macOS
 .DS_Store

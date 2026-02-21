@@ -14,21 +14,21 @@ English version: `README.md`
 
 ## Установка
 
-macOS:
+### Windows (Рекомендуется)
 
-```
-xcode-select --install
-brew install nasm
-```
+Скачайте и запустите установщик: [defacto-0.25-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.25/defacto-0.25-installer.exe)
 
-Linux (Ubuntu/Debian):
+Установщик:
+- Установит компилятор Defacto в `C:\Program Files\Defacto`
+- Добавит Defacto в PATH
+- Создаст ярлыки в меню Пуск
+- Включит примеры файлов
 
-```
-sudo apt update
-sudo apt install build-essential nasm
-```
+**Требования:** Сначала установите NASM:
+- Скачать: https://www.nasm.us/
+- Или через Chocolatey: `choco install nasm`
 
-Windows (сборка нативно через MSYS2):
+### Windows (Сборка из исходников через MSYS2)
 
 1. Установить MSYS2.
 2. Открыть **MSYS2 MINGW64** терминал.
@@ -36,6 +36,22 @@ Windows (сборка нативно через MSYS2):
 
 ```
 pacman -S --needed mingw-w64-x86_64-toolchain make nasm git
+```
+
+### macOS
+
+```
+xcode-select --install
+brew install nasm mingw-w64 nsis
+./build-windows-installer.sh
+```
+
+### Linux (Ubuntu/Debian)
+
+```
+sudo apt update
+sudo apt install build-essential nasm nsis mingw-w64
+./build-windows-installer.sh
 ```
 
 ## Сборка компилятора
