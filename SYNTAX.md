@@ -29,25 +29,25 @@
 #NO_RUNTIME
 #SAFE
 
-// Структуры (опционально)
+
 struct MyStruct {
     field: i32
 }
 
-// Драйверы (опционально)
+
 <drv.
 Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
 
-// Функции (опционально)
+
 function == my_func {
     <.de
-        // код
+
     .>
 }
 
-// Основная программа
+
 <.de
     var x: i32 = 0
     static.pl>
@@ -101,14 +101,14 @@ function == my_func {
 
 ```de
 <.de
-    // Объявления переменных
+
     var x: i32 = 0
     var msg: string = "hello"
 
-    // Граница между объявлениями и кодом
+
     static.pl>
 
-    // Исполняемый код
+
     display{msg}
     x = (x + 1)
 .>
@@ -146,7 +146,7 @@ struct Point {
     y: i32
 }
 
-var p: Point  // Point становится типом
+var p: Point
 ```
 
 ---
@@ -156,11 +156,11 @@ var p: Point  // Point становится типом
 ### Объявление переменных
 
 ```de
-// С инициализацией
+
 var count: i32 = 42
 var msg: string = "hello"
 
-// Без инициализации (ноль по умолчанию)
+
 var x: i32
 var buf: u8[64]
 ```
@@ -180,8 +180,8 @@ const NAME: string = "Defacto"
 ### Массивы
 
 ```de
-var arr: i32[10]      // 10 элементов по 4 байта
-var buf: u8[256]      // 256 байт
+var arr: i32[10]
+var buf: u8[256]
 ```
 
 **Важно:**
@@ -261,21 +261,21 @@ Player (16 байт):
 ### Правила выражений
 
 ```de
-// ✅ ПРАВИЛЬНО:
+
 x = (a + b)
 x = (x * 2)
-x = (0 - 1)      // Отрицательное число
+x = (0 - 1)
 
-// ❌ НЕПРАВИЛЬНО:
-x = (a + b + c)  // Нет вложенных выражений
-x = ((a + b) * c) // Нет скобок для группировки
-x = -5           // Нет отрицательных литералов
+
+x = (a + b + c)
+x = ((a + b) * c)
+x = -5
 ```
 
 ### Присваивание выражений
 
 ```de
-// Результат выражения сохраняется в левую переменную
+
 result = (a + b)
 ```
 
@@ -286,20 +286,20 @@ result = (a + b)
 ### Присваивание
 
 ```de
-// Простое присваивание
+
 x = 5
 x = other_var
 x = #R1
 
-// Присваивание с выражением
+
 x = (x + 1)
 y = (a * b)
 
-// Присваивание массиву
+
 arr[i] = x
 arr[0] = 100
 
-// Присваивание полю структуры
+
 player.x = 10
 player.health = (player.health - 1)
 ```
@@ -308,10 +308,10 @@ player.health = (player.health - 1)
 
 ```de
 loop {
-    // Тело цикла
+
     counter = (counter - 1)
     
-    // Выход из цикла
+
     if counter == 0 { stop }
 }
 ```
@@ -324,19 +324,19 @@ loop {
 ### Условие `if/else`
 
 ```de
-// Простой if
+
 if x == 10 {
     display{msg}
 }
 
-// if/else
+
 if x == 10 {
     display{msg}
 } else {
     display{err}
 }
 
-// Вложенный if
+
 if x == 1 {
     if y == 2 {
         stop
@@ -366,7 +366,7 @@ if x == 1 {
 
 ```de
 loop {
-    if x == 10 { stop }  // Выход из цикла
+    if x == 10 { stop }
 }
 ```
 
@@ -468,25 +468,25 @@ call #keyboard_driver
 ### Примеры
 
 ```de
-// Вывод строки
+
 var msg: string = "Hello"
 static.pl>
 display{msg}
 
-// Чтение символа
+
 var ch: i32 = 0
 static.pl>
 readchar{ch}
 display{ch}
 
-// Цвет текста
-color{10}      // Зелёный на чёрном
+
+color{10}
 display{msg}
 
-// Очистка экрана
+
 clear{}
 
-// Перезагрузка
+
 reboot{}
 ```
 
@@ -518,13 +518,13 @@ reboot{}
 ### Операции с регистрами
 
 ```de
-// MOV: загрузить из переменной в регистр
+
 #MOV {#R1, x}
 
-// MOV: сохранить из регистра в переменную
+
 #MOV {x, #R1}
 
-// Арифметика с регистрами
+
 #R1 = (#R1 + #R2)
 #R3 = (#R3 - 5)
 ```
@@ -542,8 +542,8 @@ reboot{}
 ### Комментарии
 
 ```de
-// Это однострочный комментарий
-var x: i32 = 0  // Комментарий после кода
+
+var x: i32 = 0
 ```
 
 ### Строковые литералы
@@ -576,7 +576,7 @@ var with_tab: string = "Col1\tCol2"
     static.pl>
     display{msg}
 .>
-// x и msg автоматически освобождены
+
 ```
 
 ### Ручное освобождение (legacy)
@@ -585,7 +585,7 @@ var with_tab: string = "Col1\tCol2"
 <.de
     var x: i32 = 0
     static.pl>
-    free{x}  // Всё ещё работает
+    free{x}
 .>
 ```
 
@@ -667,16 +667,16 @@ var with_tab: string = "Col1\tCol2"
     static.pl>
     
     result = (a + b)
-    // result = 15
+
     
     result = (a - b)
-    // result = 5
+
     
     result = (a * b)
-    // result = 50
+
     
     result = (a / b)
-    // result = 2
+
 .>
 
 #Mainprogramm.end
@@ -705,10 +705,10 @@ struct Player {
     player.health = 100
     player.score = 0
     
-    // Игрок получил урон
+
     player.health = (player.health - 10)
     
-    // Игрок набрал очки
+
     player.score = (player.score + 100)
 .>
 

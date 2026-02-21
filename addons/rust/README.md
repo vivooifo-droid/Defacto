@@ -6,7 +6,7 @@ Write Defacto language libraries and addons in Rust!
 
 ### Requirements
 
-- [Rust](https://rustup.rs/) (1.70+)
+- [Rust](https:
 - Cargo (comes with Rust)
 
 ### Build
@@ -61,14 +61,14 @@ crate-type = ["cdylib"]  # Important: creates a dynamic library
 use std::ffi::CString;
 use std::os::raw::c_char;
 
-/// Required: Initialization function
+
 #[no_mangle]
 pub extern "C" fn defo_addon_init(_api: *mut std::ffi::c_void) -> i32 {
-    // Your initialization code here
-    0  // Return 0 on success
+
+    0
 }
 
-/// Required: Addon name function
+
 #[no_mangle]
 pub extern "C" fn defo_addon_name() -> *const c_char {
     CString::new("my_addon")
@@ -76,7 +76,7 @@ pub extern "C" fn defo_addon_name() -> *const c_char {
         .into_raw()
 }
 
-/// Your custom functions
+
 #[no_mangle]
 pub extern "C" fn my_function(a: i32, b: i32) -> i32 {
     a + b
@@ -93,10 +93,10 @@ cargo build --release
 
 ```de
 <.de
-    // Load the addon
+
     #LOAD {my_addon}
     
-    // Call functions from the addon
+
     var result: i32 = 0
     result = my_function(5, 3)
     
@@ -115,8 +115,8 @@ Every Defacto addon must implement these two functions:
 ```rust
 #[no_mangle]
 pub extern "C" fn defo_addon_init(_api: *mut std::ffi::c_void) -> i32 {
-    // Initialize your addon
-    0  // 0 = success, non-zero = error
+
+    0
 }
 ```
 
@@ -152,18 +152,18 @@ pub extern "C" fn my_func(x: i32) -> i32 {
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
-// Receive string from Defacto
+
 #[no_mangle]
 pub unsafe extern "C" fn process_string(s: *const c_char) -> i32 {
     if s.is_null() {
         return 0;
     }
     let rust_str = CStr::from_ptr(s);
-    // Process rust_str.to_string_lossy()
+
     1
 }
 
-// Return string to Defacto (caller must free)
+
 #[no_mangle]
 pub extern "C" fn get_message() -> *mut c_char {
     CString::new("Hello from Rust!")
@@ -171,7 +171,7 @@ pub extern "C" fn get_message() -> *mut c_char {
         .into_raw()
 }
 
-// Free allocated string
+
 #[no_mangle]
 pub unsafe extern "C" fn free_string(s: *mut c_char) {
     if !s.is_null() {

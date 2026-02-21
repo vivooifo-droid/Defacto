@@ -2,13 +2,11 @@
 #NO_RUNTIME
 #SAFE
 
-// Driver definition
 <drv.
 Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
 
-// Main program section
 <.de
     var key: i32 = 0
     var msg: string = "Press a key"
@@ -17,7 +15,6 @@ keyboard_driver <<func = keyboard>>
 
     display{msg}
 
-    // Call driver
     call #keyboard_driver
 
     display{key}

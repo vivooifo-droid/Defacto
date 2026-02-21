@@ -26,17 +26,17 @@ make
 #SAFE
 
 <.de
-    // Инициализация сервера на порту 8080
-    // server_init(8080)
+
+
     
-    // Добавление GET маршрута
-    // route_get("/hello", handler)
+
+
     
-    // Запуск сервера
-    // server_start()
+
+
     
     static.pl>
-    // Сервер запущен, открывай http://localhost:8080
+
 .>
 
 #Mainprogramm.end
@@ -76,7 +76,7 @@ route_post("/api/data", data_handler)
 
 ```de
 server_start()
-// Сервер работает пока программа не будет остановлена
+
 ```
 
 ### `backend_version() -> string`
@@ -85,7 +85,7 @@ server_start()
 
 ```de
 var version: string = backend_version()
-display{version}  // "0.1.0"
+display{version}
 ```
 
 ## Примеры
@@ -118,7 +118,7 @@ display{version}  // "0.1.0"
 function == home_handler {
     <.de
         var response: string = ""
-        // Возвращаем JSON
+
         response = json_object()
         static.pl>
     .>
@@ -138,10 +138,10 @@ rust-backend/
 
 ## Зависимости
 
-- [tokio](https://tokio.rs/) - асинхронная runtime
-- [hyper](https://hyper.rs/) - HTTP библиотека
-- [serde](https://serde.rs/) - сериализация
-- [serde_json](https://github.com/serde-rs/json) - JSON
+- [tokio](https:
+- [hyper](https:
+- [serde](https:
+- [serde_json](https:
 
 ## Сборка
 

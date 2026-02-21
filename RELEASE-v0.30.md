@@ -13,7 +13,7 @@
     static.pl>
     display{msg}
 .>
-// x and msg are automatically freed here
+
 ```
 
 This is a **breaking change** for existing code that relies on manual `free{}` calls, but all existing code will continue to work.
@@ -75,7 +75,7 @@ The installer includes:
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/vivooifo-droid/Defacto.git
+git clone https:
 cd Defacto/compiler
 make
 ./defacto -h
@@ -146,7 +146,7 @@ Includes:
 #NO_RUNTIME
 #SAFE
 
-// Struct definition
+
 struct Player {
     x: i32
     y: i32
@@ -154,13 +154,13 @@ struct Player {
     score: i32
 }
 
-// Driver definition
+
 <drv.
 Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
 
-// Main program
+
 <.de
     var player: Player
     var msg: string = "Game Start!"
@@ -168,29 +168,29 @@ keyboard_driver <<func = keyboard>>
 
     static.pl>
 
-    // Display message
+
     display{msg}
 
-    // if/else example
+
     if counter == 10 {
         player.score = 100
     } else {
         player.score = 0
     }
 
-    // Struct field access
+
     player.x = 50
     player.y = 100
     player.health = 3
     player.score = (player.score + 50)
 
-    // Loop with condition
+
     loop {
         if counter == 0 { stop }
         counter = (counter - 1)
     }
 
-    // Driver call
+
     call #keyboard_driver
 .>
 
@@ -230,8 +230,8 @@ Developed by the Defacto Team
 
 ## 📥 Download
 
-- **Windows Installer:** [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
-- **Source Code:** [GitHub Releases](https://github.com/vivooifo-droid/Defacto/releases/tag/v0.30)
+- **Windows Installer:** [defacto-0.30-installer.exe](https:
+- **Source Code:** [GitHub Releases](https:
 
 ---
 
@@ -240,4 +240,4 @@ Developed by the Defacto Team
 - [Full Documentation (SYNTAX.md)](SYNTAX.md)
 - [README.md](README.md)
 - [README.ru.md](README.ru.md)
-- [GitHub Repository](https://github.com/vivooifo-droid/Defacto)
+- [GitHub Repository](https:
