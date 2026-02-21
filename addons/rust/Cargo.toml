@@ -7,9 +7,13 @@ license = "MIT"
 
 [lib]
 name = "sample_addon"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+
+[features]
+default = []
+backend = ["tokio", "hyper", "http-body-util", "serde", "serde_json"]
 
 [profile.release]
 opt-level = 3

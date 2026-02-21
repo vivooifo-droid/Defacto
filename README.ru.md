@@ -12,6 +12,7 @@ English version: `README.md`
 - Наивный пакетный менеджер `defo`
 - C++ аддоны (`addons/cpp/`)
 - **Rust аддоны** (`addons/rust/`) — пишите библиотеки на Rust!
+- **Backend фреймворк** (`addons/rust-backend/`) — HTTP веб-фреймворк для Defacto
 
 ## Установка
 
@@ -308,6 +309,17 @@ cargo build --release
 ```
 
 Полная документация: [`addons/rust/README.md`](addons/rust/README.md)
+
+### Backend фреймворк (Rust)
+
+HTTP веб-фреймворк для создания серверов:
+
+```bash
+cd addons/rust-backend
+cargo build --release
+```
+
+Документация: [`addons/rust-backend/README.md`](addons/rust-backend/README.md)
 
 ### C++ аддоны
 

@@ -6,4 +6,5 @@
     static.pl>
     display{hello}
 .>
+free{hello}
 #Mainprogramm.end 

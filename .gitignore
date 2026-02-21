@@ -18,6 +18,8 @@ dist/
 # Rust
 addons/rust/target/
 addons/rust/Cargo.lock
+addons/rust-backend/target/
+addons/rust-backend/Cargo.lock
 
 # macOS
 .DS_Store

@@ -12,6 +12,7 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 - Naive package manager `defo`
 - C++ addons sandbox (`addons/cpp/`)
 - **Rust addons** (`addons/rust/`) - Write libraries in Rust!
+- **Backend framework** (`addons/rust-backend/`) - HTTP web framework for Defacto
 
 ## Install
 
@@ -308,6 +309,17 @@ cargo build --release
 ```
 
 See [`addons/rust/README.md`](addons/rust/README.md) for the full guide.
+
+### Backend Framework (Rust)
+
+HTTP web framework for building servers:
+
+```bash
+cd addons/rust-backend
+cargo build --release
+```
+
+See [`addons/rust-backend/README.md`](addons/rust-backend/README.md) for API docs.
 
 ### C++ Addons
 
