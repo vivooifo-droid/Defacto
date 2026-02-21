@@ -5,8 +5,8 @@
 !include "x64.nsh"
 
 ; General settings
-Name "Defacto Compiler v0.25"
-OutFile "defacto-0.25-installer.exe"
+Name "Defacto Compiler v0.30"
+OutFile "defacto-0.30-installer.exe"
 InstallDir "$PROGRAMFILES\Defacto"
 InstallDirRegKey HKCU "Software\Defacto" "InstallDir"
 
@@ -63,11 +63,11 @@ Section "Install"
   
   ; Registry entries
   WriteRegStr HKCU "Software\Defacto" "InstallDir" "$INSTDIR"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayName" "Defacto Compiler"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayName" "Defacto Compiler v0.30"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "InstallLocation" "$INSTDIR"
   
-  MessageBox MB_OK "Defacto Compiler installed successfully!$\n$\nMake sure NASM is installed:$\nhttps://www.nasm.us/$\n$\nOr use: choco install nasm"
+  MessageBox MB_OK "Defacto Compiler v0.30 installed successfully!$\n$\nFeatures:$\n- Auto memory management$\n- if/else statements$\n- Structs support$\n- Driver development$\n$\nMake sure NASM is installed:$\nhttps://www.nasm.us/$\n$\nOr use: choco install nasm"
 SectionEnd
 
 ; Uninstaller

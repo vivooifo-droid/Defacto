@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION="0.25"
+VERSION="0.30"
 COMPILER_DIR="compiler"
 INSTALLER_NSI="installer.nsi"
 OUTPUT="defacto-${VERSION}-installer.exe"
@@ -56,8 +56,8 @@ cat > installer.nsi << 'NSIS_EOF'
 !include "MUI2.nsh"
 
 ; General settings
-Name "Defacto Compiler v0.25"
-OutFile "defacto-0.25-installer.exe"
+Name "Defacto Compiler v0.30"
+OutFile "defacto-0.30-installer.exe"
 InstallDir "$PROGRAMFILES\Defacto"
 InstallDirRegKey HKCU "Software\Defacto" "InstallDir"
 
@@ -236,7 +236,7 @@ FunctionEnd
 ; Registry entries
 Function .onInstSuccess
   WriteRegStr HKCU "Software\Defacto" "InstallDir" "$INSTDIR"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayName" "Defacto Compiler v0.25"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayName" "Defacto Compiler v0.30"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayIcon" "$INSTDIR\defacto.exe"
@@ -257,12 +257,12 @@ NSIS_EOF
 
 makensis -V2 installer.nsi
 
-if [ ! -f "defacto-0.25-installer.exe" ]; then
+if [ ! -f "defacto-0.30-installer.exe" ]; then
     echo "❌ Failed to build installer"
     exit 1
 fi
 
-mv "defacto-0.25-installer.exe" "../$OUTPUT"
+mv "defacto-0.30-installer.exe" "../$OUTPUT"
 cd ..
 
 # Cleanup
