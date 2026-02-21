@@ -1,0 +1,17 @@
+[package]
+name = "defacto-sample-addon"
+version = "0.1.0"
+edition = "2021"
+description = "Sample addon for Defacto programming language"
+license = "MIT"
+
+[lib]
+name = "sample_addon"
+crate-type = ["cdylib"]
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true

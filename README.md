@@ -10,7 +10,8 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 - Compiler (`compiler/`)
 - VS Code extension (`vscode-extension/`)
 - Naive package manager `defo`
-- C++ addons sandbox (`addons/`)
+- C++ addons sandbox (`addons/cpp/`)
+- **Rust addons** (`addons/rust/`) - Write libraries in Rust!
 
 ## Install
 
@@ -292,3 +293,29 @@ Notes:
 - No negative number literals.
 - No expression indexes in arrays.
 - Interrupt directives are parsed but not generated.
+
+## Addons
+
+Extend Defacto with native libraries!
+
+### Rust Addons (Recommended)
+
+Write high-performance addons in Rust with memory safety:
+
+```bash
+cd addons/rust
+cargo build --release
+```
+
+See [`addons/rust/README.md`](addons/rust/README.md) for the full guide.
+
+### C++ Addons
+
+Traditional C++ addons are also supported:
+
+```bash
+cd addons/cpp
+make
+```
+
+See [`addons/cpp/`](addons/cpp/) for examples.

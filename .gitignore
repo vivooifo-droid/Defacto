@@ -15,6 +15,10 @@ build/
 dist/
 *.exe
 
+# Rust
+addons/rust/target/
+addons/rust/Cargo.lock
+
 # macOS
 .DS_Store
 
