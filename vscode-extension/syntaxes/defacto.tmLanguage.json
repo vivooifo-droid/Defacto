@@ -24,11 +24,15 @@
       "patterns": [
         {
           "name": "keyword.control.directive.defacto",
-          "match": "#(Mainprogramm\\.start|Mainprogramm\\.end|NO_RUNTIME|SAFE)"
+          "match": "#(Mainprogramm\\.start|Mainprogramm\\.end|NO_RUNTIME|SAFE|DRIVER|DRIVER\\.stop)"
         },
         {
           "name": "keyword.control.processor.defacto",
           "match": "#(MOV|STATIC|STOP|INTERRUPT)"
+        },
+        {
+          "name": "keyword.control.driver.directive.defacto",
+          "match": "#(keyboard|mouse|volume)\\b"
         }
       ]
     },
@@ -41,6 +45,14 @@
         {
           "name": "punctuation.section.close.defacto",
           "match": "\\.>"
+        },
+        {
+          "name": "punctuation.section.driver.open.defacto",
+          "match": "<drv\\."
+        },
+        {
+          "name": "punctuation.section.driver.close.defacto",
+          "match": "\\.dr>"
         },
         {
           "name": "keyword.control.section.defacto",
@@ -57,6 +69,14 @@
         {
           "name": "keyword.declaration.defacto",
           "match": "\\b(var|const|function)\\b"
+        },
+        {
+          "name": "keyword.declaration.driver.defacto",
+          "match": "\\b(Const\\.driver)\\b"
+        },
+        {
+          "name": "keyword.operator.driver.defacto",
+          "match": "<<func|>>"
         },
         {
           "name": "keyword.operator.defacto",

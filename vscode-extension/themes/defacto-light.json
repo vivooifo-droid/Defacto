@@ -24,6 +24,26 @@
       "settings": { "foreground": "#C17600", "fontStyle": "bold" }
     },
     {
+      "name": "Driver directives",
+      "scope": "keyword.control.driver.directive.defacto",
+      "settings": { "foreground": "#E91E63", "fontStyle": "bold" }
+    },
+    {
+      "name": "Driver section markers",
+      "scope": ["punctuation.section.driver.open.defacto", "punctuation.section.driver.close.defacto"],
+      "settings": { "foreground": "#E91E63", "fontStyle": "bold" }
+    },
+    {
+      "name": "Driver declarations",
+      "scope": "keyword.declaration.driver.defacto",
+      "settings": { "foreground": "#9C27B0", "fontStyle": "bold" }
+    },
+    {
+      "name": "Driver operators",
+      "scope": "keyword.operator.driver.defacto",
+      "settings": { "foreground": "#FF5722" }
+    },
+    {
       "name": "Section markers",
       "scope": ["punctuation.section.open.defacto", "punctuation.section.close.defacto", "keyword.control.section.defacto"],
       "settings": { "foreground": "#666666" }
