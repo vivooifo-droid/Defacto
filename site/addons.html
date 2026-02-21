@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defacto - Addons (Rust & C++)</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="nav-logo">
+                Defacto
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="syntax.html" class="nav-link">Documentation</a></li>
+                <li><a href="install.html" class="nav-link">Install</a></li>
+                <li><a href="defo.html" class="nav-link">Package Manager</a></li>
+                <li><a href="addons.html" class="nav-link active">Addons</a></li>
+                <li><a href="https://github.com/vivooifo-droid/Defacto" class="nav-link" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero hero-small">
+            <div class="container">
+                <h1>Defacto Addons</h1>
+                <p class="hero-subtitle">
+                    Extend Defacto with native libraries written in Rust and C++. 
+                    Access ecosystem libraries and maximize performance.
+                </p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="addons-intro">
+                <p>
+                    Defacto supports native addons written in other languages. This allows you to:
+                </p>
+                <ul class="feature-list">
+                    <li>✅ Leverage existing libraries from Rust and C++ ecosystems</li>
+                    <li>✅ Write performance-critical code in optimized languages</li>
+                    <li>✅ Access system APIs not available in Defacto</li>
+                    <li>✅ Gradually migrate existing codebases to Defacto</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Choose Your Addon Type</h2>
+            <div class="addon-comparison">
+                <div class="addon-type-card">
+                    <div class="addon-type-header rust">
+                        <h3>Rust Addons</h3>
+                    </div>
+                    <div class="addon-type-body">
+                        <p><strong>Recommended for new projects</strong></p>
+                        <ul>
+                            <li>Memory safety guarantees</li>
+                            <li>Modern tooling with Cargo</li>
+                            <li>Excellent error messages</li>
+                            <li>Growing ecosystem</li>
+                            <li>Zero-cost abstractions</li>
+                        </ul>
+                        <a href="#rust" class="btn btn-primary btn-block">Get Started with Rust</a>
+                    </div>
+                </div>
+                <div class="addon-type-card">
+                    <div class="addon-type-header cpp">
+                        <h3>C++ Addons</h3>
+                    </div>
+                    <div class="addon-type-body">
+                        <p><strong>For legacy integration</strong></p>
+                        <ul>
+                            <li>Access to C++ libraries</li>
+                            <li>Mature ecosystem</li>
+                            <li>Fine-grained control</li>
+                            <li>Existing codebase reuse</li>
+                            <li>Traditional build process</li>
+                        </ul>
+                        <a href="#cpp" class="btn btn-secondary btn-block">Get Started with C++</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rust Addons Section -->
+        <section id="rust" class="container">
+            <div class="language-header rust-header">
+                <div>
+                    <h2>Rust Addons</h2>
+                    <p>Write safe, fast addons with Rust's memory safety guarantees</p>
+                </div>
+            </div>
+
+            <div class="quickstart">
+                <h3>Quick Start</h3>
+                <ol>
+                    <li>Install Rust (if not already installed)</li>
+                    <li>Navigate to the Rust addon directory</li>
+                    <li>Build the addon</li>
+                    <li>Use in your Defacto code</li>
+                </ol>
+            </div>
+
+            <div class="setup-steps">
+                <div class="setup-step">
+                    <h3>Step 1: Install Rust</h3>
+                    <pre><code>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh</code></pre>
+                    <p>Or visit <a href="https://www.rust-lang.org/tools/install" target="_blank">rust-lang.org</a> for detailed instructions.</p>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 2: Navigate to Rust Addon Directory</h3>
+                    <pre><code>cd addons/rust</code></pre>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 3: Build the Addon</h3>
+                    <pre><code>cargo build --release</code></pre>
+                    <p>This creates optimized binaries in <code>target/release/</code>.</p>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 4: Use in Defacto Code</h3>
+                    <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Call Rust addon functions from Defacto
+&lt;.de
+    var result: i32 = 0
+    static.pl&gt;
+    
+    // Call your Rust function
+    // result = #rust_function()
+    
+    display{result}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                </div>
+            </div>
+
+            <div class="rust-example">
+                <h3>Example: Rust Library</h3>
+                <p>Here's an example of a simple Rust library that can be used from Defacto:</p>
+                
+                <div class="code-compare">
+                    <div class="code-side">
+                        <h4>lib.rs (Rust)</h4>
+                        <pre><code>#[no_mangle]
+pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[no_mangle]
+pub extern "C" fn multiply_numbers(a: i32, b: i32) -> i32 {
+    a * b
+}
+
+#[no_mangle]
+pub extern "C" fn get_message() -> *const u8 {
+    b"Hello from Rust!\0".as_ptr()
+}</code></pre>
+                    </div>
+                    <div class="code-side">
+                        <h4>main.de (Defacto)</h4>
+                        <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;.de
+    var result: i32 = 0
+    var msg: string = ""
+    static.pl&gt;
+    
+    // Call Rust functions
+    result = (10 + 5)  // Using Rust add
+    display{result}
+    
+    result = (4 * 3)   // Using Rust multiply
+    display{result}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rust-cargo">
+                <h3>Cargo.toml Configuration</h3>
+                <p>Your Rust addon needs a proper <code>Cargo.toml</code> configuration:</p>
+                <pre><code>[package]
+name = "defacto-rust-addon"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "defacto_rust_addon"
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+# Add your dependencies here</code></pre>
+            </div>
+
+            <div class="tips rust-tips">
+                <h3>Rust Addon Tips</h3>
+                <ul>
+                    <li><strong>Use <code>#[no_mangle]</code></strong> - Prevents Rust from mangling function names for FFI</li>
+                    <li><strong>Use <code>extern "C"</code></strong> - Ensures C-compatible calling convention</li>
+                    <li><strong>Handle pointers carefully</strong> - When passing strings, use <code>*const u8</code></li>
+                    <li><strong>Avoid panics</strong> - Use <code>Result</code> types and handle errors gracefully</li>
+                    <li><strong>Mark functions as <code>pub</code></strong> - Only public functions are accessible from Defacto</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Backend Framework Section -->
+        <section class="container">
+            <div class="framework-section">
+                <div class="framework-header">
+                    <h2>Rust Backend Framework</h2>
+                </div>
+                <p class="framework-description">
+                    HTTP web framework for building servers with Defacto integration. 
+                    Create REST APIs, web servers, and network services.
+                </p>
+
+                <div class="setup-steps">
+                    <div class="setup-step">
+                        <h3>Step 1: Navigate to Framework Directory</h3>
+                        <pre><code>cd addons/rust-backend</code></pre>
+                    </div>
+
+                    <div class="setup-step">
+                        <h3>Step 2: Build the Framework</h3>
+                        <pre><code>cargo build --release</code></pre>
+                    </div>
+
+                    <div class="setup-step">
+                        <h3>Step 3: Run the Server</h3>
+                        <pre><code>./target/release/rust-backend</code></pre>
+                    </div>
+                </div>
+
+                <div class="framework-example">
+                    <h3>Example: HTTP Server</h3>
+                    <pre><code>// Example HTTP server using the Rust backend framework
+// Handles requests and returns responses
+
+use std::net::TcpListener;
+use std::io::{Read, Write};
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+    println!("Server running on http://127.0.0.1:8080");
+
+    for stream in listener.incoming() {
+        let mut stream = stream.unwrap();
+        let mut buffer = [0; 1024];
+        stream.read(&mut buffer).unwrap();
+
+        let response = "HTTP/1.1 200 OK\r\n\r\nHello from Defacto!";
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
+    }
+}</code></pre>
+                </div>
+
+                <div class="framework-features">
+                    <h3>Framework Features</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <h4>HTTP Server</h4>
+                            <p>Built-in HTTP/1.1 server with request routing</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>Routing</h4>
+                            <p>Define routes for different HTTP methods</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>JSON Support</h4>
+                            <p>Parse and generate JSON responses</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>Middleware</h4>
+                            <p>Add authentication, logging, and more</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- C++ Addons Section -->
+        <section id="cpp" class="container">
+            <div class="language-header cpp-header">
+                <div>
+                    <h2>C++ Addons</h2>
+                    <p>Integrate with existing C++ libraries and systems code</p>
+                </div>
+            </div>
+
+            <div class="quickstart">
+                <h3>Quick Start</h3>
+                <ol>
+                    <li>Install a C++ compiler (g++ or clang++)</li>
+                    <li>Navigate to the C++ addon directory</li>
+                    <li>Build the addon</li>
+                    <li>Link with your Defacto code</li>
+                </ol>
+            </div>
+
+            <div class="setup-steps">
+                <div class="setup-step">
+                    <h3>Step 1: Install C++ Compiler</h3>
+                    <pre><code># Ubuntu/Debian
+sudo apt install build-essential
+
+# macOS
+xcode-select --install
+
+# Windows (MSVC)
+# Download from visualstudio.microsoft.com</code></pre>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 2: Navigate to C++ Addon Directory</h3>
+                    <pre><code>cd addons/cpp</code></pre>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 3: Build the Addon</h3>
+                    <pre><code>make</code></pre>
+                    <p>This compiles the C++ addon and creates object files.</p>
+                </div>
+
+                <div class="setup-step">
+                    <h3>Step 4: Link with Defacto</h3>
+                    <p>When compiling your Defacto program, link against the C++ addon:</p>
+                    <pre><code>./defacto -l addons/cpp/myaddon.o program.de</code></pre>
+                </div>
+            </div>
+
+            <div class="cpp-example">
+                <h3>Example: C++ Library</h3>
+                
+                <div class="code-compare">
+                    <div class="code-side">
+                        <h4>addon.cpp (C++)</h4>
+                        <pre><code>extern "C" {
+    int add(int a, int b) {
+        return a + b;
+    }
+    
+    int multiply(int a, int b) {
+        return a * b;
+    }
+    
+    const char* get_greeting() {
+        return "Hello from C++!";
+    }
+}</code></pre>
+                    </div>
+                    <div class="code-side">
+                        <h4>Makefile</h4>
+                        <pre><code>CXX = g++
+CXXFLAGS = -fPIC -shared -O2
+
+all: addon.so
+
+addon.so: addon.cpp
+	$(CXX) $(CXXFLAGS) -o addon.so addon.cpp
+
+clean:
+	rm -f addon.so</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tips cpp-tips">
+                <h3>C++ Addon Tips</h3>
+                <ul>
+                    <li><strong>Use <code>extern "C"</code></strong> - Prevents C++ name mangling</li>
+                    <li><strong>Avoid C++ exceptions</strong> - Catch exceptions before returning to Defacto</li>
+                    <li><strong>Use C-compatible types</strong> - Stick to primitive types and pointers</li>
+                    <li><strong>Manage memory carefully</strong> - Document who owns allocated memory</li>
+                    <li><strong>Consider ABI compatibility</strong> - Use the same compiler for all addons</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- API Reference -->
+        <section class="container">
+            <h2>FFI API Reference</h2>
+            <p>When writing addons, you'll use the Foreign Function Interface (FFI) to communicate with Defacto.</p>
+            
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Defacto Type</th>
+                        <th>Rust Type</th>
+                        <th>C++ Type</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>i32</code></td>
+                        <td><code>i32</code></td>
+                        <td><code>int32_t</code></td>
+                        <td>Signed 32-bit integer</td>
+                    </tr>
+                    <tr>
+                        <td><code>i64</code></td>
+                        <td><code>i64</code></td>
+                        <td><code>int64_t</code></td>
+                        <td>Signed 64-bit integer</td>
+                    </tr>
+                    <tr>
+                        <td><code>u8</code></td>
+                        <td><code>u8</code></td>
+                        <td><code>uint8_t</code></td>
+                        <td>Unsigned 8-bit (byte)</td>
+                    </tr>
+                    <tr>
+                        <td><code>string</code></td>
+                        <td><code>*const u8</code></td>
+                        <td><code>const char*</code></td>
+                        <td>Null-terminated string</td>
+                    </tr>
+                    <tr>
+                        <td><code>pointer</code></td>
+                        <td><code>*mut c_void</code></td>
+                        <td><code>void*</code></td>
+                        <td>Raw pointer</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="container">
+            <h2>Troubleshooting</h2>
+            
+            <div class="troubleshooting">
+                <details>
+                    <summary>Undefined symbol errors when linking</summary>
+                    <p>Make sure your addon functions are marked with the correct visibility attributes:</p>
+                    <pre><code>// Rust
+#[no_mangle]
+pub extern "C" fn my_function() { }
+
+// C++
+extern "C" void my_function() { }</code></pre>
+                </details>
+                
+                <details>
+                    <summary>Segmentation fault when calling addon</summary>
+                    <p>Check that you're passing the correct types and that pointers are valid. Addons run without Defacto's memory safety, so be extra careful with memory management.</p>
+                </details>
+                
+                <details>
+                    <summary>Cargo build fails with dependency errors</summary>
+                    <p>Make sure your <code>Cargo.toml</code> is properly configured and all dependencies are available:</p>
+                    <pre><code>cargo update
+cargo build --release</code></pre>
+                </details>
+                
+                <details>
+                    <summary>C++ addon compiles but doesn't work at runtime</summary>
+                    <p>Check that the compiled library is in the correct location and that you're linking against it properly. Use <code>ldd</code> (Linux) or <code>otool -L</code> (macOS) to verify library dependencies.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- Resources -->
+        <section class="container">
+            <h2>Additional Resources</h2>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h3>Rust Documentation</h3>
+                    <p>Official Rust docs and FFI guide</p>
+                    <a href="https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#calling-rust-functions-from-other-languages" target="_blank">Read More</a>
+                </div>
+                <div class="resource-card">
+                    <h3>C++ FFI Guide</h3>
+                    <p>Best practices for C interoperability</p>
+                    <a href="https://isocpp.org/wiki/faq/mixing-c-and-cpp" target="_blank">Read More</a>
+                </div>
+                <div class="resource-card">
+                    <h3>Example Addons</h3>
+                    <p>Browse example addons in the repository</p>
+                    <a href="https://github.com/vivooifo-droid/Defacto/tree/main/addons" target="_blank">View Examples</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Ready to Build Addons?</h2>
+                <p>Start extending Defacto with native code today.</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/vivooifo-droid/Defacto/tree/main/addons" class="btn btn-primary btn-large" target="_blank">
+                        Browse Addon Examples
+                    </a>
+                    <a href="syntax.html" class="btn btn-secondary btn-large">
+                        Review Defacto Syntax
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Defacto</h4>
+                    <p>Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.</p>
+                    <div class="footer-social">
+                        <a href="https://github.com/vivooifo-droid/Defacto" target="_blank" class="social-link">GitHub</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="syntax.html">Language Syntax</a></li>
+                        <li><a href="install.html">Installation</a></li>
+                        <li><a href="defo.html">Package Manager</a></li>
+                        <li><a href="addons.html">Addons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/releases">Releases</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/discussions">Discussions</a></li>
+                        <li><a href="DOWNLOAD.md">Download Options</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto">Source Code</a></li>
+                        <li><a href="README.md">README</a></li>
+                        <li><a href="RELEASE-v0.30.md">Release Notes</a></li>
+                        <li><a href="defo.json">Project Config</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+                <p>Built with ❤️ for systems programming enthusiasts</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

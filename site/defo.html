@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defacto - defo Package Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="nav-logo">
+                Defacto
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="syntax.html" class="nav-link">Documentation</a></li>
+                <li><a href="install.html" class="nav-link">Install</a></li>
+                <li><a href="defo.html" class="nav-link active">Package Manager</a></li>
+                <li><a href="addons.html" class="nav-link">Addons</a></li>
+                <li><a href="https://github.com/vivooifo-droid/Defacto" class="nav-link" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero hero-small">
+            <div class="container">
+                <h1>defo Package Manager</h1>
+                <p class="hero-subtitle">
+                    The official package manager for Defacto. Install, share, and manage libraries with ease.
+                </p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="doc-intro">
+                <p>
+                    <code>defo</code> is the built-in package manager for the Defacto programming language.
+                    It allows you to easily install dependencies from GitHub repositories, manage local packages,
+                    and share your libraries with the community.
+                </p>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Quick Start</h2>
+            <div class="quick-start">
+                <div class="quick-start-step">
+                    <div class="step-number">1</div>
+                    <h3>Initialize a Project</h3>
+                    <pre><code>./defo init my-app
+cd my-app</code></pre>
+                </div>
+                <div class="quick-start-step">
+                    <div class="step-number">2</div>
+                    <h3>Install a Package</h3>
+                    <pre><code>./defo install owner/repo</code></pre>
+                </div>
+                <div class="quick-start-step">
+                    <div class="step-number">3</div>
+                    <h3>Use in Code</h3>
+                    <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Import your installed packages
+// Use the library in your code
+
+&lt;.de
+    // Your code here
+    static.pl&gt;
+    // Use library functions
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Commands</h2>
+            
+            <div class="command-doc">
+                <h3>init</h3>
+                <p>Initialize a new Defacto project with a standard directory structure.</p>
+                <div class="command-syntax">
+                    <span class="command-label">Syntax:</span>
+                    <code>./defo init &lt;project-name&gt;</code>
+                </div>
+                <div class="command-example">
+                    <span class="command-label">Example:</span>
+                    <pre><code>./defo init my-awesome-project</code></pre>
+                </div>
+                <p>This creates a new directory with:</p>
+                <ul>
+                    <li><code>defo.json</code> - Project configuration file</li>
+                    <li><code>src/</code> - Source code directory</li>
+                    <li><code>modules/</code> - Local modules directory</li>
+                </ul>
+            </div>
+
+            <div class="command-doc">
+                <h3>install</h3>
+                <p>Install a package from GitHub or a local path.</p>
+                <div class="command-syntax">
+                    <span class="command-label">Syntax:</span>
+                    <code>./defo install &lt;repository&gt; [options]</code>
+                </div>
+                <div class="command-example">
+                    <span class="command-label">Examples:</span>
+                    <pre><code># Install from GitHub (full URL)
+./defo install https://github.com/owner/repo.git
+
+# Install from GitHub (short form)
+./defo install owner/repo
+
+# Install specific branch
+./defo install owner/repo#main
+
+# Install specific tag
+./defo install owner/repo#v1.0.0
+
+# Install from local path
+./defo install ./local-package</code></pre>
+                </div>
+            </div>
+
+            <div class="command-doc">
+                <h3>list</h3>
+                <p>List all installed packages and their versions.</p>
+                <div class="command-syntax">
+                    <span class="command-label">Syntax:</span>
+                    <code>./defo list</code>
+                </div>
+                <div class="command-example">
+                    <span class="command-label">Example Output:</span>
+                    <pre><code>Installed packages:
+  - owner/repo@1.0.0
+  - another/package@2.1.0</code></pre>
+                </div>
+            </div>
+
+            <div class="command-doc">
+                <h3>remove</h3>
+                <p>Remove an installed package.</p>
+                <div class="command-syntax">
+                    <span class="command-label">Syntax:</span>
+                    <code>./defo remove &lt;package-name&gt;</code>
+                </div>
+                <div class="command-example">
+                    <span class="command-label">Example:</span>
+                    <pre><code>./defo remove owner/repo</code></pre>
+                </div>
+            </div>
+
+            <div class="command-doc">
+                <h3>update</h3>
+                <p>Update all installed packages to their latest versions.</p>
+                <div class="command-syntax">
+                    <span class="command-label">Syntax:</span>
+                    <code>./defo update</code>
+                </div>
+                <p>This command updates all packages according to their version constraints in <code>defo.json</code>.</p>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Project Configuration</h2>
+            <p>Every Defacto project has a <code>defo.json</code> file in the root directory. This file contains project metadata and dependencies.</p>
+            
+            <div class="config-example">
+                <h3>Example defo.json</h3>
+                <pre><code>{
+    "name": "my-awesome-project",
+    "version": "1.0.0",
+    "description": "My first Defacto project",
+    "author": "Your Name",
+    "license": "MIT",
+    "dependencies": {
+        "owner/repo": "1.0.0",
+        "another/package": "^2.0.0"
+    },
+    "devDependencies": {
+        "test/framework": ">=1.0.0"
+    }
+}</code></pre>
+            </div>
+
+            <h3>Version Specifiers</h3>
+            <table class="version-table">
+                <thead>
+                    <tr>
+                        <th>Specifier</th>
+                        <th>Example</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>exact</code></td>
+                        <td><code>"1.0.0"</code></td>
+                        <td>Exact version match</td>
+                    </tr>
+                    <tr>
+                        <td><code>caret</code></td>
+                        <td><code>"^1.0.0"</code></td>
+                        <td>Compatible with version (same major)</td>
+                    </tr>
+                    <tr>
+                        <td><code>tilde</code></td>
+                        <td><code>"~1.0.0"</code></td>
+                        <td>Approximately equivalent (same major.minor)</td>
+                    </tr>
+                    <tr>
+                        <td><code>gte</code></td>
+                        <td><code>">=1.0.0"</code></td>
+                        <td>Greater than or equal to version</td>
+                    </tr>
+                    <tr>
+                        <td><code>branch</code></td>
+                        <td><code>"branch:main"</code></td>
+                        <td>Install from specific branch</td>
+                    </tr>
+                    <tr>
+                        <td><code>commit</code></td>
+                        <td><code>"commit:abc123"</code></td>
+                        <td>Install from specific commit</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="container">
+            <h2>Creating Packages</h2>
+            <p>Share your Defacto libraries with the community by creating a package.</p>
+            
+            <div class="package-creation">
+                <h3>Step 1: Create defo.json</h3>
+                <p>Your package must have a <code>defo.json</code> file in the root directory:</p>
+                <pre><code>{
+    "name": "my-library",
+    "version": "1.0.0",
+    "description": "A useful Defacto library",
+    "author": "Your Name",
+    "license": "MIT",
+    "main": "src/lib.de",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/yourname/my-library.git"
+    }
+}</code></pre>
+            </div>
+
+            <div class="package-creation">
+                <h3>Step 2: Organize Your Code</h3>
+                <p>Recommended package structure:</p>
+                <pre><code>my-library/
+├── defo.json
+├── README.md
+├── src/
+│   └── lib.de
+├── modules/
+│   └── helpers.de
+└── examples/
+    └── usage.de</code></pre>
+            </div>
+
+            <div class="package-creation">
+                <h3>Step 3: Publish on GitHub</h3>
+                <p>Push your package to a public GitHub repository:</p>
+                <pre><code>git init
+git add .
+git commit -m "Initial release"
+git branch -M main
+git remote add origin https://github.com/yourname/my-library.git
+git push -u origin main</code></pre>
+                <p>Users can now install your package with:</p>
+                <pre><code>./defo install yourname/my-library</code></pre>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Best Practices</h2>
+            <div class="best-practices">
+                <div class="practice-card">
+                    <h3>Use Semantic Versioning</h3>
+                    <p>Follow <a href="https://semver.org/" target="_blank">SemVer</a> for your package versions:</p>
+                    <ul>
+                        <li><strong>MAJOR</strong>.MINOR.PATCH - Breaking changes</li>
+                        <li>MAJOR.<strong>MINOR</strong>.PATCH - New features (backward compatible)</li>
+                        <li>MAJOR.MINOR.<strong>PATCH</strong> - Bug fixes</li>
+                    </ul>
+                </div>
+                <div class="practice-card">
+                    <h3>Write Good README</h3>
+                    <p>Document your package with:</p>
+                    <ul>
+                        <li>Installation instructions</li>
+                        <li>Usage examples</li>
+                        <li>API documentation</li>
+                        <li>Contributing guidelines</li>
+                    </ul>
+                </div>
+                <div class="practice-card">
+                    <h3>Include Examples</h3>
+                    <p>Provide working examples in an <code>examples/</code> directory to help users understand your package.</p>
+                </div>
+                <div class="practice-card">
+                    <h3>Pin Dependencies</h3>
+                    <p>Use exact versions for dependencies in libraries to ensure reproducible builds:</p>
+                    <pre><code>// Good for libraries
+"dependencies": {
+    "owner/utils": "1.2.3"
+}
+
+// Good for applications
+"dependencies": {
+    "owner/utils": "^1.2.0"
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Troubleshooting</h2>
+            
+            <div class="troubleshooting">
+                <details>
+                    <summary>Package not found</summary>
+                    <p>Make sure the repository exists and is public. For GitHub packages, use the format <code>owner/repo</code>.</p>
+                    <pre><code># Check the repository URL
+https://github.com/owner/repo
+
+# Verify the package has defo.json
+ls -la repo/defo.json</code></pre>
+                </details>
+                
+                <details>
+                    <summary>Installation fails with network error</summary>
+                    <p>Check your internet connection and try again. You can also clone the repository manually:</p>
+                    <pre><code>git clone https://github.com/owner/repo.git
+./defo install ./repo</code></pre>
+                </details>
+                
+                <details>
+                    <summary>Version conflict</summary>
+                    <p>If two packages require different versions of the same dependency, you may need to manually resolve the conflict by updating your <code>defo.json</code>.</p>
+                </details>
+                
+                <details>
+                    <summary>Package not working after install</summary>
+                    <p>Check that the package has the correct structure and all required files. Review the package's README for specific setup instructions.</p>
+                </details>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Available Packages</h2>
+            <p>Explore community packages on GitHub:</p>
+            <div class="package-showcase">
+                <a href="https://github.com/topics/defacto" class="package-link" target="_blank">
+                    Browse #defacto packages on GitHub
+                </a>
+            </div>
+            <p class="package-note">Want to list your package here? Add the <code>defacto</code> topic to your GitHub repository!</p>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Ready to Get Started?</h2>
+                <p>Install your first package or create one to share with the community.</p>
+                <div class="cta-buttons">
+                    <a href="install.html" class="btn btn-primary btn-large">Install Defacto</a>
+                    <a href="syntax.html" class="btn btn-secondary btn-large">Learn the Language</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Defacto</h4>
+                    <p>Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.</p>
+                    <div class="footer-social">
+                        <a href="https://github.com/vivooifo-droid/Defacto" target="_blank" class="social-link">GitHub</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="syntax.html">Language Syntax</a></li>
+                        <li><a href="install.html">Installation</a></li>
+                        <li><a href="defo.html">Package Manager</a></li>
+                        <li><a href="addons.html">Addons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/releases">Releases</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/discussions">Discussions</a></li>
+                        <li><a href="DOWNLOAD.md">Download Options</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto">Source Code</a></li>
+                        <li><a href="README.md">README</a></li>
+                        <li><a href="RELEASE-v0.30.md">Release Notes</a></li>
+                        <li><a href="defo.json">Project Config</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+                <p>Built with ❤️ for systems programming enthusiasts</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
