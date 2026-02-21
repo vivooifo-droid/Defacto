@@ -2,7 +2,7 @@
 
 ## Windows
 
-1. **Download:** [defacto-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/latest/defacto-installer.exe)
+1. **Download:** [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
 2. **Right-click** → "Run as administrator"
 3. **Wait** for installation
 4. **Done!** ✅

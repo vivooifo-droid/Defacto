@@ -7,25 +7,24 @@ on:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
-    
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install PyInstaller
-        run: pip install pyinstaller
-      
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64 nsis
+
       - name: Build Windows Installer
-        run: python -m PyInstaller --onefile --windowed defacto-installer-win.py
-      
+        run: |
+          chmod +x build-windows-installer.sh
+          ./build-windows-installer.sh
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/defacto-installer.exe
+          files: defacto-0.30-installer.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
