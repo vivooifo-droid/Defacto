@@ -1,0 +1,9 @@
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+<.de
+    var hello: string = "Првиет, Мир!"
+    static.pl>
+    display{hello}
+.>
+#Mainprogramm.end 

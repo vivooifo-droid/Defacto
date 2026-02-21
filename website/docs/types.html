@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Types & Variables - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html" class="active">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Types & Variables</h1>
+            
+            <p>This guide covers Defacto's type system and variable declarations.</p>
+
+            <h2>Built-in Types</h2>
+            
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Range</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>i32</code></td>
+                    <td>4 bytes</td>
+                    <td>-2,147,483,648 to 2,147,483,647</td>
+                    <td>Signed integer</td>
+                </tr>
+                <tr>
+                    <td><code>i64</code></td>
+                    <td>8 bytes</td>
+                    <td>-2^63 to 2^63-1</td>
+                    <td>Signed integer (64-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>u8</code></td>
+                    <td>1 byte</td>
+                    <td>0 to 255</td>
+                    <td>Unsigned byte</td>
+                </tr>
+                <tr>
+                    <td><code>string</code></td>
+                    <td>4 bytes (pointer)</td>
+                    <td>-</td>
+                    <td>Null-terminated string</td>
+                </tr>
+                <tr>
+                    <td><code>pointer</code></td>
+                    <td>4 bytes</td>
+                    <td>-</td>
+                    <td>Raw memory address</td>
+                </tr>
+            </table>
+
+            <h2>Variable Declarations</h2>
+            
+            <p>Variables are declared with the <code>var</code> keyword:</p>
+
+            <div class="code-example">
+<span class="comment">// Variable with initialization</span>
+<span class="keyword">var</span> <span class="type">count</span>: <span class="type">i32</span> = <span class="string">42</span>
+<span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"hello"</span>
+<span class="keyword">var</span> <span class="type">big</span>: <span class="type">i64</span> = <span class="string">1000000</span>
+
+<span class="comment">// Variable without initialization</span>
+<span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span>
+<span class="keyword">var</span> <span class="type">buf</span>: <span class="type">u8</span>[<span class="string">64</span>]
+            </div>
+
+            <h2>Constants</h2>
+            
+            <p>Constants are declared with the <code>const</code> keyword and must be initialized:</p>
+
+            <div class="code-example">
+<span class="keyword">const</span> <span class="type">MAX</span>: <span class="type">i32</span> = <span class="string">100</span>
+<span class="keyword">const</span> <span class="type">NAME</span>: <span class="type">string</span> = <span class="string">"Defacto"</span>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>Rules for constants:</strong>
+                <ul>
+                    <li>Constants <strong>must</strong> have an initializer</li>
+                    <li>Constants <strong>cannot</strong> be modified</li>
+                    <li>Constants <strong>cannot</strong> be freed with <code>free{}</code></li>
+                </ul>
+            </div>
+
+            <h2>Arrays</h2>
+            
+            <p>Arrays are declared with a size in square brackets:</p>
+
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">arr</span>: <span class="type">i32</span>[<span class="string">10</span>]
+<span class="keyword">var</span> <span class="type">buf</span>: <span class="type">u8</span>[<span class="string">256</span>]
+            </div>
+
+            <h3>Array Access</h3>
+            <div class="code-example">
+<span class="comment">// Assign to array element</span>
+<span class="type">arr</span>[<span class="type">i</span>] = <span class="type">x</span>
+<span class="type">arr</span>[<span class="string">0</span>] = <span class="string">100</span>
+
+<span class="comment">// Use in expressions</span>
+<span class="type">x</span> = <span class="type">arr</span>[<span class="type">i</span>]
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Array Index Rules:</strong>
+                <ul>
+                    <li>Index must be a number, variable, or register</li>
+                    <li>Expression indexes like <code>arr[i + 1]</code> are not supported</li>
+                    <li>Const arrays are not supported</li>
+                </ul>
+            </div>
+
+            <h2>Type Usage Examples</h2>
+
+            <h3>Integer Types</h3>
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">small</span>: <span class="type">i32</span> = <span class="string">42</span>
+<span class="keyword">var</span> <span class="type">large</span>: <span class="type">i64</span> = <span class="string">10000000000</span>
+<span class="keyword">var</span> <span class="type">byte</span>: <span class="type">u8</span> = <span class="string">255</span>
+
+<span class="comment">// Arithmetic operations</span>
+<span class="type">result</span> = (<span class="type">small</span> + <span class="string">10</span>)
+<span class="type">result</span> = (<span class="type">large</span> * <span class="string">2</span>)
+            </div>
+
+            <h3>String Type</h3>
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">greeting</span>: <span class="type">string</span> = <span class="string">"Hello, World!"</span>
+<span class="keyword">var</span> <span class="type">multiline</span>: <span class="type">string</span> = <span class="string">"Line 1\nLine 2"</span>
+
+<span class="comment">// Output string</span>
+<span class="function">display</span>{greeting}
+            </div>
+
+            <h3>Pointer Type</h3>
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">ptr</span>: <span class="type">pointer</span>
+<span class="comment">// Pointer operations are low-level and advanced</span>
+            </div>
+
+            <h2>Variable Scope</h2>
+            
+            <p>Variables declared in a section are local to that section:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>  <span class="comment">// Local to this section</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">display</span>{x}
+<span class="keyword">.&gt;</span>
+
+<span class="comment">// x is not accessible here - it's automatically freed</span>
+            </div>
+
+            <h2>Automatic Memory Management</h2>
+            
+            <p>Starting with v0.30, variables are automatically freed at the end of each section:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"hello"</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">display</span>{msg}
+<span class="keyword">.&gt;</span>
+<span class="comment">// x and msg are automatically freed here</span>
+            </div>
+
+            <p>Manual <code>free{}</code> is still supported for backward compatibility but is no longer required.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

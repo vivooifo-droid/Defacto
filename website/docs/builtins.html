@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Built-in Functions - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html" class="active">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Built-in Functions</h1>
+            
+            <p>Defacto provides a set of built-in functions for I/O, graphics, and system operations.</p>
+
+            <h2>I/O Functions</h2>
+
+            <h3>display{}</h3>
+            <p>Output a string to the screen.</p>
+            
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"Hello, World!"</span>
+<span class="keyword">static.pl&gt;</span>
+<span class="function">display</span>{msg}
+
+<span class="comment">// Direct string literal</span>
+<span class="function">display</span>{<span class="string">"Hello"</span>}
+            </div>
+
+            <p><strong>Modes:</strong> All modes</p>
+            <p><strong>Note:</strong> In terminal mode, appends a newline.</p>
+
+            <h3>readkey{}</h3>
+            <p>Read a keyboard scan code (PS/2).</p>
+            
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">key</span>: <span class="type">i32</span> = <span class="string">0</span>
+<span class="keyword">static.pl&gt;</span>
+<span class="function">readkey</span>{key}
+<span class="function">display</span>{key}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only (returns 0 in terminal mode)</p>
+
+            <h3>readchar{}</h3>
+            <p>Read an ASCII character.</p>
+            
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">ch</span>: <span class="type">i32</span> = <span class="string">0</span>
+<span class="keyword">static.pl&gt;</span>
+<span class="function">readchar</span>{ch}
+<span class="function">display</span>{ch}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only (returns 0 in terminal mode)</p>
+            <p><strong>Supported:</strong> ASCII a-z, 0-9, space, enter, backspace</p>
+
+            <h3>putchar{}</h3>
+            <p>Output a single character by ASCII code.</p>
+            
+            <div class="code-example">
+<span class="comment">// Output 'A' (ASCII 65)</span>
+<span class="function">putchar</span>{<span class="string">65</span>}
+
+<span class="comment">// Output newline</span>
+<span class="function">putchar</span>{<span class="string">10</span>}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only</p>
+
+            <h2>Graphics Functions (Bare-metal)</h2>
+
+            <h3>color{}</h3>
+            <p>Set the text color attribute.</p>
+            
+            <div class="code-example">
+<span class="comment">// Green on black</span>
+<span class="function">color</span>{<span class="string">10</span>}
+<span class="function">display</span>{<span class="string">"Green text"</span>}
+
+<span class="comment">// White on blue</span>
+<span class="function">color</span>{<span class="string">31</span>}
+<span class="function">display</span>{<span class="string">"White on blue"</span>}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only</p>
+            
+            <h4>Color Attributes</h4>
+            <table>
+                <tr><th>Value</th><th>Color</th></tr>
+                <tr><td>0-7</td><td>Standard colors (black, blue, green, cyan, red, magenta, brown, white)</td></tr>
+                <tr><td>8-15</td><td>Bright colors</td></tr>
+                <tr><td>16-31</td><td>Background colors (multiply foreground by 16)</td></tr>
+            </table>
+
+            <h3>clear{}</h3>
+            <p>Clear the screen.</p>
+            
+            <div class="code-example">
+<span class="function">clear</span>{}
+<span class="function">display</span>{<span class="string">"Screen cleared"</span>}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only</p>
+
+            <h2>System Functions</h2>
+
+            <h3>reboot{}</h3>
+            <p>Reboot the system.</p>
+            
+            <div class="code-example">
+<span class="function">display</span>{<span class="string">"System rebooting..."</span>}
+<span class="function">reboot</span>{}
+            </div>
+
+            <p><strong>Modes:</strong> Bare-metal only</p>
+
+            <h2>Function Reference Table</h2>
+            
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Parameter</th>
+                    <th>Modes</th>
+                </tr>
+                <tr>
+                    <td><code>display{}</code></td>
+                    <td>Output string</td>
+                    <td>string variable</td>
+                    <td>All</td>
+                </tr>
+                <tr>
+                    <td><code>readkey{}</code></td>
+                    <td>Read scan code</td>
+                    <td>i32 variable</td>
+                    <td>Bare-metal</td>
+                </tr>
+                <tr>
+                    <td><code>readchar{}</code></td>
+                    <td>Read ASCII char</td>
+                    <td>i32 variable</td>
+                    <td>Bare-metal</td>
+                </tr>
+                <tr>
+                    <td><code>putchar{}</code></td>
+                    <td>Output char</td>
+                    <td>ASCII code (i32)</td>
+                    <td>Bare-metal</td>
+                </tr>
+                <tr>
+                    <td><code>color{}</code></td>
+                    <td>Set color</td>
+                    <td>color attribute (i32)</td>
+                    <td>Bare-metal</td>
+                </tr>
+                <tr>
+                    <td><code>clear{}</code></td>
+                    <td>Clear screen</td>
+                    <td>none</td>
+                    <td>Bare-metal</td>
+                </tr>
+                <tr>
+                    <td><code>reboot{}</code></td>
+                    <td>Reboot system</td>
+                    <td>none</td>
+                    <td>Bare-metal</td>
+                </tr>
+            </table>
+
+            <h2>Complete Example</h2>
+            
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"Hello, World!"</span>
+    <span class="keyword">var</span> <span class="type">key</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="comment"># Set color</span>
+    <span class="function">color</span>{<span class="string">10</span>}
+
+    <span class="comment"># Display message</span>
+    <span class="function">display</span>{msg}
+
+    <span class="comment"># Wait for keypress</span>
+    <span class="function">call</span> #<span class="type">keyboard_driver</span>
+    <span class="function">readchar</span>{key}
+
+    <span class="comment"># Clear screen</span>
+    <span class="function">clear</span>{}
+
+    <span class="comment"># Reboot</span>
+    <span class="function">reboot</span>{}
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h2>Terminal Mode Notes</h2>
+            
+            <div class="alert alert-info">
+                <h4>Terminal Mode Behavior</h4>
+                <p>When compiling with <code>-terminal</code> or <code>-terminal-macos</code>:</p>
+                <ul>
+                    <li><code>display{}</code> appends a newline</li>
+                    <li><code>readkey{}</code> and <code>readchar{}</code> return 0</li>
+                    <li><code>color{}</code>, <code>putchar{}</code>, <code>clear{}</code>, <code>reboot{}</code> are not available</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

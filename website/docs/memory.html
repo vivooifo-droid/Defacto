@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Management - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html" class="active">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Memory Management</h1>
+            
+            <p>Defacto v0.30 introduces automatic memory management, eliminating the need for manual memory handling.</p>
+
+            <h2>Automatic Memory Management (v0.30+)</h2>
+            
+            <p>Starting with version 0.30, the compiler automatically frees all variables at the end of each section. You don't need to call <code>free{}</code> manually.</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"hello"</span>
+    <span class="keyword">var</span> <span class="type">arr</span>: <span class="type">i32</span>[<span class="string">10</span>]
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">display</span>{msg}
+<span class="keyword">.&gt;</span>
+<span class="comment">// x, msg, and arr are automatically freed here</span>
+            </div>
+
+            <h2>Manual Memory Freeing (Legacy)</h2>
+            
+            <p>The <code>free{}</code> statement is still supported for backward compatibility:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">free</span>{x}  <span class="comment">// Manual free (not required in v0.30+)</span>
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h2>Memory Rules</h2>
+            
+            <table>
+                <tr><th>Type</th><th>Freeing Behavior</th></tr>
+                <tr><td><code>var</code></td><td>Automatically freed at section end, or use <code>free{}</code></td></tr>
+                <tr><td><code>const</code></td><td>Cannot be freed (compile-time constants)</td></tr>
+                <tr><td><code>string</code></td><td>Automatically freed (static data)</td></tr>
+                <tr><td><code>array</code></td><td>Automatically freed at section end</td></tr>
+                <tr><td><code>struct</code></td><td>Automatically freed at section end</td></tr>
+            </table>
+
+            <h2>Variable Scope and Lifetime</h2>
+            
+            <p>Variables are scoped to their section and live until the section ends:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">outer</span>: <span class="type">i32</span> = <span class="string">1</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">display</span>{outer}
+<span class="keyword">.&gt;</span>
+<span class="comment">// outer is freed here</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">inner</span>: <span class="type">i32</span> = <span class="string">2</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="comment">// outer is NOT accessible here - different section
+</span>    <span class="function">display</span>{inner}
+<span class="keyword">.&gt;</span>
+<span class="comment">// inner is freed here</span>
+            </div>
+
+            <h2>Function Memory</h2>
+            
+            <p>Each function has its own memory scope:</p>
+
+            <div class="code-example">
+<span class="keyword">function</span> == <span class="type">my_func</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">local</span>: <span class="type">i32</span> = <span class="string">42</span>
+        <span class="keyword">static.pl&gt;</span>
+        <span class="function">display</span>{local}
+    <span class="keyword">.&gt;</span>
+    <span class="comment">// local is freed when function returns</span>
+}
+            </div>
+
+            <h2>Memory Safety</h2>
+            
+            <p>The <code>#SAFE</code> directive enables memory safety checks:</p>
+
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>  <span class="comment">// Memory checks enabled</span>
+            </div>
+
+            <div class="alert alert-info">
+                <h4>Memory Safety Features</h4>
+                <ul>
+                    <li>Automatic variable cleanup</li>
+                    <li>Prevention of use-after-free</li>
+                    <li>Memory abandonment detection (legacy mode)</li>
+                </ul>
+            </div>
+
+            <h2>Memory Abandonment (Legacy)</h2>
+            
+            <p>In older versions, the compiler would report errors for unfreed variables:</p>
+
+            <div class="code-example">
+<span class="comment">// Legacy error (v0.29 and earlier):</span>
+<span class="comment">// error: Memory Abandonment: 'x' never freed</span>
+
+<span class="comment">// In v0.30+, this is handled automatically</span>
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+<span class="keyword">.&gt;</span>
+<span class="comment">// No error - x is automatically freed</span>
+            </div>
+
+            <h2>Best Practices</h2>
+            
+            <ul>
+                <li>Rely on automatic memory management in v0.30+</li>
+                <li>Keep sections focused to manage memory efficiently</li>
+                <li>Use <code>free{}</code> only when explicit early freeing is needed</li>
+                <li>Don't free constants - they're compile-time values</li>
+                <li>Be aware of variable scope across sections</li>
+            </ul>
+
+            <h2>Memory Layout</h2>
+            
+            <p>Defacto uses a stack-based memory model:</p>
+
+            <div class="code-example">
+<span class="comment"># Memory layout:
+#
+# +------------------+
+# |   Stack (grows   |
+# |      down)       |
+# +------------------+
+# |   Local vars     |
+# +------------------+
+# |   Static data    |
+# |   (strings,      |
+# |    constants)    |
+# +------------------+
+# |   Heap (if used) |
+# +------------------+
+            </div>
+
+            <h2>Struct Memory</h2>
+            
+            <p>Structs are stored inline with their fields contiguous in memory:</p>
+
+            <div class="code-example">
+<span class="keyword">struct</span> <span class="type">Player</span> {
+    <span class="type">x</span>: <span class="type">i32</span>      <span class="comment"># offset 0, 4 bytes</span>
+    <span class="type">y</span>: <span class="type">i32</span>      <span class="comment"># offset 4, 4 bytes</span>
+    <span class="type">health</span>: <span class="type">i32</span>  <span class="comment"># offset 8, 4 bytes</span>
+    <span class="type">score</span>: <span class="type">i32</span>   <span class="comment"># offset 12, 4 bytes</span>
+    <span class="comment"># Total: 16 bytes</span>
+}
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">player</span>: <span class="type">Player</span>  <span class="comment"># Allocates 16 bytes</span>
+    <span class="keyword">static.pl&gt;</span>
+<span class="keyword">.&gt;</span>
+<span class="comment">// player (16 bytes) freed automatically</span>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

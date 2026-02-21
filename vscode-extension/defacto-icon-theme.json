@@ -1,0 +1,13 @@
+{
+  "iconDefinitions": {
+    "defactoFile": {
+      "iconPath": "./icons/defacto-icon.svg"
+    }
+  },
+  "fileExtensions": {
+    "de": "defactoFile",
+    "defacto": "defactoFile",
+    "def": "defactoFile",
+    "defo": "defactoFile"
+  }
+}

@@ -1,0 +1,30 @@
+name: Build Windows Installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64 nsis
+
+      - name: Build Windows Installer
+        run: |
+          chmod +x build-windows-installer.sh
+          ./build-windows-installer.sh
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: defacto-0.30-installer.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

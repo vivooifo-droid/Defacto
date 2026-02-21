@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structures - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html" class="active">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Structures</h1>
+            
+            <p>Structures (structs) allow you to define custom data types with multiple fields. Added in v0.30.</p>
+
+            <h2>Defining a Structure</h2>
+            
+            <div class="code-example">
+<span class="keyword">struct</span> <span class="type">Point</span> {
+    <span class="type">x</span>: <span class="type">i32</span>
+    <span class="type">y</span>: <span class="type">i32</span>
+    <span class="type">z</span>: <span class="type">i32</span>
+}
+            </div>
+
+            <h2>Declaring Structure Variables</h2>
+            
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">p</span>: <span class="type">Point</span>
+            </div>
+
+            <h2>Field Access</h2>
+            
+            <p>Access struct fields using dot notation:</p>
+
+            <div class="code-example">
+<span class="type">p</span>.<span class="type">x</span> = <span class="string">10</span>
+<span class="type">p</span>.<span class="type">y</span> = <span class="string">20</span>
+<span class="type">p</span>.<span class="type">z</span> = <span class="string">30</span>
+
+<span class="comment">// Use in expressions</span>
+<span class="type">result</span> = (<span class="type">p</span>.<span class="type">x</span> + <span class="type">p</span>.<span class="type">y</span>)
+            </div>
+
+            <h2>Complete Example</h2>
+            
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+<span class="comment"># Define a Player structure</span>
+<span class="keyword">struct</span> <span class="type">Player</span> {
+    <span class="type">x</span>: <span class="type">i32</span>
+    <span class="type">y</span>: <span class="type">i32</span>
+    <span class="type">health</span>: <span class="type">i32</span>
+    <span class="type">score</span>: <span class="type">i32</span>
+}
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">player</span>: <span class="type">Player</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="comment"># Initialize fields</span>
+    <span class="type">player</span>.<span class="type">x</span> = <span class="string">100</span>
+    <span class="type">player</span>.<span class="type">y</span> = <span class="string">200</span>
+    <span class="type">player</span>.<span class="type">health</span> = <span class="string">100</span>
+    <span class="type">player</span>.<span class="type">score</span> = <span class="string">0</span>
+
+    <span class="comment"># Modify fields</span>
+    <span class="type">player</span>.<span class="type">health</span> = (<span class="type">player</span>.<span class="type">health</span> - <span class="string">10</span>)
+    <span class="type">player</span>.<span class="type">score</span> = (<span class="type">player</span>.<span class="type">score</span> + <span class="string">100</span>)
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h2>Field Types</h2>
+            
+            <p>Struct fields can be any built-in type:</p>
+
+            <table>
+                <tr><th>Field Type</th><th>Size</th></tr>
+                <tr><td><code>i32</code></td><td>4 bytes</td></tr>
+                <tr><td><code>i64</code></td><td>8 bytes</td></tr>
+                <tr><td><code>u8</code></td><td>1 byte</td></tr>
+                <tr><td><code>string</code></td><td>4 bytes (pointer)</td></tr>
+                <tr><td><code>pointer</code></td><td>4 bytes</td></tr>
+            </table>
+
+            <h2>Memory Layout</h2>
+            
+            <p>Struct fields are stored inline (contiguously in memory):</p>
+
+            <div class="code-example">
+<span class="comment"># Player structure (16 bytes total):</span>
+<span class="comment"># Offset 0:  x (i32)     - 4 bytes</span>
+<span class="comment"># Offset 4:  y (i32)     - 4 bytes</span>
+<span class="comment"># Offset 8:  health (i32) - 4 bytes</span>
+<span class="comment"># Offset 12: score (i32)  - 4 bytes</span>
+
+<span class="keyword">struct</span> <span class="type">Player</span> {
+    <span class="type">x</span>: <span class="type">i32</span>
+    <span class="type">y</span>: <span class="type">i32</span>
+    <span class="type">health</span>: <span class="type">i32</span>
+    <span class="type">score</span>: <span class="type">i32</span>
+}
+            </div>
+
+            <h2>Rules and Limitations</h2>
+            
+            <div class="alert alert-info">
+                <h4>Structure Rules in v0.30</h4>
+                <ul>
+                    <li>Struct fields can be any built-in type</li>
+                    <li>Structs are stored inline (no pointers)</li>
+                    <li>Field access uses dot notation: <code>struct.field</code></li>
+                    <li>Nested structures are <strong>not supported</strong></li>
+                    <li>Struct methods are <strong>not supported</strong></li>
+                    <li>Const structs are <strong>not supported</strong></li>
+                </ul>
+            </div>
+
+            <h2>Struct Size Calculation</h2>
+            
+            <p>To calculate the total size of a struct, add up all field sizes:</p>
+
+            <div class="code-example">
+<span class="comment"># Example: GameEntity structure</span>
+<span class="keyword">struct</span> <span class="type">GameEntity</span> {
+    <span class="type">x</span>: <span class="type">i32</span>       <span class="comment"># 4 bytes</span>
+    <span class="type">y</span>: <span class="type">i32</span>       <span class="comment"># 4 bytes</span>
+    <span class="type">type</span>: <span class="type">u8</span>     <span class="comment"># 1 byte</span>
+    <span class="type">active</span>: <span class="type">u8</span>   <span class="comment"># 1 byte</span>
+    <span class="type">health</span>: <span class="type">i32</span>  <span class="comment"># 4 bytes</span>
+    <span class="comment"># Total: 14 bytes</span>
+}
+            </div>
+
+            <h2>Best Practices</h2>
+            
+            <ul>
+                <li>Group related fields together</li>
+                <li>Use meaningful field names</li>
+                <li>Keep structs focused on a single purpose</li>
+                <li>Consider memory alignment for performance</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

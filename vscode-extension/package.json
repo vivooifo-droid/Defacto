@@ -1,0 +1,55 @@
+{
+  "name": "defacto-lang",
+  "displayName": "Defacto Language",
+  "description": "Syntax highlighting and language support for the Defacto programming language (.de, .defacto, .def, .defo)",
+  "version": "0.30.0",
+  "publisher": "defacto",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Programming Languages"],
+  "icon": "icons/defacto-icon.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vivooifo-droid/Defacto"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "defacto",
+        "aliases": ["Defacto", "defacto"],
+        "extensions": [".de", ".defacto", ".def", ".defo"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/defacto-icon.svg",
+          "dark":  "./icons/defacto-icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "defacto",
+        "scopeName": "source.defacto",
+        "path": "./syntaxes/defacto.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Defacto Light",
+        "uiTheme": "vs",
+        "path": "./themes/defacto-light.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "defacto-icons",
+        "label": "Defacto Icons",
+        "path": "./defacto-icon-theme.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "defacto",
+        "path": "./snippets/defacto-snippets.json"
+      }
+    ]
+  }
+}

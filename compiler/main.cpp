@@ -1,0 +1,121 @@
+#include "src/defacto.h"
+#include "src/lexer.h"
+#include "src/parser.h"
+#include "src/codegen.h"
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
+#include <string>
+
+static std::string read_file(const std::string& p){
+    std::ifstream f(p);
+    if(!f) throw std::runtime_error("cannot open '"+p+"'");
+    std::ostringstream s; s<<f.rdbuf(); return s.str();
+}
+
+static std::string sh_quote(const std::string& s){
+    std::string out="'";
+    for(char c: s){
+        if(c=='\'') out += "'\\''";
+        else out += c;
+    }
+    out += "'";
+    return out;
+}
+
+static void usage(const char* prog){
+    std::cout
+        <<"Defacto Compiler v0.25\n\n"
+        <<"Usage: "<<prog<<" [options] <file.de>\n\n"
+        <<"Options:\n"
+        <<"  -o <file>    output file (default: a.out)\n"
+        <<"  -S           emit assembly only, do not assemble\n"
+        <<"  -kernel      bare-metal mode: [BITS 32][ORG 0x1000] + hlt (default)\n"
+        <<"  -terminal    terminal mode: Linux syscalls + exit\n"
+        <<"  -terminal-macos terminal mode: macOS syscalls (x86_64 Mach-O)\n"
+        <<"  -v           verbose\n"
+        <<"  -h           help\n\n"
+        <<"Examples:\n"
+        <<"  "<<prog<<" -terminal hello.de\n"
+        <<"  "<<prog<<" -kernel -o kernel.bin os.de\n"
+        <<"  "<<prog<<" -S -v program.de\n";
+}
+
+int main(int argc, char** argv){
+    if(argc<2){usage(argv[0]);return 1;}
+
+    std::string input, output="a.out";
+    bool asm_only=false, verbose=false, bare_metal=true, macos_terminal=false;
+
+    for(int i=1;i<argc;i++){
+        const std::string a=argv[i];
+        if(a=="-h"){usage(argv[0]);return 0;}
+        else if(a=="-S")        asm_only=true;
+        else if(a=="-v")        verbose=true;
+        else if(a=="-kernel")   { bare_metal=true; macos_terminal=false; }
+        else if(a=="-terminal") { bare_metal=false; macos_terminal=false; }
+        else if(a=="-terminal-macos") { bare_metal=false; macos_terminal=true; }
+        else if(a=="-o"){if(++i>=argc){err("'-o' requires filename");return 1;} output=argv[i];}
+        else if(a[0]!='-') input=a;
+        else{err("unknown option '"+a+"'");return 1;}
+    }
+    if(input.empty()){err("no input file");return 1;}
+
+    std::string stem=input;
+    const auto dot=stem.find_last_of('.');
+    if(dot!=std::string::npos) stem=stem.substr(0,dot);
+    std::string asm_file=stem+".asm";
+
+    try{
+        if(verbose) std::cout<<"reading "<<input<<"\n";
+        const auto src=read_file(input);
+
+        if(verbose) std::cout<<"parsing...\n";
+        Lexer  lexer(src);
+        Parser parser(lexer.tokenize());
+        auto ast=parser.parse();
+
+        if(verbose){
+            std::cout<<"  no_runtime: "<<ast->no_runtime<<"\n";
+            std::cout<<"  functions:  "<<ast->functions.size()<<"\n";
+            std::cout<<"  mode: "<<(bare_metal?"kernel (bare-metal)":"terminal (Linux)")<<"\n";
+        }
+
+        CodeGen cg;
+        cg.set_mode(bare_metal, macos_terminal);
+        cg.emit(ast.get(), asm_file);
+
+        if(asm_only){std::cout<<"done: "<<asm_file<<"\n";return 0;}
+
+        if(bare_metal){
+            const std::string cmd="nasm -f bin "+sh_quote(asm_file)+" -o "+sh_quote(output);
+            if(verbose) std::cout<<"$ "<<cmd<<"\n";
+            if(std::system(cmd.c_str())!=0){err("assembler failed");return 1;}
+        } else if(!macos_terminal) {
+            const std::string obj=stem+".o";
+            const std::string cmd_nasm="nasm -f elf32 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const char* ld_env = std::getenv("DEFACTO_LD");
+            const std::string ld_bin = ld_env ? ld_env : "ld";
+            const std::string cmd_ld  = ld_bin+" -m elf_i386 -o "+sh_quote(output)+" "+sh_quote(obj);
+            if(verbose) std::cout<<"$ "<<cmd_nasm<<"\n$ "<<cmd_ld<<"\n";
+            if(std::system(cmd_nasm.c_str())!=0){err("assembler failed");return 1;}
+            if(std::system(cmd_ld.c_str())!=0){err("linker failed");return 1;}
+            if(!verbose) std::remove(obj.c_str());
+        } else {
+            const std::string obj=stem+".o";
+            const std::string cmd_nasm="nasm -f macho64 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const char* cc_env = std::getenv("DEFACTO_CC");
+            const std::string cc_bin = cc_env ? cc_env : "clang";
+            const std::string cmd_ld  = cc_bin+" -arch x86_64 -Wl,-e,_start -Wl,-platform_version,macos,11.0,11.0 -o "+sh_quote(output)+" "+sh_quote(obj);
+            if(verbose) std::cout<<"$ "<<cmd_nasm<<"\n$ "<<cmd_ld<<"\n";
+            if(std::system(cmd_nasm.c_str())!=0){err("assembler failed");return 1;}
+            if(std::system(cmd_ld.c_str())!=0){err("linker failed");return 1;}
+            if(!verbose) std::remove(obj.c_str());
+        }
+
+        if(!verbose) std::remove(asm_file.c_str());
+        std::cout<<"done: "<<output<<"\n";
+
+    }catch(const std::exception& e){err(e.what());return 1;}
+    return 0;
+}

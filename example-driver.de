@@ -1,0 +1,23 @@
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<drv.
+Const.driver = keyboard_driver
+keyboard_driver <<func = keyboard>>
+.dr>
+
+<.de
+    var key: i32 = 0
+    var msg: string = "Press a key"
+
+    static.pl>
+
+    display{msg}
+
+    call #keyboard_driver
+
+    display{key}
+.>
+
+#Mainprogramm.end

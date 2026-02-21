@@ -1,0 +1,29 @@
+# Compiler
+compiler/defacto
+compiler/defacto.exe
+compiler/*.o
+compiler/*.asm
+
+# VS Code extension
+vscode-extension/*.vsix
+vscode-extension/node_modules/
+vscode-extension/out/
+
+# Build artifacts
+*.save
+build/
+dist/
+*.exe
+
+# Rust
+addons/rust/target/
+addons/rust/Cargo.lock
+addons/rust-backend/target/
+addons/rust-backend/Cargo.lock
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*~

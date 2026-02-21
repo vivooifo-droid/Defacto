@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax Guide - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html" class="active">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Syntax Guide</h1>
+            
+            <p>This guide covers the complete syntax of the Defacto programming language.</p>
+
+            <h2>File Structure</h2>
+            <p>Every Defacto file must follow this structure:</p>
+            
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+<span class="comment"># Struct definitions</span>
+<span class="keyword">struct</span> <span class="type">MyStruct</span> {
+    <span class="type">field</span>: <span class="type">i32</span>
+}
+
+<span class="comment"># Driver definitions</span>
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+<span class="comment"># Function definitions</span>
+<span class="keyword">function</span> == <span class="type">my_func</span> {
+    &lt;<span class="keyword">.de</span>
+    <span class="keyword">.&gt;</span>
+}
+
+<span class="comment"># Main code section</span>
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">display</span>{x}
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h3>Order of Elements</h3>
+            <ol>
+                <li>Directives (<code>#NO_RUNTIME</code>, <code>#SAFE</code>)</li>
+                <li>Structures (<code>struct</code>)</li>
+                <li>Drivers (<code>&lt;drv.</code> ... <code>.dr&gt;</code>)</li>
+                <li>Functions (<code>function ==</code>)</li>
+                <li>Main section (<code>&lt;.de</code> ... <code>.&gt;</code>)</li>
+                <li>Terminating directive (<code>#Mainprogramm.end</code>)</li>
+            </ol>
+
+            <h2>Compiler Directives</h2>
+
+            <h3>#Mainprogramm.start</h3>
+            <p><strong>Required.</strong> Begins the program. Must be the first line.</p>
+
+            <h3>#Mainprogramm.end</h3>
+            <p><strong>Required.</strong> Ends the program. Must be the last line.</p>
+
+            <h3>#NO_RUNTIME</h3>
+            <p><strong>Required for bare-metal.</strong> Disables the standard runtime. Used for OS and bootloader development.</p>
+
+            <h3>#SAFE</h3>
+            <p>Reserved. Memory checks are always enabled.</p>
+
+            <h2>Code Sections</h2>
+            
+            <p>All executable code must be inside sections:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"hello"</span>
+
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="function">display</span>{msg}
+    <span class="type">x</span> = (<span class="type">x</span> + <span class="string">1</span>)
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h3>Two-Part Rule</h3>
+            <p>Sections are divided into two parts by <code>static.pl&gt;</code>:</p>
+            
+            <table>
+                <tr>
+                    <th>Before <code>static.pl&gt;</code></th>
+                    <th>After <code>static.pl&gt;</code></th>
+                </tr>
+                <tr>
+                    <td>Only <code>var</code> and <code>const</code></td>
+                    <td>Only statements</td>
+                </tr>
+                <tr>
+                    <td>Variable declarations</td>
+                    <td>Function calls, assignments</td>
+                </tr>
+                <tr>
+                    <td>No executable code</td>
+                    <td>No declarations</td>
+                </tr>
+            </table>
+
+            <h2>Comments</h2>
+            <p>Line comments use <code>//</code>:</p>
+            
+            <div class="code-example">
+<span class="comment">// This is a comment</span>
+<span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">0</span>  <span class="comment">// Inline comment</span>
+            </div>
+
+            <h2>String Literals</h2>
+            <p>Strings support escape sequences:</p>
+            
+            <div class="code-example">
+<span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"Hello, World!"</span>
+<span class="keyword">var</span> <span class="type">multiline</span>: <span class="type">string</span> = <span class="string">"Line 1\nLine 2"</span>
+<span class="keyword">var</span> <span class="type">with_tab</span>: <span class="type">string</span> = <span class="string">"Col1\tCol2"</span>
+            </div>
+
+            <table>
+                <tr><th>Escape</th><th>Character</th></tr>
+                <tr><td><code>\n</code></td><td>Newline (LF)</td></tr>
+                <tr><td><code>\t</code></td><td>Tab</td></tr>
+            </table>
+
+            <h2>Expressions</h2>
+            <p>Only simple expressions with one operator are supported:</p>
+
+            <div class="code-example">
+<span class="comment">// Valid expressions</span>
+<span class="type">x</span> = (<span class="type">a</span> + <span class="type">b</span>)
+<span class="type">x</span> = (<span class="type">x</span> - <span class="string">1</span>)
+<span class="type">x</span> = (<span class="type">x</span> * <span class="string">2</span>)
+<span class="type">x</span> = (<span class="type">x</span> / <span class="string">4</span>)
+
+<span class="comment">// Invalid - nested expressions</span>
+<span class="comment">// x = (a + b + c)</span>
+<span class="comment">// x = ((a + b) * c)</span>
+
+<span class="comment">// Invalid - negative literals</span>
+<span class="comment">// x = -5  // Use (0 - 5) instead</span>
+            </div>
+
+            <h3>Supported Operators</h3>
+            <table>
+                <tr><th>Operator</th><th>Description</th><th>Example</th></tr>
+                <tr><td><code>+</code></td><td>Addition</td><td><code>x = (a + b)</code></td></tr>
+                <tr><td><code>-</code></td><td>Subtraction</td><td><code>x = (x - 1)</code></td></tr>
+                <tr><td><code>*</code></td><td>Multiplication</td><td><code>x = (x * 2)</code></td></tr>
+                <tr><td><code>/</code></td><td>Division</td><td><code>x = (x / 4)</code></td></tr>
+            </table>
+
+            <h2>Statements</h2>
+
+            <h3>Assignment</h3>
+            <div class="code-example">
+<span class="comment">// Simple assignment</span>
+<span class="type">x</span> = <span class="string">5</span>
+<span class="type">x</span> = <span class="type">other_var</span>
+<span class="type">x</span> = #<span class="type">R1</span>
+
+<span class="comment">// Expression assignment</span>
+<span class="type">x</span> = (<span class="type">x</span> + <span class="string">1</span>)
+<span class="type">y</span> = (<span class="type">a</span> * <span class="type">b</span>)
+
+<span class="comment">// Array assignment</span>
+<span class="type">arr</span>[<span class="type">i</span>] = <span class="type">x</span>
+<span class="type">arr</span>[<span class="string">0</span>] = <span class="string">100</span>
+
+<span class="comment">// Struct field assignment</span>
+<span class="type">player</span>.<span class="type">x</span> = <span class="string">10</span>
+<span class="type">player</span>.<span class="type">health</span> = (<span class="type">player</span>.<span class="type">health</span> - <span class="string">1</span>)
+            </div>
+
+            <h3>Loop</h3>
+            <div class="code-example">
+<span class="keyword">loop</span> {
+    <span class="comment">// Decrement counter</span>
+    <span class="type">counter</span> = (<span class="type">counter</span> - <span class="string">1</span>)
+    
+    <span class="comment">// Exit condition</span>
+    <span class="keyword">if</span> <span class="type">counter</span> == <span class="string">0</span> { <span class="keyword">stop</span> }
+}
+            </div>
+
+            <h3>If/Else</h3>
+            <div class="code-example">
+<span class="comment">// Simple if</span>
+<span class="keyword">if</span> <span class="type">x</span> == <span class="string">10</span> {
+    <span class="function">display</span>{msg}
+}
+
+<span class="comment">// If/else</span>
+<span class="keyword">if</span> <span class="type">x</span> == <span class="string">10</span> {
+    <span class="function">display</span>{msg}
+} <span class="keyword">else</span> {
+    <span class="function">display</span>{err}
+}
+
+<span class="comment">// Nested if</span>
+<span class="keyword">if</span> <span class="type">x</span> == <span class="string">1</span> {
+    <span class="keyword">if</span> <span class="type">y</span> == <span class="string">2</span> {
+        <span class="keyword">stop</span>
+    }
+}
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>Limitation:</strong> Only <code>==</code> is supported for comparison. Operators like <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code> are not available in v0.30.
+            </div>
+
+            <h2>Language Limitations</h2>
+            
+            <div class="alert alert-info">
+                <h4>Current Limitations in v0.30</h4>
+                <ul>
+                    <li>Only <code>==</code> in <code>if</code> conditions</li>
+                    <li>One operator per expression</li>
+                    <li>No negative number literals (use <code>(0 - 5)</code>)</li>
+                    <li>No expression indexes in arrays</li>
+                    <li>Interrupt directives are parsed but not generated</li>
+                    <li>No nested expressions</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

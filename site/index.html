@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defacto - Low-level Programming Language for x86-32</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="nav-logo">
+                Defacto
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="syntax.html" class="nav-link">Documentation</a></li>
+                <li><a href="install.html" class="nav-link">Install</a></li>
+                <li><a href="defo.html" class="nav-link">Package Manager</a></li>
+                <li><a href="addons.html" class="nav-link">Addons</a></li>
+                <li><a href="https://github.com/vivooifo-droid/Defacto" class="nav-link" target="_blank">
+                    <span class="github-icon">⌘</span> GitHub
+                </a></li>
+            </ul>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-badge">v0.30 Pre-Alpha</div>
+                <h1>Defacto</h1>
+                <p class="hero-subtitle">
+                    Low-level programming language for x86-32, bare-metal experiments, 
+                    and custom toolchains. Build operating systems and bootloaders with ease.
+                </p>
+                <div class="hero-buttons">
+                    <a href="install.html" class="btn btn-primary btn-large">
+                        Get Started
+                    </a>
+                    <a href="syntax.html" class="btn btn-secondary btn-large">
+                        Documentation
+                    </a>
+                    <a href="https://github.com/vivooifo-droid/Defacto" class="btn btn-ghost btn-large" target="_blank">
+                        Star on GitHub
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-value">v0.30</span>
+                        <span class="stat-label">Current Version</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">x86-32</span>
+                        <span class="stat-label">Target Architecture</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">Pre-Alpha</span>
+                        <span class="stat-label">Development Stage</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features container">
+            <h2 class="section-title">Why Defacto?</h2>
+            <p class="section-subtitle">
+                Designed for systems programming with full control over hardware
+            </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Bare-Metal Development</h3>
+                    <p>Write operating systems and bootloaders directly in Defacto. Full control over x86-32 hardware without runtime overhead.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Automatic Memory Management</h3>
+                    <p>The compiler automatically frees all variables at the end of each section. No manual memory management or garbage collection required.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Struct Types</h3>
+                    <p>Define custom data structures with named fields and dot notation access. Perfect for system data representation.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Hardware Drivers</h3>
+                    <p>Built-in support for keyboard, mouse, and volume drivers with simple, declarative syntax.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Multiple Modes</h3>
+                    <p>Compile for bare-metal kernel, Linux terminal, or macOS terminal with syscall support. One language, multiple targets.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Native Addons</h3>
+                    <p>Extend Defacto with libraries written in Rust or C++ for maximum performance and ecosystem integration.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="example container">
+            <h2 class="section-title">See Defacto in Action</h2>
+            <p class="section-subtitle">
+                Clean, readable syntax for low-level programming
+            </p>
+            <div class="code-tabs">
+                <button class="tab-btn active" data-tab="hello">Hello World</button>
+                <button class="tab-btn" data-tab="struct">Structs</button>
+                <button class="tab-btn" data-tab="conditional">If/Else</button>
+                <button class="tab-btn" data-tab="driver">Drivers</button>
+            </div>
+            <div class="code-container">
+                <div class="code-header">
+                    <span class="code-language">Defacto</span>
+                    <button class="copy-code-btn" title="Copy code">
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+                <pre class="code-block active" id="hello"><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;.de
+    var msg: string = "Hello, World!"
+    static.pl&gt;
+    display{msg}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                <pre class="code-block" id="struct"><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Player {
+    x: i32
+    y: i32
+    health: i32
+    score: i32
+}
+
+&lt;.de
+    var player: Player
+    static.pl&gt;
+    player.x = 100
+    player.y = 200
+    player.health = 100
+    player.score = (player.score + 100)
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                <pre class="code-block" id="conditional"><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;.de
+    var x: i32 = 5
+    var msg: string = "equal"
+    var err: string = "not equal"
+    static.pl&gt;
+
+    if x == 5 {
+        display{msg}
+    } else {
+        display{err}
+    }
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                <pre class="code-block" id="driver"><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;drv.
+Const.driver = keyboard_driver
+keyboard_driver &lt;&lt;func = keyboard&gt;&gt;
+.dr&gt;
+
+&lt;.de
+    var key: i32 = 0
+    static.pl&gt;
+    call #keyboard_driver
+    readkey{key}
+    display{key}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+            </div>
+            <div class="example-actions">
+                <a href="syntax.html" class="btn btn-secondary">View Full Syntax</a>
+                <a href="install.html" class="btn btn-primary">Try It Yourself</a>
+            </div>
+        </section>
+
+        <section class="install-section container">
+            <h2 class="section-title">Quick Install</h2>
+            <p class="section-subtitle">Get up and running in minutes</p>
+            <div class="install-grid">
+                <div class="install-card">
+                    <div class="install-card-header">
+                        <h3>Windows</h3>
+                    </div>
+                    <p>Download and run the installer</p>
+                    <a href="https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe" class="btn btn-primary btn-block">
+                        Download .exe
+                    </a>
+                    <p class="install-note">Requires NASM: <code>choco install nasm</code></p>
+                </div>
+                <div class="install-card">
+                    <div class="install-card-header">
+                        <h3>macOS</h3>
+                    </div>
+                    <p>Install via Homebrew</p>
+                    <pre><code>xcode-select --install
+brew install nasm mingw-w64
+cd compiler && make
+./defacto -h</code></pre>
+                </div>
+                <div class="install-card">
+                    <div class="install-card-header">
+                        <h3>Linux</h3>
+                    </div>
+                    <p>Ubuntu/Debian</p>
+                    <pre><code>sudo apt update
+sudo apt install build-essential nasm
+cd compiler && make
+./defacto -h</code></pre>
+                </div>
+            </div>
+            <div class="install-more">
+                <a href="install.html" class="btn btn-secondary">
+                    Detailed Installation Guide
+                </a>
+            </div>
+        </section>
+
+        <section class="whats-new container">
+            <h2 class="section-title">What's New in v0.30</h2>
+            <div class="changelog-grid">
+                <div class="changelog-item major">
+                    <div class="changelog-badge">Major</div>
+                    <h3>Automatic Memory Management</h3>
+                    <p>No more <code>free{}</code> required! The compiler automatically manages variable lifetimes.</p>
+                </div>
+                <div class="changelog-item major">
+                    <div class="changelog-badge">Major</div>
+                    <h3>if/else Statements</h3>
+                    <p>Full conditional branching support with else blocks.</p>
+                </div>
+                <div class="changelog-item major">
+                    <div class="changelog-badge">Major</div>
+                    <h3>Struct Types</h3>
+                    <p>Define custom data structures with named fields.</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-badge">Feature</div>
+                    <h3>Field Access</h3>
+                    <p>Access struct fields with dot notation.</p>
+                </div>
+                <div class="changelog-item">
+                    <div class="changelog-badge">Improvement</div>
+                    <h3>Improved Windows Installer</h3>
+                    <p>Simplified installation process with PATH configuration.</p>
+                </div>
+            </div>
+            <div class="release-actions">
+                <a href="RELEASE-v0.30.md" class="btn btn-secondary" target="_blank">
+                    Full Release Notes
+                </a>
+                <a href="https://github.com/vivooifo-droid/Defacto/releases" class="btn btn-ghost" target="_blank">
+                    All Releases
+                </a>
+            </div>
+        </section>
+
+        <section class="ecosystem container">
+            <h2 class="section-title">Ecosystem</h2>
+            <p class="section-subtitle">Tools and libraries to enhance your Defacto experience</p>
+            <div class="ecosystem-grid">
+                <div class="ecosystem-card">
+                    <h3>defo Package Manager</h3>
+                    <p>Install and manage Defacto packages with ease. Share your libraries with the community.</p>
+                    <a href="defo.html" class="ecosystem-link">Learn more</a>
+                </div>
+                <div class="ecosystem-card">
+                    <h3>Rust Addons</h3>
+                    <p>Write high-performance libraries in Rust and use them in Defacto programs.</p>
+                    <a href="addons.html" class="ecosystem-link">Learn more</a>
+                </div>
+                <div class="ecosystem-card">
+                    <h3>C++ Addons</h3>
+                    <p>Traditional C++ addons for legacy code integration and system libraries.</p>
+                    <a href="addons.html" class="ecosystem-link">Learn more</a>
+                </div>
+                <div class="ecosystem-card">
+                    <h3>Backend Framework</h3>
+                    <p>HTTP web framework in Rust for building servers with Defacto integration.</p>
+                    <a href="addons.html" class="ecosystem-link">Learn more</a>
+                </div>
+                <div class="ecosystem-card">
+                    <h3>VS Code Extension</h3>
+                    <p>Syntax highlighting, code snippets, and integrated compiler for VS Code.</p>
+                    <a href="https://marketplace.visualstudio.com/items?itemName=defacto.defacto" class="ecosystem-link" target="_blank">Install</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="community container">
+            <h2 class="section-title">Join the Community</h2>
+            <div class="community-grid">
+                <div class="community-card">
+                    <h3>Report Issues</h3>
+                    <p>Found a bug? Help us improve by reporting it on GitHub.</p>
+                    <a href="https://github.com/vivooifo-droid/Defacto/issues" class="btn btn-secondary" target="_blank">Report Bug</a>
+                </div>
+                <div class="community-card">
+                    <h3>Suggest Features</h3>
+                    <p>Have an idea? We'd love to hear your suggestions.</p>
+                    <a href="https://github.com/vivooifo-droid/Defacto/discussions" class="btn btn-secondary" target="_blank">Start Discussion</a>
+                </div>
+                <div class="community-card">
+                    <h3>Contribute</h3>
+                    <p>Want to contribute? Check out our contributing guidelines.</p>
+                    <a href="https://github.com/vivooifo-droid/Defacto/blob/main/CONTRIBUTING.md" class="btn btn-secondary" target="_blank">Contribute</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Defacto</h4>
+                    <p>Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.</p>
+                    <div class="footer-social">
+                        <a href="https://github.com/vivooifo-droid/Defacto" target="_blank" class="social-link">GitHub</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="syntax.html">Language Syntax</a></li>
+                        <li><a href="install.html">Installation</a></li>
+                        <li><a href="defo.html">Package Manager</a></li>
+                        <li><a href="addons.html">Addons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/releases">Releases</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto/discussions">Discussions</a></li>
+                        <li><a href="DOWNLOAD.md">Download Options</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/vivooifo-droid/Defacto">Source Code</a></li>
+                        <li><a href="README.md">README</a></li>
+                        <li><a href="RELEASE-v0.30.md">Release Notes</a></li>
+                        <li><a href="defo.json">Project Config</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+                <p>Built with ❤️ for systems programming enthusiasts</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

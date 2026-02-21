@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defacto - Language Syntax Documentation</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="nav-logo">Defacto</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="syntax.html" class="nav-link active">Documentation</a></li>
+                <li><a href="install.html" class="nav-link">Install</a></li>
+                <li><a href="https://github.com/vivooifo-droid/Defacto" class="nav-link" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="doc-layout">
+        <aside class="doc-sidebar">
+            <nav class="doc-nav-vertical">
+                <h3>Documentation</h3>
+                <ul>
+                    <li><a href="#file-structure">File Structure</a></li>
+                    <li><a href="#directives">Compiler Directives</a></li>
+                    <li><a href="#sections">Code Sections</a></li>
+                    <li><a href="#types">Data Types</a></li>
+                    <li><a href="#variables">Variables & Constants</a></li>
+                    <li><a href="#structs">Structs</a></li>
+                    <li><a href="#expressions">Expressions</a></li>
+                    <li><a href="#statements">Statements</a></li>
+                    <li><a href="#functions">Functions</a></li>
+                    <li><a href="#drivers">Drivers</a></li>
+                    <li><a href="#builtins">Built-in Functions</a></li>
+                    <li><a href="#registers">Registers</a></li>
+                    <li><a href="#memory">Memory Management</a></li>
+                    <li><a href="#examples">Examples</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="doc-content">
+            <section id="file-structure" class="doc-section">
+                <h2>File Structure</h2>
+                <p>Every Defacto program must follow a specific structure with required directives:</p>
+                <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Point {
+    x: i32
+    y: i32
+}
+
+&lt;drv.
+Const.driver = keyboard_driver
+keyboard_driver &lt;&lt;func = keyboard&gt;&gt;
+.dr&gt;
+
+function == my_func {
+    &lt;.de
+        var a: i32 = 0
+        static.pl&gt;
+        a = (a + 1)
+    .&gt;
+}
+
+&lt;.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    static.pl&gt;
+    display{msg}
+.>
+
+#Mainprogramm.end</code></pre>
+                
+                <h3>Element Order</h3>
+                <ol>
+                    <li><strong>Directives</strong> - <code>#NO_RUNTIME</code>, <code>#SAFE</code></li>
+                    <li><strong>Structs</strong> - Custom data structure definitions</li>
+                    <li><strong>Drivers</strong> - Hardware driver declarations</li>
+                    <li><strong>Functions</strong> - Function definitions</li>
+                    <li><strong>Main Section</strong> - Executable code in <code>&lt;.de ... .&gt;</code></li>
+                    <li><strong>End Directive</strong> - <code>#Mainprogramm.end</code></li>
+                </ol>
+            </section>
+
+            <section id="directives" class="doc-section">
+                <h2>Compiler Directives</h2>
+                
+                <h3>#Mainprogramm.start</h3>
+                <p><strong>Required.</strong> Must be the first line of every program. Marks the beginning of the program.</p>
+                
+                <h3>#Mainprogramm.end</h3>
+                <p><strong>Required.</strong> Must be the last line of every program. Marks the end of the program.</p>
+                
+                <h3>#NO_RUNTIME</h3>
+                <p><strong>Required for bare-metal.</strong> Disables the standard runtime environment. Used for operating systems and bootloaders.</p>
+                
+                <h3>#SAFE</h3>
+                <p>Reserved directive. Memory checks are always enabled by default.</p>
+                
+                <h3>#DRIVER / #DRIVER.stop</h3>
+                <p>Alternative to <code>#NO_RUNTIME</code> for programs with hardware drivers.</p>
+            </section>
+
+            <section id="sections" class="doc-section">
+                <h2>Code Sections</h2>
+                
+                <h3>Main Section <code>&lt;.de ... .&gt;</code></h3>
+                <p>All executable code must be inside this section. The section is divided into two parts by <code>static.pl&gt;</code>:</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Before <code>static.pl&gt;</code></th>
+                            <th>After <code>static.pl&gt;</code></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Only <code>var</code> and <code>const</code></td>
+                            <td>Only statements</td>
+                        </tr>
+                        <tr>
+                            <td>Variable declarations</td>
+                            <td>Function calls, assignments</td>
+                        </tr>
+                        <tr>
+                            <td>No executable code</td>
+                            <td>No declarations</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <pre><code>&lt;.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    static.pl&gt;
+    display{msg}
+    x = (x + 1)
+.&gt;</code></pre>
+            </section>
+
+            <section id="types" class="doc-section">
+                <h2>Data Types</h2>
+                
+                <h3>Built-in Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Range</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>i32</code></td>
+                            <td>4 bytes</td>
+                            <td>-2³¹ ... 2³¹-1</td>
+                            <td>Signed integer</td>
+                        </tr>
+                        <tr>
+                            <td><code>i64</code></td>
+                            <td>8 bytes</td>
+                            <td>-2⁶³ ... 2⁶³-1</td>
+                            <td>Signed integer</td>
+                        </tr>
+                        <tr>
+                            <td><code>u8</code></td>
+                            <td>1 byte</td>
+                            <td>0 ... 255</td>
+                            <td>Unsigned byte</td>
+                        </tr>
+                        <tr>
+                            <td><code>string</code></td>
+                            <td>4 bytes</td>
+                            <td>-</td>
+                            <td>Pointer to null-terminated string</td>
+                        </tr>
+                        <tr>
+                            <td><code>pointer</code></td>
+                            <td>4 bytes</td>
+                            <td>-</td>
+                            <td>Raw memory address</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Arrays</h3>
+                <pre><code>var buf: u8[64]
+var arr: i32[10]</code></pre>
+                <p><strong>Note:</strong> const arrays are not supported.</p>
+            </section>
+
+            <section id="variables" class="doc-section">
+                <h2>Variables and Constants</h2>
+                
+                <h3>Variable Declaration</h3>
+                <pre><code>var count: i32 = 42
+var msg: string = "hello"
+
+var x: i32
+var buf: u8[64]</code></pre>
+                
+                <h3>Constants</h3>
+                <pre><code>const MAX: i32 = 100
+const NAME: string = "Defacto"</code></pre>
+                
+                <p><strong>Rules:</strong></p>
+                <ul>
+                    <li><code>const</code> <strong>must</strong> have an initializer</li>
+                    <li><code>const</code> cannot be modified</li>
+                    <li><code>const</code> cannot be freed via <code>free{}</code></li>
+                </ul>
+            </section>
+
+            <section id="structs" class="doc-section">
+                <h2>Structs</h2>
+                
+                <h3>Definition</h3>
+                <pre><code>struct Player {
+    x: i32
+    y: i32
+    health: i32
+    score: i32
+}</code></pre>
+                
+                <h3>Usage</h3>
+                <pre><code>var player: Player
+player.x = 100
+player.y = 200
+player.health = 100
+player.score = (player.score + 100)</code></pre>
+                
+                <h3>Memory Layout</h3>
+                <p>Fields are stored sequentially:</p>
+                <pre><code>Player (16 bytes):
++0: x (i32)
++4: y (i32)
++8: health (i32)
++12: score (i32)</code></pre>
+                
+                <p><strong>Limitations:</strong> Nested structs are not supported in v0.30. Fields can only be built-in types.</p>
+            </section>
+
+            <section id="expressions" class="doc-section">
+                <h2>Expressions</h2>
+                
+                <h3>Supported Operators</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Operator</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>+</code></td>
+                            <td>Addition</td>
+                            <td><code>x = (a + b)</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>-</code></td>
+                            <td>Subtraction</td>
+                            <td><code>x = (x - 1)</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>*</code></td>
+                            <td>Multiplication</td>
+                            <td><code>x = (x * 2)</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>/</code></td>
+                            <td>Division</td>
+                            <td><code>x = (x / 4)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Expression Rules</h3>
+                <pre><code>// Valid
+x = (a + b)
+x = (x * 2)
+x = (0 - 1)
+
+// Invalid - only one operator per expression
+x = (a + b + c)
+x = ((a + b) * c)
+x = -5  // negative literals not supported</code></pre>
+            </section>
+
+            <section id="statements" class="doc-section">
+                <h2>Statements</h2>
+                
+                <h3>Assignment</h3>
+                <pre><code>// Simple assignment
+x = 5
+x = other_var
+x = #R1
+
+// Expression assignment
+x = (x + 1)
+y = (a * b)
+
+// Array assignment
+arr[i] = x
+arr[0] = 100
+
+// Struct field assignment
+player.x = 10
+player.health = (player.health - 1)</code></pre>
+                
+                <h3>Loop</h3>
+                <pre><code>loop {
+    // infinite loop body
+    counter = (counter - 1)
+    
+    // exit condition
+    if counter == 0 { stop }
+}</code></pre>
+                
+                <h3>If/Else</h3>
+                <pre><code>// Simple if
+if x == 10 {
+    display{msg}
+}
+
+// If/else
+if x == 10 {
+    display{msg}
+} else {
+    display{err}
+}
+
+// Nested if
+if x == 1 {
+    if y == 2 {
+        stop
+    }
+}</code></pre>
+                
+                <p><strong>Comparison operators:</strong> Only <code>==</code> is supported in v0.30.</p>
+            </section>
+
+            <section id="functions" class="doc-section">
+                <h2>Functions</h2>
+                
+                <h3>Definition</h3>
+                <pre><code>function == my_func {
+    &lt;.de
+        var a: i32 = 0
+        static.pl&gt;
+        a = (a + 1)
+        display{a}
+    .&gt;
+}</code></pre>
+                
+                <h3>Call</h3>
+                <pre><code>call #my_func</code></pre>
+                
+                <p><strong>Rules:</strong></p>
+                <ul>
+                    <li>Functions must be declared <strong>before</strong> the main section</li>
+                    <li>Call using <code>call #name</code></li>
+                    <li>Each function has its own <code>&lt;.de ... .&gt;</code> section</li>
+                    <li>Local variables are scoped to the function</li>
+                </ul>
+            </section>
+
+            <section id="drivers" class="doc-section">
+                <h2>Drivers</h2>
+                
+                <h3>Definition</h3>
+                <pre><code>&lt;drv.
+Const.driver = keyboard_driver
+keyboard_driver &lt;&lt;func = keyboard&gt;&gt;
+.dr&gt;</code></pre>
+                
+                <h3>Driver Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>keyboard</code></td>
+                            <td>PS/2 Keyboard</td>
+                        </tr>
+                        <tr>
+                            <td><code>mouse</code></td>
+                            <td>PS/2 Mouse</td>
+                        </tr>
+                        <tr>
+                            <td><code>volume</code></td>
+                            <td>PC Speaker</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Call Driver</h3>
+                <pre><code>call #keyboard_driver</code></pre>
+            </section>
+
+            <section id="builtins" class="doc-section">
+                <h2>Built-in Functions</h2>
+                
+                <h3>Input/Output</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>Description</th>
+                            <th>Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>display{var}</code></td>
+                            <td>Print string</td>
+                            <td>All</td>
+                        </tr>
+                        <tr>
+                            <td><code>readkey{var}</code></td>
+                            <td>Read scan code</td>
+                            <td>Bare-metal</td>
+                        </tr>
+                        <tr>
+                            <td><code>readchar{var}</code></td>
+                            <td>Read ASCII char</td>
+                            <td>Bare-metal</td>
+                        </tr>
+                        <tr>
+                            <td><code>putchar{code}</code></td>
+                            <td>Print character</td>
+                            <td>Bare-metal</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Graphics (Bare-metal)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>color{attr}</code></td>
+                            <td>Set color attribute</td>
+                        </tr>
+                        <tr>
+                            <td><code>clear{}</code></td>
+                            <td>Clear screen</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>System</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>Description</th>
+                            <th>Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>reboot{}</code></td>
+                            <td>Reboot system</td>
+                            <td>Bare-metal</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="registers" class="doc-section">
+                <h2>Registers</h2>
+                
+                <h3>Available Registers</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Register</th>
+                            <th>x86</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>#R1</code></td><td>EDI</td><td>Register 1</td></tr>
+                        <tr><td><code>#R2</code></td><td>ESI</td><td>Register 2</td></tr>
+                        <tr><td><code>#R3</code></td><td>EDX</td><td>Register 3</td></tr>
+                        <tr><td><code>#R4</code></td><td>ECX</td><td>Register 4</td></tr>
+                        <tr><td><code>#R5</code></td><td>EBX</td><td>Register 5</td></tr>
+                        <tr><td><code>#R6</code></td><td>EAX</td><td>Register 6 (accumulator)</td></tr>
+                        <tr><td><code>#R7</code></td><td>EDI</td><td>Register 7</td></tr>
+                        <tr><td><code>#R8</code></td><td>ESI</td><td>Register 8</td></tr>
+                        <tr><td><code>#R9</code></td><td>EBX</td><td>Register 9</td></tr>
+                        <tr><td><code>#R10</code></td><td>ECX</td><td>Register 10</td></tr>
+                        <tr><td><code>#R11</code></td><td>EDX</td><td>Register 11</td></tr>
+                        <tr><td><code>#R12</code></td><td>ESI</td><td>Register 12</td></tr>
+                        <tr><td><code>#R13</code></td><td>EDI</td><td>Register 13</td></tr>
+                        <tr><td><code>#R14</code></td><td>EAX</td><td>Register 14</td></tr>
+                        <tr><td><code>#R15</code></td><td>EBP</td><td>Register 15 (base pointer)</td></tr>
+                        <tr><td><code>#R16</code></td><td>ESP</td><td>Register 16 (stack pointer)</td></tr>
+                    </tbody>
+                </table>
+                
+                <h3>Register Operations</h3>
+                <pre><code>// Move from variable to register
+#MOV {#R1, x}
+
+// Move from register to variable
+#MOV {x, #R1}
+
+// Arithmetic with registers
+#R1 = (#R1 + #R2)
+#R3 = (#R3 - 5)</code></pre>
+            </section>
+
+            <section id="memory" class="doc-section">
+                <h2>Memory Management</h2>
+                
+                <h3>Automatic Memory Management (v0.30+)</h3>
+                <p>The compiler <strong>automatically</strong> frees all variables at the end of each section:</p>
+                <pre><code>&lt;.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    static.pl&gt;
+    display{msg}
+.>
+// x and msg are automatically freed here</code></pre>
+                
+                <h3>Manual Free (Legacy)</h3>
+                <pre><code>&lt;.de
+    var x: i32 = 0
+    static.pl&gt;
+    free{x}
+.&gt;</code></pre>
+                
+                <h3>Rules</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Freeing</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>var</code></td>
+                            <td>Automatically or <code>free{}</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>const</code></td>
+                            <td>Cannot be freed</td>
+                        </tr>
+                        <tr>
+                            <td><code>string</code></td>
+                            <td>Automatically (static data)</td>
+                        </tr>
+                        <tr>
+                            <td><code>array</code></td>
+                            <td>Automatically</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="examples" class="doc-section">
+                <h2>Complete Examples</h2>
+                
+                <h3>Hello World</h3>
+                <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;.de
+    var msg: string = "Hello, World!"
+    static.pl&gt;
+    display{msg}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                
+                <h3>Calculator</h3>
+                <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;.de
+    var a: i32 = 10
+    var b: i32 = 5
+    var result: i32 = 0
+    static.pl&gt;
+
+    result = (a + b)
+    result = (a - b)
+    result = (a * b)
+    result = (a / b)
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                
+                <h3>Struct Example</h3>
+                <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Player {
+    x: i32
+    y: i32
+    health: i32
+    score: i32
+}
+
+&lt;.de
+    var player: Player
+    static.pl&gt;
+
+    player.x = 100
+    player.y = 200
+    player.health = 100
+    player.score = 0
+
+    player.health = (player.health - 10)
+    player.score = (player.score + 100)
+.&gt;
+
+#Mainprogramm.end</code></pre>
+                
+                <h3>Keyboard Driver</h3>
+                <pre><code>#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+&lt;drv.
+Const.driver = keyboard_driver
+keyboard_driver &lt;&lt;func = keyboard&gt;&gt;
+.dr&gt;
+
+&lt;.de
+    var key: i32 = 0
+    static.pl&gt;
+
+    call #keyboard_driver
+    readkey{key}
+    display{key}
+.&gt;
+
+#Mainprogramm.end</code></pre>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+            <p>
+                <a href="https://github.com/vivooifo-droid/Defacto" target="_blank">GitHub</a> |
+                <a href="syntax.html">Documentation</a> |
+                <a href="install.html">Installation</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

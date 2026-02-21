@@ -1,0 +1,6 @@
+{
+  "name": "defacto",
+  "version": "0.30.0",
+  "description": "Low-level programming language for x86-32 and bare-metal development",
+  "dependencies": {}
+}

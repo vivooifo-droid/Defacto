@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functions - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html" class="active">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Functions</h1>
+            
+            <p>Functions allow you to organize code into reusable blocks.</p>
+
+            <h2>Function Declaration</h2>
+            
+            <div class="code-example">
+<span class="keyword">function</span> == <span class="type">my_func</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">a</span>: <span class="type">i32</span> = <span class="string">0</span>
+        <span class="keyword">static.pl&gt;</span>
+        <span class="type">a</span> = (<span class="type">a</span> + <span class="string">1</span>)
+        <span class="function">display</span>{a}
+    <span class="keyword">.&gt;</span>
+}
+            </div>
+
+            <h2>Function Call</h2>
+            
+            <div class="code-example">
+<span class="function">call</span> #<span class="type">my_func</span>
+            </div>
+
+            <h2>Complete Example</h2>
+            
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+<span class="comment"># Function definition</span>
+<span class="keyword">function</span> == <span class="type">print_hello</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"Hello from function!"</span>
+        <span class="keyword">static.pl&gt;</span>
+        <span class="function">display</span>{msg}
+    <span class="keyword">.&gt;</span>
+}
+
+<span class="keyword">function</span> == <span class="type">add_numbers</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">a</span>: <span class="type">i32</span> = <span class="string">10</span>
+        <span class="keyword">var</span> <span class="type">b</span>: <span class="type">i32</span> = <span class="string">5</span>
+        <span class="keyword">var</span> <span class="type">result</span>: <span class="type">i32</span> = <span class="string">0</span>
+        <span class="keyword">static.pl&gt;</span>
+        <span class="type">result</span> = (<span class="type">a</span> + <span class="type">b</span>)
+    <span class="keyword">.&gt;</span>
+}
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">static.pl&gt;</span>
+    
+    <span class="comment"># Call functions</span>
+    <span class="function">call</span> #<span class="type">print_hello</span>
+    <span class="function">call</span> #<span class="type">add_numbers</span>
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h2>Function Rules</h2>
+            
+            <div class="alert alert-info">
+                <h4>Function Guidelines</h4>
+                <ul>
+                    <li>Functions must be declared <strong>before</strong> the main section</li>
+                    <li>Call functions with <code>call #name</code></li>
+                    <li>Each function has its own <code>&lt;.de</code> ... <code>.&gt;</code> section</li>
+                    <li>Local variables are scoped to the function</li>
+                    <li>Functions are automatically cleaned up after execution</li>
+                </ul>
+            </div>
+
+            <h2>Local Variables</h2>
+            
+            <p>Variables declared inside a function are local to that function:</p>
+
+            <div class="code-example">
+<span class="keyword">function</span> == <span class="type">counter</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">count</span>: <span class="type">i32</span> = <span class="string">0</span>  <span class="comment"># Local variable</span>
+        <span class="keyword">static.pl&gt;</span>
+        <span class="type">count</span> = (<span class="type">count</span> + <span class="string">1</span>)
+        <span class="comment"># count is freed when function ends</span>
+    <span class="keyword">.&gt;</span>
+}
+            </div>
+
+            <h2>Control Flow in Functions</h2>
+            
+            <h3>Loops</h3>
+            <div class="code-example">
+<span class="keyword">function</span> == <span class="type">countdown</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">counter</span>: <span class="type">i32</span> = <span class="string">10</span>
+        <span class="keyword">static.pl&gt;</span>
+        
+        <span class="keyword">loop</span> {
+            <span class="keyword">if</span> <span class="type">counter</span> == <span class="string">0</span> { <span class="keyword">stop</span> }
+            <span class="type">counter</span> = (<span class="type">counter</span> - <span class="string">1</span>)
+        }
+    <span class="keyword">.&gt;</span>
+}
+            </div>
+
+            <h3>Conditionals</h3>
+            <div class="code-example">
+<span class="keyword">function</span> == <span class="type">check_value</span> {
+    &lt;<span class="keyword">.de</span>
+        <span class="keyword">var</span> <span class="type">x</span>: <span class="type">i32</span> = <span class="string">5</span>
+        <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"equal"</span>
+        <span class="keyword">var</span> <span class="type">err</span>: <span class="type">string</span> = <span class="string">"not equal"</span>
+        <span class="keyword">static.pl&gt;</span>
+        
+        <span class="keyword">if</span> <span class="type">x</span> == <span class="string">5</span> {
+            <span class="function">display</span>{msg}
+        } <span class="keyword">else</span> {
+            <span class="function">display</span>{err}
+        }
+    <span class="keyword">.&gt;</span>
+}
+            </div>
+
+            <h2>Function Organization</h2>
+            
+            <p>Recommended file structure with functions:</p>
+
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+<span class="comment"># 1. Struct definitions</span>
+<span class="keyword">struct</span> <span class="type">Point</span> {
+    <span class="type">x</span>: <span class="type">i32</span>
+    <span class="type">y</span>: <span class="type">i32</span>
+}
+
+<span class="comment"># 2. Driver definitions</span>
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+<span class="comment"># 3. Function definitions</span>
+<span class="keyword">function</span> == <span class="type">init_system</span> {
+    &lt;<span class="keyword">.de</span>
+    <span class="keyword">.&gt;</span>
+}
+
+<span class="keyword">function</span> == <span class="type">main_loop</span> {
+    &lt;<span class="keyword">.de</span>
+    <span class="keyword">.&gt;</span>
+}
+
+<span class="comment"># 4. Main code section</span>
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">call</span> #<span class="type">init_system</span>
+    <span class="function">call</span> #<span class="type">main_loop</span>
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h2>Best Practices</h2>
+            
+            <ul>
+                <li>Keep functions focused on a single task</li>
+                <li>Use descriptive function names</li>
+                <li>Group related functions together</li>
+                <li>Document function purpose with comments</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

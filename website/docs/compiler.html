@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiler Usage - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html" class="active">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Compiler Usage</h1>
+            
+            <p>This guide covers how to use the Defacto compiler for various compilation modes and options.</p>
+
+            <h2>Basic Compilation</h2>
+            
+            <p>Compile a Defacto program to a binary:</p>
+
+            <div class="code-example">
+<span class="comment"># Basic compilation</span>
+./defacto program.de
+
+<span class="comment"># Output: program.bin (or program on Unix)</span>
+            </div>
+
+            <h2>Command-Line Options</h2>
+            
+            <table>
+                <tr><th>Option</th><th>Description</th></tr>
+                <tr><td><code>-o output.bin</code></td><td>Specify output filename</td></tr>
+                <tr><td><code>-S</code></td><td>Output assembly only (don't assemble)</td></tr>
+                <tr><td><code>-v</code></td><td>Verbose output</td></tr>
+                <tr><td><code>-h</code></td><td>Show help</td></tr>
+                <tr><td><code>-kernel</code></td><td>Bare-metal mode (default)</td></tr>
+                <tr><td><code>-terminal</code></td><td>Linux terminal mode (syscalls)</td></tr>
+                <tr><td><code>-terminal-macos</code></td><td>macOS terminal mode (Mach-O x86_64)</td></tr>
+            </table>
+
+            <h2>Compilation Modes</h2>
+            
+            <h3>Bare-Metal Mode (-kernel)</h3>
+            <p>Default mode for OS and bootloader development. Produces x86-32 binary.</p>
+
+            <div class="code-example">
+<span class="comment"># Compile for bare-metal (default)</span>
+./defacto -kernel os.de
+
+<span class="comment"># Specify output</span>
+./defacto -kernel -o kernel.bin os.de
+            </div>
+
+            <h3>Linux Terminal Mode (-terminal)</h3>
+            <p>Compile for Linux terminal using system calls.</p>
+
+            <div class="code-example">
+<span class="comment"># Compile for Linux terminal</span>
+./defacto -terminal program.de
+
+<span class="comment"># Run the program</span>
+./program
+            </div>
+
+            <h3>macOS Terminal Mode (-terminal-macos)</h3>
+            <p>Compile for macOS terminal using Mach-O x86_64 format.</p>
+
+            <div class="code-example">
+<span class="comment"># Compile for macOS terminal</span>
+./defacto -terminal-macos program.de
+
+<span class="comment"># Run the program</span>
+./program
+            </div>
+
+            <h2>Output Options</h2>
+            
+            <h3>Specify Output File</h3>
+            <div class="code-example">
+./defacto -o myprogram.bin program.de
+            </div>
+
+            <h3>Assembly Output Only</h3>
+            <p>Generate assembly without assembling to binary:</p>
+            <div class="code-example">
+./defacto -S program.de
+
+<span class="comment"># Output: program.asm</span>
+            </div>
+
+            <h3>Verbose Output</h3>
+            <p>Get detailed compilation information:</p>
+            <div class="code-example">
+./defacto -v program.de
+            </div>
+
+            <h2>Complete Examples</h2>
+            
+            <h3>Hello World (Bare-Metal)</h3>
+            <div class="code-example">
+<span class="comment"># Compile</span>
+./defacto -kernel -o hello.bin hello.de
+
+<span class="comment"># Run in emulator</span>
+qemu-system-i386 hello.bin
+            </div>
+
+            <h3>Terminal Program (Linux)</h3>
+            <div class="code-example">
+<span class="comment"># Compile</span>
+./defacto -terminal -o hello hello.de
+
+<span class="comment"># Run</span>
+./hello
+            </div>
+
+            <h3>Debug Compilation</h3>
+            <div class="code-example">
+<span class="comment"># Verbose compilation with assembly output</span>
+./defacto -v -S program.de
+            </div>
+
+            <h2>Building the Compiler</h2>
+            
+            <h3>macOS / Linux</h3>
+            <div class="code-example">
+<span class="keyword">cd</span> compiler
+make
+./defacto -h
+            </div>
+
+            <h3>Windows (Cross-compile)</h3>
+            <div class="code-example">
+<span class="keyword">cd</span> compiler
+make windows
+            </div>
+
+            <h3>Requirements</h3>
+            <ul>
+                <li><strong>g++</strong> - C++ compiler</li>
+                <li><strong>make</strong> - Build system</li>
+                <li><strong>NASM</strong> - Assembler (required for output)</li>
+            </ul>
+
+            <h2>Troubleshooting</h2>
+            
+            <h3>"command not found: defacto"</h3>
+            <p>Add the compiler to your PATH:</p>
+            <div class="code-example">
+<span class="comment"># macOS/Linux - add to ~/.bashrc or ~/.zshrc</span>
+<span class="keyword">export</span> PATH=<span class="string">"/path/to/compiler:$PATH"</span>
+
+<span class="comment"># Or use absolute path</span>
+/path/to/compiler/defacto program.de
+            </div>
+
+            <h3>"nasm: command not found"</h3>
+            <p>Install NASM:</p>
+            <div class="code-example">
+<span class="comment"># macOS</span>
+brew install nasm
+
+<span class="comment"># Linux (Ubuntu/Debian)</span>
+sudo apt install nasm
+
+<span class="comment"># Windows (Chocolatey)</span>
+choco install nasm
+            </div>
+
+            <h3>Compilation Errors</h3>
+            <p>Common error messages:</p>
+            
+            <table>
+                <tr><th>Error</th><th>Cause</th><th>Solution</th></tr>
+                <tr>
+                    <td><code>undefined variable 'x'</code></td>
+                    <td>Variable not declared</td>
+                    <td>Declare variable before use</td>
+                </tr>
+                <tr>
+                    <td><code>expected type at line N</code></td>
+                    <td>Missing type in declaration</td>
+                    <td>Add type: <code>var x: i32</code></td>
+                </tr>
+                <tr>
+                    <td><code>cannot assign to const</code></td>
+                    <td>Trying to modify constant</td>
+                    <td>Use <code>var</code> for mutable values</td>
+                </tr>
+                <tr>
+                    <td><code>Memory Abandonment</code></td>
+                    <td>Variable not freed (legacy)</td>
+                    <td>Use v0.30+ or add <code>free{}</code></td>
+                </tr>
+            </table>
+
+            <h2>Package Manager (defo)</h2>
+            
+            <p>Defacto includes a package manager for dependencies:</p>
+
+            <div class="code-example">
+<span class="comment"># Initialize new project</span>
+./defo init my-app
+
+<span class="comment"># Install from GitHub</span>
+./defo install owner/repo
+./defo install owner/repo#main
+
+<span class="comment"># Install from URL</span>
+./defo install https://github.com/owner/repo.git
+
+<span class="comment"># List dependencies</span>
+./defo list
+            </div>
+
+            <h2>Integration with Build Systems</h2>
+            
+            <h3>Makefile Example</h3>
+            <div class="code-example">
+CC = ./defacto
+CFLAGS = -kernel -v
+TARGET = kernel.bin
+SRC = os.de
+
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+
+clean:
+	rm -f $(TARGET) *.asm
+
+.PHONY: all clean
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>

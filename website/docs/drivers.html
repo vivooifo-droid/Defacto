@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drivers - Defacto Language</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="../index.html" class="logo">Def<span>acto</span></a>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="docs-nav">
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="syntax.html">Syntax Guide</a></li>
+                <li><a href="types.html">Types & Variables</a></li>
+                <li><a href="structures.html">Structures</a></li>
+                <li><a href="functions.html">Functions</a></li>
+                <li><a href="drivers.html" class="active">Drivers</a></li>
+                <li><a href="builtins.html">Built-in Functions</a></li>
+                <li><a href="memory.html">Memory Management</a></li>
+                <li><a href="compiler.html">Compiler Usage</a></li>
+            </ul>
+        </div>
+
+        <div class="docs-content">
+            <h1>Hardware Drivers</h1>
+            
+            <p>Defacto provides built-in support for hardware drivers, essential for bare-metal and OS development.</p>
+
+            <h2>Driver Declaration</h2>
+            
+            <div class="code-example">
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+            </div>
+
+            <h2>Driver Components</h2>
+            
+            <table>
+                <tr><th>Component</th><th>Description</th></tr>
+                <tr><td><code>&lt;drv.</code> ... <code>.dr&gt;</code></td><td>Driver block delimiters</td></tr>
+                <tr><td><code>Const.driver = name</code></td><td>Driver constant declaration</td></tr>
+                <tr><td><code>name &lt;&lt;func = type&gt;&gt;</code></td><td>Driver function binding</td></tr>
+            </table>
+
+            <h2>Supported Driver Types</h2>
+            
+            <table>
+                <tr><th>Type</th><th>Description</th></tr>
+                <tr><td><code>keyboard</code></td><td>PS/2 Keyboard driver</td></tr>
+                <tr><td><code>mouse</code></td><td>PS/2 Mouse driver</td></tr>
+                <tr><td><code>volume</code></td><td>PC Speaker volume control</td></tr>
+            </table>
+
+            <h2>Complete Driver Example</h2>
+            
+            <div class="code-example">
+<span class="comment">#Mainprogramm.start</span>
+<span class="keyword">#NO_RUNTIME</span>
+<span class="keyword">#SAFE</span>
+
+<span class="comment"># Define keyboard driver</span>
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">key</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">var</span> <span class="type">msg</span>: <span class="type">string</span> = <span class="string">"Press a key"</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="function">display</span>{msg}
+
+    <span class="comment"># Call the driver</span>
+    <span class="function">call</span> #<span class="type">keyboard_driver</span>
+    
+    <span class="comment"># Read the key</span>
+    <span class="function">readkey</span>{key}
+    <span class="function">display</span>{key}
+<span class="keyword">.&gt;</span>
+
+<span class="comment">#Mainprogramm.end</span>
+            </div>
+
+            <h2>Driver Invocation</h2>
+            
+            <p>Call drivers using the <code>call</code> statement:</p>
+
+            <div class="code-example">
+<span class="comment"># Call keyboard driver</span>
+<span class="function">call</span> #<span class="type">keyboard_driver</span>
+
+<span class="comment"># Call mouse driver</span>
+<span class="function">call</span> #<span class="type">mouse_driver</span>
+
+<span class="comment"># Call volume driver</span>
+<span class="function">call</span> #<span class="type">volume_driver</span>
+            </div>
+
+            <h2>Keyboard Driver</h2>
+            
+            <p>The keyboard driver reads PS/2 scan codes:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">kbd</span>
+<span class="type">kbd</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">scan_code</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="function">call</span> #<span class="type">kbd</span>
+    <span class="function">readkey</span>{scan_code}
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h2>Mouse Driver</h2>
+            
+            <div class="code-example">
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">mouse_drv</span>
+<span class="type">mouse_drv</span> &lt;&lt;<span class="type">func</span> = <span class="type">mouse</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">buttons</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="function">call</span> #<span class="type">mouse_drv</span>
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h2>Volume Driver</h2>
+            
+            <div class="code-example">
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">vol_drv</span>
+<span class="type">vol_drv</span> &lt;&lt;<span class="type">func</span> = <span class="type">volume</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">static.pl&gt;</span>
+    <span class="function">call</span> #<span class="type">vol_drv</span>
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h2>Driver Rules</h2>
+            
+            <div class="alert alert-info">
+                <h4>Driver Guidelines</h4>
+                <ul>
+                    <li>Driver blocks must be declared before the main section</li>
+                    <li>Each driver needs a unique name</li>
+                    <li>Call drivers with <code>call #driver_name</code></li>
+                    <li>Use <code>readkey{}</code> or <code>readchar{}</code> after keyboard driver</li>
+                    <li>Drivers are compiled into the binary automatically</li>
+                </ul>
+            </div>
+
+            <h2>Multiple Drivers</h2>
+            
+            <p>You can define multiple drivers in a single program:</p>
+
+            <div class="code-example">
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">keyboard_driver</span>
+<span class="type">keyboard_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">keyboard</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">drv.</span>
+<span class="keyword">Const</span>.<span class="type">driver</span> = <span class="type">mouse_driver</span>
+<span class="type">mouse_driver</span> &lt;&lt;<span class="type">func</span> = <span class="type">mouse</span>&gt;&gt;
+<span class="keyword">.dr&gt;</span>
+
+&lt;<span class="keyword">.de</span>
+    <span class="keyword">var</span> <span class="type">key</span>: <span class="type">i32</span> = <span class="string">0</span>
+    <span class="keyword">static.pl&gt;</span>
+
+    <span class="function">call</span> #<span class="type">keyboard_driver</span>
+    <span class="function">readkey</span>{key}
+    
+    <span class="function">call</span> #<span class="type">mouse_driver</span>
+<span class="keyword">.&gt;</span>
+            </div>
+
+            <h2>Built-in Driver Support</h2>
+            
+            <p>The compiler generates code for built-in drivers automatically. You only need to declare which drivers your program uses.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Defacto Language</h4>
+                <p>Low-level programming language for x86-32 and bare-metal development.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../docs/index.html">Documentation</a></li>
+                    <li><a href="../download.html">Download</a></li>
+                    <li><a href="../examples/index.html">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto">GitHub Repository</a></li>
+                    <li><a href="https://github.com/vivooifo-droid/Defacto/issues">Issue Tracker</a></li>
+                    <li><a href="https://www.nasm.us/">NASM (Required)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Defacto v0.30 (pre-alpha) - Low-level programming language for x86-32</p>
+        </div>
+    </footer>
+</body>
+</html>
