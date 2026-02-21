@@ -11,7 +11,7 @@ class CodeGen {
 
     std::map<std::string,std::string> var_lbl;
     std::map<std::string,bool> var_is_ptr;
-    std::set<std::string> declared, freed, const_declared;
+    std::set<std::string> declared, freed, const_declared, driver_constants;
     std::vector<std::string> loop_ends;
     int lcnt = 0, scnt = 0;
     bool bare_metal = true;
@@ -562,6 +562,25 @@ class CodeGen {
             case NT::FUNC_CALL:{std::string nm=static_cast<FuncCall*>(n)->name;
                                if(!nm.empty()&&nm[0]=='#') nm=nm.substr(1);
                                code<<"    call "<<nm<<"\n"; break;}
+            case NT::DRV_CALL: {
+                auto dc=static_cast<DriverCall*>(n);
+                if (dc->use_builtin) {
+                    // Call built-in driver routine
+                    std::string drv_name = dc->builtin_name;
+                    // Remove # prefix if present
+                    if (!drv_name.empty() && drv_name[0] == '#') {
+                        drv_name = drv_name.substr(1);
+                    }
+                    code<<"    call __defacto_drv_"<<drv_name<<"\n";
+                } else {
+                    // Custom driver implementation
+                    code<<"    call "<<dc->builtin_name<<"\n";
+                }
+                if (!dc->driver_target.empty()) {
+                    code<<"    mov dword ["<<dc->driver_target<<"], eax\n";
+                }
+                break;
+            }
             case NT::BREAK:    if(loop_ends.empty()) throw std::runtime_error("'stop' outside loop");
                                code<<"    jmp "<<loop_ends.back()<<"\n"; break;
             default: break;
@@ -571,6 +590,44 @@ class CodeGen {
     void gen_section(SectionNode* s){
         for(auto& d:s->decls) gen_var(static_cast<VarDecl*>(d.get()));
         for(auto& st:s->stmts) gen_stmt(st.get());
+    }
+
+    void gen_driver_section(DriverSectionNode* s){
+        // Register driver constant so it doesn't need to be freed
+        if (!s->driver_name.empty()) {
+            driver_constants.insert(s->driver_name);
+        }
+        
+        // Generate driver initialization code
+        std::string driver_type = s->driver_type;
+        // Remove # prefix if present
+        if (!driver_type.empty() && driver_type[0] == '#') {
+            driver_type = driver_type.substr(1);
+        }
+
+        // Generate built-in driver routines based on type
+        if (driver_type == "keyboard") {
+            code<<"\n__defacto_drv_keyboard:\n";
+            code<<"    ; Built-in keyboard driver\n";
+            code<<"    pushad\n";
+            code<<"    call _init_keyboard\n";
+            code<<"    popad\n";
+            code<<"    ret\n";
+        } else if (driver_type == "mouse") {
+            code<<"\n__defacto_drv_mouse:\n";
+            code<<"    ; Built-in mouse driver\n";
+            code<<"    pushad\n";
+            code<<"    call _init_mouse\n";
+            code<<"    popad\n";
+            code<<"    ret\n";
+        } else if (driver_type == "volume") {
+            code<<"\n__defacto_drv_volume:\n";
+            code<<"    ; Built-in volume driver (PC speaker)\n";
+            code<<"    pushad\n";
+            code<<"    call _init_speaker\n";
+            code<<"    popad\n";
+            code<<"    ret\n";
+        }
     }
 
     void gen_func(FuncDecl* f){
@@ -584,7 +641,10 @@ class CodeGen {
     void check_mem(){
         bool ok=true;
         for(auto& v:declared)
-            if(!freed.count(v)){err("Memory Abandonment: '"+v+"' never freed");ok=false;}
+            if(!freed.count(v) && !driver_constants.count(v)){
+                err("Memory Abandonment: '"+v+"' never freed");
+                ok=false;
+            }
         if(!ok) throw std::runtime_error("memory abandonment errors");
     }
 
@@ -595,11 +655,29 @@ public:
         code<<"global _start\n";
         if(macos_terminal) code<<"section .text\n";
         code<<"_start:\n";
-        for(auto& s:prog->main_sec) gen_section(static_cast<SectionNode*>(s.get()));
+        
+        // Generate driver code first if present
+        for(auto& s:prog->main_sec) {
+            if (s->kind == NT::DRIVER_SECTION) {
+                gen_driver_section(static_cast<DriverSectionNode*>(s.get()));
+            }
+        }
+
+        for(auto& s:prog->main_sec) {
+            if (s->kind == NT::SECTION) {
+                gen_section(static_cast<SectionNode*>(s.get()));
+            }
+        }
         check_mem();
 
         if(bare_metal){
             code<<"\n.hang:\n    cli\n    hlt\n    jmp .hang\n";
+            
+            // Add built-in driver stubs
+            code<<"\n; Built-in driver stubs\n";
+            code<<"_init_keyboard:\n    ret\n";
+            code<<"_init_mouse:\n    ret\n";
+            code<<"_init_speaker:\n    ret\n";
         } else {
             if(macos_terminal){
                 code<<"\n    mov rax, 0x2000001\n    xor rdi, rdi\n    syscall\n";

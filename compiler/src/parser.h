@@ -113,6 +113,29 @@ class Parser {
             adv();
             auto n=std::make_unique<FuncCall>(); n->name=cur().val; adv(); return n;
         }
+        if (at(TT::DRV_CALL)) {
+            adv();
+            auto n=std::make_unique<DriverCall>();
+            if (at(TT::IDENT)) {
+                std::string id = cur().val;
+                if (id == "not") {
+                    n->use_builtin = false;
+                    adv();
+                    expect(TT::LSHIFT, "expected '<<'");
+                    n->builtin_name = cur().val;
+                    adv();
+                    expect(TT::RBRACK, "expected '>>'");
+                } else {
+                    n->builtin_name = id;
+                }
+            }
+            if (at(TT::LSHIFT)) { adv(); }  // ->
+            if (at(TT::IDENT)) {
+                n->driver_target = cur().val;
+                adv();
+            }
+            return n;
+        }
         if (at(TT::LOOP)) {
             adv(); expect(TT::LBRACE,"expected '{'");
             auto n=std::make_unique<LoopNode>();
@@ -170,6 +193,57 @@ class Parser {
         return s;
     }
 
+    std::unique_ptr<DriverSectionNode> parse_driver_section() {
+        expect(TT::DRV_OPEN, "expected '<drv.'");
+        auto s=std::make_unique<DriverSectionNode>();
+
+        // Parse Const.driver declaration
+        if (at(TT::CONST_DRIVER)) {
+            adv();
+            expect(TT::EQ, "expected '='");
+            auto cd = std::make_unique<ConstDriverDecl>();
+            cd->name = cur().val;
+            adv();
+            s->driver_name = cd->name;
+            s->decls.push_back(std::move(cd));
+        }
+
+        // Parse driver function assignment: name <<func = keyboard>>
+        if (at(TT::IDENT)) {
+            std::string name = cur().val;
+            adv();
+
+            // Check for << (DRV_FUNC_ASSIGN)
+            if (at(TT::DRV_FUNC_ASSIGN)) {
+                adv();  // <<
+                std::string func_keyword = cur().val;  // Read BEFORE expect
+                expect(TT::IDENT, "expected 'func'");  // This does adv(), now at '='
+                expect(TT::EQ, "expected '='");
+                
+                // Parse driver type (keyboard, mouse, volume)
+                std::string driver_type = cur().val;
+                if (driver_type[0] != '#') {
+                    driver_type = "#" + driver_type;
+                }
+                adv();
+                
+                // Skip >> if present
+                if (at(TT::RBRACK)) {
+                    adv();
+                }
+
+                auto dfa = std::make_unique<DriverFuncAssign>();
+                dfa->driver_name = name;
+                dfa->driver_type = driver_type;
+                s->driver_type = driver_type;
+                s->stmts.push_back(std::move(dfa));
+            }
+        }
+
+        expect(TT::DRV_CLOSE, "expected '.dr>'");
+        return s;
+    }
+
     NodePtr parse_function() {
         expect(TT::FUNCTION,"expected 'function'");
         expect(TT::EQEQ,"expected '=='");
@@ -195,14 +269,17 @@ public:
     std::unique_ptr<ProgramNode> parse() {
         auto p=std::make_unique<ProgramNode>();
         expect(TT::PROG_START,"file must begin with '#Mainprogramm.start'");
-        while(at(TT::NO_RUNTIME)||at(TT::SAFE)) {
+        while(at(TT::NO_RUNTIME)||at(TT::SAFE)||at(TT::DRIVER)) {
             if(at(TT::NO_RUNTIME)){p->no_runtime=true;adv();}
             if(at(TT::SAFE)){p->safe=true;adv();}
+            if(at(TT::DRIVER)){p->no_runtime=true;adv();}  // DRIVER implies NO_RUNTIME
         }
         while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
         while(at(TT::FUNCTION))  p->functions.push_back(parse_function());
+        if(at(TT::DRV_OPEN))     p->main_sec.push_back(parse_driver_section());
         if(at(TT::SEC_OPEN))     p->main_sec.push_back(parse_section());
         expect(TT::PROG_END,"file must end with '#Mainprogramm.end'");
+        if(at(TT::DRIVER_STOP)) adv();  // Optional #DRIVER.stop
         return p;
     }
 };

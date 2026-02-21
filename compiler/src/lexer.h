@@ -46,26 +46,30 @@ class Lexer {
     }
 
     TT kw(const std::string& w) {
-        if(w=="var")      return TT::VAR;
-        if(w=="const")    return TT::CONST;
-        if(w=="function") return TT::FUNCTION;
-        if(w=="call")     return TT::CALL;
-        if(w=="loop")     return TT::LOOP;
-        if(w=="if")       return TT::IF;
-        if(w=="stop")     return TT::STOP;
-        if(w=="display")  return TT::DISPLAY;
-        if(w=="free")     return TT::FREE;
-        if(w=="color")    return TT::COLOR;
-        if(w=="readkey")  return TT::READKEY;
-        if(w=="readchar") return TT::READCHAR;
-        if(w=="putchar")  return TT::PUTCHAR;
-        if(w=="clear")    return TT::CLEAR;
-        if(w=="reboot")   return TT::REBOOT;
-        if(w=="i32")      return TT::I32;
-        if(w=="i64")      return TT::I64;
-        if(w=="u8")       return TT::U8;
-        if(w=="string")   return TT::STR;
-        if(w=="pointer")  return TT::PTR;
+        if(w=="var")           return TT::VAR;
+        if(w=="const")         return TT::CONST;
+        if(w=="Const.driver")  return TT::CONST_DRIVER;
+        if(w=="function")      return TT::FUNCTION;
+        if(w=="call")          return TT::DRV_CALL;
+        if(w=="loop")          return TT::LOOP;
+        if(w=="if")            return TT::IF;
+        if(w=="stop")          return TT::STOP;
+        if(w=="display")       return TT::DISPLAY;
+        if(w=="free")          return TT::FREE;
+        if(w=="color")         return TT::COLOR;
+        if(w=="readkey")       return TT::READKEY;
+        if(w=="readchar")      return TT::READCHAR;
+        if(w=="putchar")       return TT::PUTCHAR;
+        if(w=="clear")         return TT::CLEAR;
+        if(w=="reboot")        return TT::REBOOT;
+        if(w=="i32")           return TT::I32;
+        if(w=="i64")           return TT::I64;
+        if(w=="u8")            return TT::U8;
+        if(w=="string")        return TT::STR;
+        if(w=="pointer")       return TT::PTR;
+        if(w=="keyboard")      return TT::IDENT;  // Driver type
+        if(w=="mouse")         return TT::IDENT;  // Driver type
+        if(w=="volume")        return TT::IDENT;  // Driver type
         return TT::IDENT;
     }
 
@@ -90,7 +94,12 @@ public:
                     out.emplace_back(TT::HEX, h, l, c); continue;
                 }
                 std::string w = read_ident();
-                if      (w=="Mainprogramm.start") out.emplace_back(TT::PROG_START, w, l, c);
+                if      (w=="DRIVER")        out.emplace_back(TT::DRIVER, "#DRIVER", l, c);
+                else if (w=="DRIVER.stop")   out.emplace_back(TT::DRIVER_STOP, "#DRIVER.stop", l, c);
+                else if (w=="keyboard")      out.emplace_back(TT::IDENT, "#keyboard", l, c);
+                else if (w=="mouse")         out.emplace_back(TT::IDENT, "#mouse", l, c);
+                else if (w=="volume")        out.emplace_back(TT::IDENT, "#volume", l, c);
+                else if (w=="Mainprogramm.start") out.emplace_back(TT::PROG_START, w, l, c);
                 else if (w=="Mainprogramm.end")   out.emplace_back(TT::PROG_END,   w, l, c);
                 else if (w=="NO_RUNTIME")         out.emplace_back(TT::NO_RUNTIME, w, l, c);
                 else if (w=="SAFE")               out.emplace_back(TT::SAFE,       w, l, c);
@@ -105,6 +114,17 @@ public:
                 continue;
             }
 
+            // Debug: print current character
+            // std::cerr << "DEBUG: cur='" << cur() << "' pk(1)='" << pk(1) << "' pk(2)='" << pk(2) << "' pk(3)='" << pk(3) << "' line=" << line << "\n";
+            
+            if (cur()=='<'&&pk(1)=='d'&&pk(2)=='r'&&pk(3)=='v'&&pk(4)=='.') {
+                adv();adv();adv();adv();adv();
+                out.emplace_back(TT::DRV_OPEN,"<drv.",l,c); continue;
+            }
+            if (cur()=='.'&&pk(1)=='d'&&pk(2)=='r'&&pk(3)=='>') {
+                adv();adv();adv();adv();
+                out.emplace_back(TT::DRV_CLOSE,".dr>",l,c); continue;
+            }
             if (cur()=='<'&&pk(1)=='.'&&pk(2)=='d'&&pk(3)=='e') {
                 adv();adv();adv();adv();
                 out.emplace_back(TT::SEC_OPEN,"<.de",l,c); continue;
@@ -123,6 +143,9 @@ public:
             }
             char ch=cur();
             if (ch=='='&&pk()=='=') { adv();adv(); out.emplace_back(TT::EQEQ, "==",l,c); }
+            else if(ch=='<'&&pk()=='<') { adv();adv(); out.emplace_back(TT::DRV_FUNC_ASSIGN, "<<",l,c); }
+            else if(ch=='-'&&pk()=='>') { adv();adv(); out.emplace_back(TT::LSHIFT, "->",l,c); }
+            else if(ch=='>'&&pk()=='>') { adv();adv(); out.emplace_back(TT::RBRACK, ">>",l,c); }
             else if(ch=='='){adv();out.emplace_back(TT::EQ,    "=",l,c);}
             else if(ch=='+'){adv();out.emplace_back(TT::PLUS,  "+",l,c);}
             else if(ch=='-'){adv();out.emplace_back(TT::MINUS, "-",l,c);}

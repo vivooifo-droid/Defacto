@@ -24,15 +24,16 @@ inline void warn(const std::string& msg, int line = -1) {
 
 
 enum class TT {
-    PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT,
-    SEC_OPEN, SEC_CLOSE, STATIC_PL,
-    VAR, CONST, FUNCTION, CALL, LOOP, IF, STOP, DISPLAY, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT, DRIVER, DRIVER_STOP,
+    SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
+    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, STOP, DISPLAY, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
     MOV, REG_STATIC, REG_STOP,
     I32, I64, U8, STR, PTR,
     REGISTER, IDENT, NUMBER, STR_LIT, HEX,
-    EQ, EQEQ, PLUS, MINUS, MUL, DIV,
+    EQ, EQEQ, PLUS, MINUS, MUL, DIV, LSHIFT,
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
     COLON, COMMA,
+    DRV_FUNC_ASSIGN, DRV_CALL, DRV_CALL_NOT,
     EOF_T
 };
 
@@ -46,7 +47,8 @@ struct Token {
 
 enum class NT {
     PROGRAM, SECTION, VAR_DECL, FUNC_DECL, FUNC_CALL,
-    ASSIGN, LOOP, IF_STMT, REG_OP, DISPLAY, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT
+    ASSIGN, LOOP, IF_STMT, REG_OP, DISPLAY, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -151,4 +153,30 @@ struct InterruptNode : Node {
     int num = 0;
     std::string func;
     InterruptNode() { kind = NT::INTERRUPT; }
+};
+
+// Driver support
+struct DriverSectionNode : Node {
+    NodeList decls, stmts;
+    std::string driver_name;
+    std::string driver_type;  // keyboard, mouse, volume
+    DriverSectionNode() { kind = NT::DRIVER_SECTION; }
+};
+
+struct ConstDriverDecl : Node {
+    std::string name;
+    ConstDriverDecl() { kind = NT::CONST_DRIVER_DECL; }
+};
+
+struct DriverFuncAssign : Node {
+    std::string driver_name;
+    std::string driver_type;
+    DriverFuncAssign() { kind = NT::DRV_FUNC_ASSIGN; }
+};
+
+struct DriverCall : Node {
+    std::string driver_target;
+    std::string builtin_name;
+    bool use_builtin = true;
+    DriverCall() { kind = NT::DRV_CALL; }
 };
