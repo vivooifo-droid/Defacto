@@ -1,0 +1,1083 @@
+/* ==========================================================================
+   COMPONENTS — Стили компонентов
+   ==========================================================================
+   Этот файл содержит стили для переиспользуемых UI компонентов:
+   - Кнопки (buttons)
+   - Карточки (cards)
+   - Плашки (badges, use-case cards)
+   - Секции (sections)
+   
+   Используем BEM-подобный нейминг для ясности и избежания конфликтов
+   ========================================================================== */
+
+/* ==========================================================================
+   BUTTONS — Кнопки
+   ========================================================================== */
+
+/* 
+ * Базовый класс кнопки
+ * Задаём общие свойства для всех вариаций кнопок
+ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    /* 
+     * transition: all — анимируем все изменяемые свойства
+     * Это создаёт плавный эффект при наведении
+     */
+}
+
+/* 
+ * Primary button — основная кнопка
+ * Используется для главных действий (CTA)
+ * Оранжевый фон в стиле Rust
+ */
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+}
+
+.btn--primary:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    /* 
+     * При наведении немного затемняем кнопку
+     * Это даёт визуальную обратную связь пользователю
+     */
+}
+
+/* 
+ * Secondary button — вторичная кнопка
+ * Для менее важных действий
+ * Прозрачный фон с границей
+ */
+.btn--secondary {
+    background-color: transparent;
+    color: var(--color-dark-gray);
+    border-color: var(--color-border);
+}
+
+.btn--secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+/* 
+ * Outline button — контурная кнопка
+ * Минималистичный стиль для дополнительных действий
+ */
+.btn--outline {
+    background-color: transparent;
+    color: var(--color-white);
+    border-color: var(--color-white);
+}
+
+.btn--outline:hover {
+    background-color: var(--color-white);
+    color: var(--color-black);
+}
+
+/* ==========================================================================
+   CARDS — Карточки
+   ========================================================================== */
+
+/* 
+ * Базовая карточка
+ * Контейнер для группировки связанного контента
+ * Белый фон с тонкой границей и тенью
+ */
+.card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    transition: all var(--transition-base);
+    /* 
+     * Плавный переход для hover-эффекта
+     * Карточка будет "приподниматься" при наведении
+     */
+}
+
+.card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    /* 
+     * При наведении:
+     * - Оранжевая граница (акцент)
+     * - Лёгкая тень (эффект подъёма)
+     */
+}
+
+/* 
+ * Иконка карточки
+ * Крупный эмодзи/символ вверху карточки
+ */
+.card__icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    /* 
+     * Крупный размер для визуального якоря
+     * Помогает быстро идентифицировать тип карточки
+     */
+}
+
+/* Заголовок карточки */
+.card__title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-black);
+}
+
+/* Описание карточки */
+.card__description {
+    font-size: var(--font-size-base);
+    color: var(--color-gray);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    /* 
+     * Увеличенный line-height для читаемости
+     * Серый цвет для вторичного текста
+     */
+}
+
+/* Ссылка в карточке */
+.card__link {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-primary);
+    transition: color var(--transition-fast);
+}
+
+.card__link:hover {
+    color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   USE CASE CARDS — Плашки случаев использования
+   ========================================================================== */
+
+/* 
+ * Use-case card — компактная плашка
+ * Для секции "Создавайте на этом языке"
+ * Более минималистичная чем обычная карточка
+ */
+.use-case-card {
+    background-color: var(--color-light-bg);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-base);
+    /* 
+     * Светло-серый фон для выделения из белого фона страницы
+     * Без границы — более чистый вид
+     */
+}
+
+.use-case-card:hover {
+    background-color: var(--color-white);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    /* 
+     * При наведении:
+     * - Белый фон (контраст)
+     * - Тень (объём)
+     * - Сдвиг вверх 2px (эффект парения)
+     */
+}
+
+/* Заголовок плашки */
+.use-case-card__title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-black);
+}
+
+/* Описание плашки */
+.use-case-card__description {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Ссылка плашки */
+.use-case-card__link {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-primary);
+    transition: color var(--transition-fast);
+}
+
+.use-case-card__link:hover {
+    color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   INVOLVED CARDS — Карточки вовлечения
+   ========================================================================== */
+
+/* 
+ * Involved card — карточка для секции "Начните участвовать"
+ * Тёмный фон для контраста с остальными светлыми карточками
+ */
+.involved-card {
+    background-color: var(--color-dark-gray);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: transform var(--transition-base);
+}
+
+.involved-card:hover {
+    transform: translateY(-4px);
+    /* 
+     * Более заметный сдвиг вверх (4px вместо 2px)
+     * Тёмный фон уже создаёт контраст, тень не нужна
+     */
+}
+
+/* Заголовок карточки вовлечения */
+.involved-card__title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-white);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Описание карточки вовлечения */
+.involved-card__description {
+    font-size: var(--font-size-base);
+    color: var(--color-light-gray);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   HERO SECTION — Герой-секция
+   ========================================================================== */
+
+/* 
+ * Hero — главный баннер страницы
+ * Крупный заголовок, подзаголовок, CTA кнопки
+ */
+.hero {
+    background-color: var(--color-white);
+    padding: var(--spacing-3xl) 0;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.hero__container {
+    max-width: 800px;
+    /* 
+     * Ограничиваем ширину контента
+     * Для лучшей читаемости на больших экранах
+     */
+}
+
+/* 
+ * Badge — плашка версии
+ * Маленький акцентный элемент над заголовком
+ */
+.hero__badge {
+    display: inline-block;
+    background-color: var(--color-light-bg);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--border-radius-full);
+    margin-bottom: var(--spacing-lg);
+    /* 
+     * Круглые края (border-radius: 9999px)
+     * Оранжевый текст для акцента
+     */
+}
+
+/* Заголовок героя */
+.hero__title {
+    font-size: var(--font-size-4xl);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--color-black);
+    margin-bottom: var(--spacing-md);
+    /* 
+     * Очень крупный жирный шрифт
+     * Upper-case для выразительности
+     * Отрицательный letter-spacing для плотности
+     */
+}
+
+/* Подзаголовок героя */
+.hero__subtitle {
+    font-size: var(--font-size-xl);
+    color: var(--color-gray);
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.6;
+}
+
+/* Контейнер для кнопок героя */
+.hero__actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    /* 
+     * Flexbox для горизонтального расположения кнопок
+     * flex-wrap: wrap — перенос на мобильных
+     */
+}
+
+/* ==========================================================================
+   SECTIONS — Секции
+   ========================================================================== */
+
+/* 
+ * Базовая секция
+ * Общие отступы для всех секций страницы
+ */
+.section {
+    padding: var(--spacing-3xl) 0;
+}
+
+/* Заголовок секции */
+.section__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    color: var(--color-black);
+    /* 
+     * Центрированный заголовок для симметрии
+     * Крупный размер для иерархии
+     */
+}
+
+/* 
+ * Модификаторы секций для разных цветов фона
+ * Можно добавлять разные визуальные акценты
+ */
+.section--why {
+    background-color: var(--color-white);
+}
+
+.section--use-cases {
+    background-color: var(--color-light-bg);
+    /* Светло-серый фон для визуального разделения */
+}
+
+.section--involved {
+    background-color: var(--color-white);
+}
+
+/* ==========================================================================
+   GRIDS — Сетки для компонентов
+   ========================================================================== */
+
+/* 
+ * Cards grid — сетка для карточек преимуществ
+ * 3 колонки на десктопе, адаптивная на мобильных
+ */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    /* 
+     * CSS Grid для равных колонок
+     * gap — расстояние между карточками
+     */
+}
+
+/* 
+ * Use cases grid — сетка для плашек случаев использования
+ * 4 колонки на десктопе
+ */
+.use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+}
+
+/* 
+ * Involved grid — сетка для карточек вовлечения
+ * 3 колонки на десктопе
+ */
+.involved-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+}
+
+/* ==========================================================================
+   DOCS PAGE STYLES — Стили страницы документации
+   ========================================================================== */
+
+/* 
+ * Hero для внутренних страниц
+ * Уменьшенная версия героя для страниц типа about, docs
+ */
+.hero--page {
+    padding: var(--spacing-2xl) 0;
+    /* Меньше отступы чем на главной */
+}
+
+.hero__title--page {
+    font-size: var(--font-size-3xl);
+    /* Заголовок меньше чем на главной */
+}
+
+/* 
+ * Поиск по документации
+ * Поле ввода с кнопкой-иконкой
+ */
+.docs-search {
+    display: flex;
+    max-width: 500px;
+    margin: var(--spacing-xl) auto 0;
+    background-color: var(--color-white);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    transition: border-color var(--transition-fast);
+}
+
+.docs-search:hover {
+    border-color: var(--color-light-gray);
+}
+
+.docs-search:focus-within {
+    border-color: var(--color-primary);
+    /* Подсветка оранжевым при фокусе */
+}
+
+.docs-search__input {
+    flex: 1;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    outline: none;
+}
+
+.docs-search__input::placeholder {
+    color: var(--color-light-gray);
+}
+
+.docs-search__btn {
+    background-color: var(--color-primary);
+    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--color-white);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.docs-search__btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   DOCS LAYOUT — Layout документации
+   ========================================================================== */
+
+/* 
+ * Основная раскладка документации
+ * Сайдбар слева + контент справа
+ */
+.docs-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--spacing-2xl);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+/* ==========================================================================
+   DOCS SIDEBAR — Боковая навигация
+   ========================================================================== */
+
+/* 
+ * Сайдбар с навигацией
+ * Фиксированная ширина, прокручивается независимо
+ */
+.docs-sidebar {
+    position: sticky;
+    top: var(--spacing-xl);
+    height: calc(100vh - var(--spacing-2xl));
+    overflow-y: auto;
+    padding-right: var(--spacing-md);
+}
+
+/* 
+ * Секция навигации
+ * Группировка ссылок по темам
+ */
+.docs-nav__section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.docs-nav__heading {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-gray);
+    margin-bottom: var(--spacing-sm);
+    padding-left: var(--spacing-sm);
+}
+
+.docs-nav__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.docs-nav__link {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-gray);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.docs-nav__link:hover {
+    background-color: var(--color-light-bg);
+    color: var(--color-primary);
+}
+
+/* Активная ссылка в навигации */
+.docs-nav__link--active {
+    background-color: var(--color-light-bg);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   DOCS CONTENT — Контент документации
+   ========================================================================== */
+
+/* 
+ * Хлебные крошки
+ * Навигационная цепочка вверху страницы
+ */
+.docs-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+}
+
+.docs-breadcrumb__link {
+    color: var(--color-gray);
+    transition: color var(--transition-fast);
+}
+
+.docs-breadcrumb__link:hover {
+    color: var(--color-primary);
+}
+
+.docs-breadcrumb__separator {
+    color: var(--color-light-gray);
+}
+
+.docs-breadcrumb__current {
+    color: var(--color-black);
+    font-weight: 500;
+}
+
+/* Заголовок страницы документации */
+.docs-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Вступление */
+.docs-intro {
+    font-size: var(--font-size-lg);
+    color: var(--color-gray);
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.7;
+}
+
+/* 
+ * Секция контента
+ * Логические блоки документации
+ */
+.docs-section {
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-xl);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.docs-section:last-child {
+    border-bottom: none;
+}
+
+.docs-section__title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-black);
+}
+
+/* 
+ * Список в документации
+ * Стилизованный маркированный список
+ */
+.docs-list {
+    list-style: none;
+    padding: 0;
+}
+
+.docs-list li {
+    padding: var(--spacing-sm) 0;
+    padding-left: var(--spacing-lg);
+    position: relative;
+    color: var(--color-dark-gray);
+    line-height: 1.6;
+}
+
+.docs-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+/* ==========================================================================
+   CODE BLOCK — Блок кода
+   ========================================================================== */
+
+/* 
+ * Контейнер для кода
+ * Тёмный фон, моноширинный шрифт
+ */
+.code-block {
+    background-color: var(--color-black);
+    border-radius: var(--border-radius-md);
+    margin: var(--spacing-lg) 0;
+    overflow: hidden;
+}
+
+.code-block__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-block__title {
+    font-size: var(--font-size-xs);
+    color: var(--color-light-gray);
+    font-weight: 500;
+}
+
+.code-block__copy {
+    background: transparent;
+    border: none;
+    color: var(--color-light-gray);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.code-block__copy:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-white);
+}
+
+.code-block__pre {
+    margin: 0;
+    padding: var(--spacing-lg);
+    overflow-x: auto;
+}
+
+.code-block__code {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    color: var(--color-white);
+    line-height: 1.6;
+}
+
+/* Блок вывода (output) — светлый фон */
+.code-block--output {
+    background-color: var(--color-light-bg);
+}
+
+.code-block--output .code-block__header {
+    background-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+}
+
+.code-block--output .code-block__code {
+    color: var(--color-black);
+}
+
+/* ==========================================================================
+   DOCS PAGINATION — Навигация между страницами
+   ========================================================================== */
+
+/* 
+ * Постраничная навигация
+ * Ссылки "Предыдущая" и "Следующая" внизу страницы
+ */
+.docs-pagination {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid var(--color-border);
+}
+
+.docs-pagination__link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--color-dark-gray);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-fast);
+}
+
+.docs-pagination__link:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.docs-pagination__arrow {
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+}
+
+.docs-pagination__text {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   TEAM CARDS — Карточки команды
+   ========================================================================== */
+
+/* 
+ * Сетка команды
+ * 4 колонки для карточек участников
+ */
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+/* 
+ * Карточка участника команды
+ * Аватар, имя, роль, биография
+ */
+.team-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all var(--transition-base);
+}
+
+.team-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+}
+
+.team-card__avatar {
+    width: 80px;
+    height: 80px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-radius: var(--border-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    margin: 0 auto var(--spacing-md);
+}
+
+.team-card__name {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-black);
+    margin-bottom: var(--spacing-xs);
+}
+
+.team-card__role {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    font-weight: 500;
+    margin-bottom: var(--spacing-md);
+}
+
+.team-card__bio {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray);
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   TIMELINE — Таймлайн истории
+   ========================================================================== */
+
+/* 
+ * Контейнер таймлайна
+ * Вертикальная линия с событиями
+ */
+.timeline {
+    position: relative;
+    padding-left: var(--spacing-2xl);
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--color-border);
+}
+
+/* 
+ * Элемент таймлайна
+ * Год + описание события
+ */
+.timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-2xl);
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    left: calc(-1 * var(--spacing-2xl) + 4px);
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius-full);
+    border: 3px solid var(--color-white);
+}
+
+.timeline-item__year {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.timeline-item__title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-black);
+    margin-bottom: var(--spacing-sm);
+}
+
+.timeline-item__description {
+    font-size: var(--font-size-base);
+    color: var(--color-gray);
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   CTA BLOCK — Призыв к действию
+   ========================================================================== */
+
+/* 
+ * Блок CTA
+ * Выделенная секция с призывом к действию
+ */
+.cta-block {
+    background-color: var(--color-dark-gray);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-2xl);
+    text-align: center;
+}
+
+.cta-block__title {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--color-white);
+    margin-bottom: var(--spacing-md);
+}
+
+.cta-block__description {
+    font-size: var(--font-size-base);
+    color: var(--color-light-gray);
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-block__actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* 
+ * Контент-блок для текста
+ * Используется на странице about.html
+ */
+.content-block {
+    margin-bottom: var(--spacing-xl);
+}
+
+.content-text {
+    font-size: var(--font-size-base);
+    color: var(--color-dark-gray);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+}
+
+.content-text:last-child {
+    margin-bottom: 0;
+}
+
+/* 
+ * Заголовок секции слева
+ * Альтернативное выравнивание для страницы about
+ */
+.section__title--left {
+    text-align: left;
+}
+
+/* ==========================================================================
+   DOWNLOAD BUTTONS — Кнопки загрузки
+   ========================================================================== */
+
+/* 
+ * Группа кнопок загрузки
+ * Для страницы документации (Windows)
+ */
+.download-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin: var(--spacing-lg) 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE — Адаптивность
+   ========================================================================== */
+
+/* 
+ * Планшеты и меньше (768px)
+ * Перестраиваем сетки в 2 колонки
+ */
+@media (max-width: 768px) {
+    .cards-grid,
+    .involved-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .use-cases-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .docs-layout {
+        grid-template-columns: 1fr;
+        /* Сайдбар уходит наверх, становится горизонтальной навигацией */
+    }
+    
+    .docs-sidebar {
+        position: static;
+        height: auto;
+        overflow: visible;
+        padding-right: 0;
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .hero__title {
+        font-size: var(--font-size-3xl);
+        /* Уменьшаем заголовок для мобильных */
+    }
+    
+    .footer__grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 колонки в подвале */
+    }
+}
+
+/* 
+ * Мобильные (480px)
+ * Все сетки в 1 колонку
+ */
+@media (max-width: 480px) {
+    .cards-grid,
+    .use-cases-grid,
+    .involved-grid,
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero__title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .hero__subtitle {
+        font-size: var(--font-size-base);
+    }
+    
+    .footer__grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer__bottom {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        text-align: center;
+    }
+    
+    .docs-pagination {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .download-buttons {
+        flex-direction: column;
+    }
+    
+    .download-buttons .btn {
+        width: 100%;
+    }
+}
