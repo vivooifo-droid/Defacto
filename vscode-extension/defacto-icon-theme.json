@@ -1,7 +1,7 @@
 {
   "iconDefinitions": {
     "defactoFile": {
-      "iconPath": "./icons/defacto-icon.png"
+      "iconPath": "./icons/defacto-icon.svg"
     }
   },
   "fileExtensions": {
