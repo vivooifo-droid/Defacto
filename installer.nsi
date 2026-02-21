@@ -24,23 +24,23 @@ RequestExecutionLevel admin
 ; Installer sections
 Section "Install"
   SetOutPath "$INSTDIR"
-  
+
   ; Copy main executable
-  File "compiler\defacto.exe"
-  
+  File "defacto.exe"
+
   ; Create example files directory
-  CreateDirectory "$INSTDIR\examples"
-  File /oname=examples\hello.de "hello.de"
-  
+  SetOutPath "$INSTDIR\examples"
+  File "hello.de"
+
   ; Create documentation
-  CreateDirectory "$INSTDIR\docs"
-  File /oname=docs\README.txt "README.md"
-  
+  SetOutPath "$INSTDIR\docs"
+  File "README.txt"
+
   ; Add to PATH
   ${If} ${RunningX64}
     SetRegView 64
   ${EndIf}
-  
+
   ReadRegStr $0 HKCU "Environment" "PATH"
   ${If} $0 == ""
     StrCpy $0 "$INSTDIR"
@@ -48,25 +48,26 @@ Section "Install"
     StrCpy $0 "$0;$INSTDIR"
   ${EndIf}
   WriteRegExpandStr HKCU "Environment" "PATH" $0
-  
+
   ; Broadcast WM_SETTINGCHANGE for PATH update
   SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
-  
+
   ; Create Start Menu shortcuts
+  SetOutPath "$INSTDIR"
   CreateDirectory "$SMPROGRAMS\Defacto"
   CreateShortCut "$SMPROGRAMS\Defacto\Defacto Compiler.lnk" "$INSTDIR\defacto.exe" "" "$INSTDIR\defacto.exe" 0
   CreateShortCut "$SMPROGRAMS\Defacto\Examples.lnk" "$INSTDIR\examples" "" "" 0
   CreateShortCut "$SMPROGRAMS\Defacto\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  
+
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\uninstall.exe"
-  
+
   ; Registry entries
   WriteRegStr HKCU "Software\Defacto" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "DisplayName" "Defacto Compiler v0.30"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Defacto" "InstallLocation" "$INSTDIR"
-  
+
   MessageBox MB_OK "Defacto Compiler v0.30 installed successfully!$\n$\nFeatures:$\n- Auto memory management$\n- if/else statements$\n- Structs support$\n- Driver development$\n$\nMake sure NASM is installed:$\nhttps://www.nasm.us/$\n$\nOr use: choco install nasm"
 SectionEnd
 
