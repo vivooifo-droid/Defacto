@@ -16,7 +16,7 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 
 ## Install
 
-### Windows (Recommended)
+### Windows
 
 Download and run the installer: [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
 
@@ -348,7 +348,7 @@ var msg: string = "Hello\nWorld"
 
 Extend Defacto with native libraries!
 
-### Rust Addons (Recommended)
+### Rust Addons
 
 Write high-performance addons in Rust with memory safety:
 

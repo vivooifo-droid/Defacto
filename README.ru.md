@@ -16,7 +16,7 @@ English version: `README.md`
 
 ## Установка
 
-### Windows (Рекомендуется)
+### Windows
 
 Скачайте и запустите установщик: [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
 
@@ -348,7 +348,7 @@ var msg: string = "Привет\nМир"
 
 Расширяйте Defacto нативными библиотеками!
 
-### Rust аддоны (Рекомендуется)
+### Rust аддоны
 
 Пишите высокопроизводительные аддоны на Rust с безопасностью памяти:
 
