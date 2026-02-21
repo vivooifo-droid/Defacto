@@ -209,7 +209,7 @@ x = 1
 x = other
 x = (x + 1)
 arr[i] = x
-p.x = 100        // struct field
+p.x = 100
 ```
 
 #### Loop
@@ -260,7 +260,6 @@ Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
 
-// Use the driver
 call #keyboard_driver
 ```
 
@@ -311,7 +310,6 @@ The compiler automatically frees all variables at the end of each section. You d
     static.pl>
     display{msg}
 .>
-// x and msg are automatically freed here
 ```
 
 Legacy `free{}` is still supported for backward compatibility.
@@ -322,7 +320,6 @@ Legacy `free{}` is still supported for backward compatibility.
 - Strings support `\n` and `\t` escapes.
 
 ```de
-// This is a comment
 var msg: string = "Hello\nWorld"
 ```
 

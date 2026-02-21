@@ -209,7 +209,7 @@ x = 1
 x = other
 x = (x + 1)
 arr[i] = x
-p.x = 100        // поле структуры
+p.x = 100
 ```
 
 #### Цикл
@@ -260,7 +260,6 @@ Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
 
-// Использование драйвера
 call #keyboard_driver
 ```
 
@@ -311,7 +310,6 @@ reboot{}
     static.pl>
     display{msg}
 .>
-// x и msg автоматически освобождаются здесь
 ```
 
 `free{}` по-прежнему поддерживается для обратной совместимости.
@@ -322,7 +320,6 @@ reboot{}
 - Строки поддерживают `\n` и `\t`.
 
 ```de
-// Это комментарий
 var msg: string = "Привет\nМир"
 ```
 
