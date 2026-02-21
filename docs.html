@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация — RUST-STYLE</title>
+    <!-- Подключаем стили: базовые переменные и сброс -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Подключаем стили компонентов: карточки, кнопки, плашки -->
+    <link rel="stylesheet" href="css/components.css">
+    <!-- Подключаем стили layout: сетка и структура страницы -->
+    <link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+    <!-- Шапка сайта: логотип, навигация, переключатель языка -->
+    <header class="header">
+        <!-- Верхняя утилитарная панель с языком и доп. ссылками -->
+        <div class="header-top">
+            <div class="container header-top__container">
+                <select class="language-selector">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="zh">中文</option>
+                </select>
+                <nav class="header-top__nav">
+                    <a href="#" class="header-top__link">GitHub</a>
+                    <a href="#" class="header-top__link">Settings</a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Основная навигация с логотипом -->
+        <div class="header-main">
+            <div class="container header-main__container">
+                <a href="index.html" class="logo">
+                    <span class="logo__text">RUST-STYLE</span>
+                </a>
+                <nav class="main-nav">
+                    <a href="index.html" class="main-nav__link">Главная</a>
+                    <a href="docs.html" class="main-nav__link main-nav__link--active">Документация</a>
+                    <a href="#" class="main-nav__link">Playground</a>
+                    <a href="#" class="main-nav__link">Инструменты</a>
+                    <a href="about.html" class="main-nav__link">О проекте</a>
+                    <a href="#" class="main-nav__link">Сообщество</a>
+                    <a href="#" class="main-nav__link">Блог</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Герой-секция для страницы документации -->
+        <section class="hero hero--page hero--docs">
+            <div class="container hero__container">
+                <h1 class="hero__title hero__title--page">ДОКУМЕНТАЦИЯ</h1>
+                <p class="hero__subtitle">
+                    Полное руководство по языку и инструментам
+                </p>
+                
+                <!-- Поиск по документации -->
+                <div class="docs-search">
+                    <input 
+                        type="text" 
+                        class="docs-search__input" 
+                        placeholder="Поиск по документации..."
+                        aria-label="Поиск по документации"
+                    >
+                    <button class="docs-search__btn" type="submit">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 17.5L13.875 13.875M15.8333 8.75C15.8333 12.3232 12.9232 15.2333 9.35 15.2333C5.77682 15.2333 2.86667 12.3232 2.86667 8.75C2.86667 5.17682 5.77682 2.26667 9.35 2.26667C12.9232 2.26667 15.8333 5.17682 15.8333 8.75Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Основной контент с боковой навигацией -->
+        <div class="docs-layout">
+            <!-- Боковая навигация -->
+            <aside class="docs-sidebar">
+                <nav class="docs-nav">
+                    <!-- Раздел 1 -->
+                    <div class="docs-nav__section">
+                        <h3 class="docs-nav__heading">Начало работы</h3>
+                        <ul class="docs-nav__list">
+                            <li>
+                                <a href="#" class="docs-nav__link docs-nav__link--active">Установка</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Первые шаги</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Hello, World!</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Управление проектами</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Раздел 2 -->
+                    <div class="docs-nav__section">
+                        <h3 class="docs-nav__heading">Основы языка</h3>
+                        <ul class="docs-nav__list">
+                            <li>
+                                <a href="#" class="docs-nav__link">Переменные</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Типы данных</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Функции</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Управление потоком</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Владение</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Заимствование</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Раздел 3 -->
+                    <div class="docs-nav__section">
+                        <h3 class="docs-nav__heading">Продвинутые темы</h3>
+                        <ul class="docs-nav__list">
+                            <li>
+                                <a href="#" class="docs-nav__link">Трейты</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Жизненные времена</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Умные указатели</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Многопоточность</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Макросы</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Раздел 4 -->
+                    <div class="docs-nav__section">
+                        <h3 class="docs-nav__heading">Инструменты</h3>
+                        <ul class="docs-nav__list">
+                            <li>
+                                <a href="#" class="docs-nav__link">Cargo</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Rustfmt</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Clippy</a>
+                            </li>
+                            <li>
+                                <a href="#" class="docs-nav__link">Документирование</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Основной контент документации -->
+            <article class="docs-content">
+                <!-- Хлебные крошки -->
+                <nav class="docs-breadcrumb">
+                    <a href="index.html" class="docs-breadcrumb__link">Главная</a>
+                    <span class="docs-breadcrumb__separator">/</span>
+                    <a href="#" class="docs-breadcrumb__link">Документация</a>
+                    <span class="docs-breadcrumb__separator">/</span>
+                    <span class="docs-breadcrumb__current">Установка</span>
+                </nav>
+                
+                <!-- Заголовок раздела -->
+                <h1 class="docs-title">Установка</h1>
+                
+                <!-- Вступление -->
+                <p class="docs-intro">
+                    Первый шаг к работе с языком — установка инструментов разработки. 
+                    В этом руководстве мы рассмотрим все доступные способы установки 
+                    для различных операционных систем.
+                </p>
+                
+                <!-- Секция: Системные требования -->
+                <section class="docs-section">
+                    <h2 class="docs-section__title">Системные требования</h2>
+                    <p>
+                        Перед установкой убедитесь, что ваша система соответствует 
+                        минимальным требованиям:
+                    </p>
+                    
+                    <!-- Список требований -->
+                    <ul class="docs-list">
+                        <li>
+                            <strong>Операционная система:</strong> 
+                            Windows 10+, macOS 10.15+, Linux (любой современный дистрибутив)
+                        </li>
+                        <li>
+                            <strong>Оперативная память:</strong> 
+                            минимум 2 ГБ (рекомендуется 4 ГБ)
+                        </li>
+                        <li>
+                            <strong>Свободное место:</strong> 
+                            минимум 5 ГБ на диске
+                        </li>
+                        <li>
+                            <strong>Компилятор C:</strong> 
+                            требуется для некоторых пакетов
+                        </li>
+                    </ul>
+                </section>
+                
+                <!-- Секция: Установка на macOS -->
+                <section class="docs-section">
+                    <h2 class="docs-section__title">Установка на macOS</h2>
+                    <p>
+                        Самый простой способ установки на macOS — использование 
+                        менеджера пакетов Homebrew:
+                    </p>
+                    
+                    <!-- Блок кода -->
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">Терминал</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">brew install rust-style</code></pre>
+                    </div>
+                    
+                    <p>
+                        Или используйте официальный установщик:
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">Терминал</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">curl --proto '=https' --tlsv1.2 -sSf https://rust-style.org/install.sh | sh</code></pre>
+                    </div>
+                </section>
+                
+                <!-- Секция: Установка на Linux -->
+                <section class="docs-section">
+                    <h2 class="docs-section__title">Установка на Linux</h2>
+                    <p>
+                        Для большинства дистрибутивов Linux рекомендуется использовать 
+                        официальный скрипт установки:
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">Терминал</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">curl --proto '=https' --tlsv1.2 -sSf https://rust-style.org/install.sh | sh</code></pre>
+                    </div>
+                    
+                    <p>
+                        Для Ubuntu/Debian также доступен пакет в репозитории:
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">Терминал</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">sudo apt install rust-style</code></pre>
+                    </div>
+                </section>
+                
+                <!-- Секция: Установка на Windows -->
+                <section class="docs-section">
+                    <h2 class="docs-section__title">Установка на Windows</h2>
+                    <p>
+                        Скачайте установщик для вашей архитектуры:
+                    </p>
+                    
+                    <div class="download-buttons">
+                        <a href="#" class="btn btn--primary">
+                            Скачать для Windows x64
+                        </a>
+                        <a href="#" class="btn btn--secondary">
+                            Скачать для Windows ARM64
+                        </a>
+                    </div>
+                    
+                    <p style="margin-top: var(--spacing-lg);">
+                        Или используйте winget:
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">PowerShell</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">winget install RustStyle.RustStyle</code></pre>
+                    </div>
+                </section>
+                
+                <!-- Секция: Проверка установки -->
+                <section class="docs-section">
+                    <h2 class="docs-section__title">Проверка установки</h2>
+                    <p>
+                        После установки проверьте, что всё работает корректно:
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-block__header">
+                            <span class="code-block__title">Терминал</span>
+                            <button class="code-block__copy" type="button">Копировать</button>
+                        </div>
+                        <pre class="code-block__pre"><code class="code-block__code">rust-style --version</code></pre>
+                    </div>
+                    
+                    <p>
+                        Вы должны увидеть версию компилятора:
+                    </p>
+                    
+                    <div class="code-block code-block--output">
+                        <pre class="code-block__pre"><code class="code-block__code">rust-style 1.93.1 (abc1234 2024-01-01)</code></pre>
+                    </div>
+                </section>
+                
+                <!-- Навигация между страницами -->
+                <div class="docs-pagination">
+                    <a href="#" class="docs-pagination__link docs-pagination__link--prev">
+                        <span class="docs-pagination__arrow">←</span>
+                        <span class="docs-pagination__text">Предыдущая</span>
+                    </a>
+                    <a href="#" class="docs-pagination__link docs-pagination__link--next">
+                        <span class="docs-pagination__text">Следующая</span>
+                        <span class="docs-pagination__arrow">→</span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <!-- Подвал сайта: ссылки, контакты, юридическая информация -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">
+                <!-- Колонка: Помощь -->
+                <div class="footer__column">
+                    <h4 class="footer__heading">Помощь</h4>
+                    <ul class="footer__list">
+                        <li><a href="#" class="footer__link">Начало работы</a></li>
+                        <li><a href="#" class="footer__link">Форум</a></li>
+                        <li><a href="#" class="footer__link">Чат</a></li>
+                        <li><a href="#" class="footer__link">Stack Overflow</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Колонка: Политика -->
+                <div class="footer__column">
+                    <h4 class="footer__heading">Политика</h4>
+                    <ul class="footer__list">
+                        <li><a href="#" class="footer__link">Кодекс поведения</a></li>
+                        <li><a href="#" class="footer__link">Лицензии</a></li>
+                        <li><a href="#" class="footer__link">Безопасность</a></li>
+                        <li><a href="#" class="footer__link">Приватность</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Колонка: Соцсети -->
+                <div class="footer__column">
+                    <h4 class="footer__heading">Соцсети</h4>
+                    <ul class="footer__list">
+                        <li><a href="#" class="footer__link">Twitter</a></li>
+                        <li><a href="#" class="footer__link">YouTube</a></li>
+                        <li><a href="#" class="footer__link">GitHub</a></li>
+                        <li><a href="#" class="footer__link">Reddit</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Колонка: Язык -->
+                <div class="footer__column">
+                    <h4 class="footer__heading">Язык</h4>
+                    <select class="language-selector language-selector--dark">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Нижняя строка подвала с копирайтом -->
+            <div class="footer__bottom">
+                <p class="footer__copyright">
+                    © 2024 RUST-STYLE. Поддерживается командой проекта.
+                </p>
+                <p class="footer__build-info">
+                    Сайт обновляется ежедневно в 22:00 UTC
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

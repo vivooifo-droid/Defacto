@@ -1,0 +1,394 @@
+/* ==========================================================================
+   BASE STYLES — Базовые стили и переменные
+   ========================================================================== */
+
+/* 
+ * CSS Custom Properties (переменные)
+ * Используем переменные для консистивности дизайна и лёгкой смены темы
+ * Naming convention: BEM-like с префиксом категории
+ */
+:root {
+    /* 
+     * Цветовая палитра
+     * Основной акцентный цвет — оранжевый (в стиле Rust)
+     */
+    --color-primary: #B7410E;
+    --color-primary-hover: #a0380a;
+    --color-primary-light: #e85d1a;
+    
+    /* Нейтральные цвета для текста и фонов */
+    --color-black: #1a1a1a;
+    --color-dark-gray: #333333;
+    --color-gray: #666666;
+    --color-light-gray: #999999;
+    --color-border: #e0e0e0;
+    --color-light-bg: #f5f5f5;
+    --color-white: #ffffff;
+    
+    /* Цвета для тёмной темы (подвал) */
+    --color-footer-bg: #1a1a1a;
+    --color-footer-text: #cccccc;
+    
+    /* 
+     * Типографика
+     * Используем системные шрифты для максимальной производительности
+     */
+    --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+                        "Helvetica Neue", Arial, sans-serif;
+    --font-family-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+    
+    /* Размеры шрифтов — модульная шкала */
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 2rem;      /* 32px */
+    --font-size-4xl: 2.5rem;    /* 40px */
+    
+    /* 
+     * Отступы и размеры
+     * Используем 8px базовую единицу для консистивности
+     */
+    --spacing-xs: 0.25rem;      /* 4px */
+    --spacing-sm: 0.5rem;       /* 8px */
+    --spacing-md: 1rem;         /* 16px */
+    --spacing-lg: 1.5rem;       /* 24px */
+    --spacing-xl: 2rem;         /* 32px */
+    --spacing-2xl: 3rem;        /* 48px */
+    --spacing-3xl: 4rem;        /* 64px */
+    
+    /* 
+     * Контейнер
+     * Максимальная ширина контента для читаемости
+     */
+    --container-max-width: 1200px;
+    
+    /* 
+     * Тени и скругления
+     * Минималистичный стиль без излишеств
+     */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-full: 9999px;
+    
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    /* 
+     * Переходы (transitions)
+     * Плавные анимации для интерактивных элементов
+     */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+    
+    /* 
+     * Z-index слои
+     * Для управления наложением элементов
+     */
+    --z-header: 100;
+    --z-modal: 200;
+    --z-tooltip: 300;
+}
+
+/* ==========================================================================
+   CSS RESET — Сброс стилей браузера
+   ========================================================================== */
+
+/* 
+ * Box sizing — все элементы включают padding и border в ширину/высоту
+ * Это предсказуемое поведение, упрощающее вёрстку
+ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Убираем стандартные отступы для чистоты */
+html {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    -moz-tab-size: 4;
+    tab-size: 4;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    color: var(--color-black);
+    background-color: var(--color-white);
+}
+
+/* 
+ * Изображения и медиа — адаптивные по умолчанию
+ * Prevent overflow в маленьких контейнерах
+ */
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* 
+ * Формы — наследуем шрифты
+ * Иначе браузеры применяют свои стили
+ */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+}
+
+/* Ссылки — убираем стандартное подчёркивание */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Списки — убираем маркеры по умолчанию */
+ul,
+ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Таблицы — убираем отступы */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* Заголовки — сбрасываем отступы */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+p {
+    margin: 0;
+}
+
+/* ==========================================================================
+   UTILITY CLASSES — Утилитарные классы
+   ========================================================================== */
+
+/* Скрываем элемент визуально, но оставляем для скринридеров */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Контейнер для центрирования контента */
+.container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+}
+
+/* ==========================================================================
+   HEADER STYLES — Стили шапки
+   ========================================================================== */
+
+/* 
+ * Шапка состоит из двух частей:
+ * 1. header-top — утилитарная панель с языком и настройками
+ * 2. header-main — основная навигация с логотипом
+ */
+.header {
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+}
+
+/* Верхняя панель — светлый фон, минималистичная */
+.header-top {
+    background-color: var(--color-light-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-sm) 0;
+}
+
+.header-top__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Выпадающий список языков — компактный стиль */
+.language-selector {
+    appearance: none;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-gray);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.language-selector:hover {
+    border-color: var(--color-primary);
+}
+
+/* Тёмная версия для подвала */
+.language-selector--dark {
+    background-color: var(--color-dark-gray);
+    border-color: var(--color-gray);
+    color: var(--color-white);
+}
+
+.header-top__nav {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.header-top__link {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray);
+    transition: color var(--transition-fast);
+}
+
+.header-top__link:hover {
+    color: var(--color-primary);
+}
+
+/* Основная часть шапки */
+.header-main {
+    padding: var(--spacing-md) 0;
+}
+
+.header-main__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+/* 
+ * Логотип — текстовый с оранжевым акцентом
+ * В стиле Rust-lang.org
+ */
+.logo {
+    display: inline-block;
+}
+
+.logo__text {
+    font-size: var(--font-size-2xl);
+    font-weight: 900;
+    color: var(--color-primary);
+    letter-spacing: -0.02em;
+}
+
+/* Основная навигация — горизонтальное меню */
+.main-nav {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.main-nav__link {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-dark-gray);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.main-nav__link:hover {
+    color: var(--color-primary);
+    background-color: var(--color-light-bg);
+}
+
+/* Активная ссылка — выделена цветом */
+.main-nav__link--active {
+    color: var(--color-primary);
+}
+
+/* ==========================================================================
+   FOOTER STYLES — Стили подвала
+   ========================================================================== */
+
+/* 
+ * Подвал — тёмный фон для контраста с основным контентом
+ * Многострочная структура с колонками ссылок
+ */
+.footer {
+    background-color: var(--color-footer-bg);
+    color: var(--color-footer-text);
+    padding: var(--spacing-3xl) 0 var(--spacing-xl);
+    margin-top: var(--spacing-3xl);
+}
+
+.footer__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.footer__heading {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-white);
+}
+
+.footer__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.footer__link {
+    font-size: var(--font-size-sm);
+    color: var(--color-footer-text);
+    transition: color var(--transition-fast);
+}
+
+.footer__link:hover {
+    color: var(--color-white);
+}
+
+/* Нижняя строка подвала */
+.footer__bottom {
+    border-top: 1px solid var(--color-gray);
+    padding-top: var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer__copyright,
+.footer__build-info {
+    font-size: var(--font-size-xs);
+    color: var(--color-light-gray);
+}
