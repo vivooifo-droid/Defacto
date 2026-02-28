@@ -159,11 +159,11 @@ public:
             else if(ch=='!'&&pk()=='=') { adv();adv(); out.emplace_back(TT::NEQ, "!=",l,c); }
             else if(ch=='<'&&pk()=='=') { adv();adv(); out.emplace_back(TT::LTE, "<=",l,c); }
             else if(ch=='>'&&pk()=='=') { adv();adv(); out.emplace_back(TT::GTE, ">=",l,c); }
+            else if(ch=='<'&&pk()=='<') { adv();adv(); out.emplace_back(TT::DRV_FUNC_ASSIGN, "<<",l,c); }
+            else if(ch=='>'&&pk()=='>') { adv();adv(); out.emplace_back(TT::RBRACK, ">>",l,c); }
             else if(ch=='<') { adv(); out.emplace_back(TT::LT, "<",l,c); }
             else if(ch=='>') { adv(); out.emplace_back(TT::GT, ">",l,c); }
-            else if(ch=='<'&&pk()=='<') { adv();adv(); out.emplace_back(TT::DRV_FUNC_ASSIGN, "<<",l,c); }
             else if(ch=='-'&&pk()=='>') { adv();adv(); out.emplace_back(TT::LSHIFT, "->",l,c); }
-            else if(ch=='>'&&pk()=='>') { adv();adv(); out.emplace_back(TT::RBRACK, ">>",l,c); }
             else if(ch=='&') { adv(); out.emplace_back(TT::AMP, "&",l,c); }
             else if(ch=='*') { adv(); out.emplace_back(TT::MUL, "*",l,c); }
             else if(ch=='='){adv();out.emplace_back(TT::EQ,    "=",l,c);}
