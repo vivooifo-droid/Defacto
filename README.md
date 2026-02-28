@@ -453,6 +453,67 @@ var msg: string = "Hello\nWorld"
 ./defo list
 ```
 
+## What can you build with Defacto?
+
+Defacto is designed for low-level systems programming.
+
+**Suitable for:**
+
+| Project Type | Example | Difficulty |
+|-------------|---------|------------|
+| **Operating Systems** | Bare-metal kernels, bootloaders | Advanced |
+| **Embedded systems** | Microcontrollers, IoT devices | Intermediate |
+| **System utilities** | Disk tools, hardware monitors | Intermediate |
+| **Educational projects** | Learning OS dev, compilers | Beginner |
+| **Demo scenes** | 64kb intros, demoscene productions | Advanced |
+| **Retro computing** | DOS-like programs, demoscene | Beginner |
+
+**Not suitable for:**
+
+- Web applications (use Rust, Go, or JavaScript)
+- Mobile apps (use Swift, Kotlin, or Flutter)
+- Data science (use Python or Julia)
+- Desktop GUI apps (use C#, Java, or Electron)
+
+**Example projects:**
+
+```de
+// Bootloader
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var msg: string = "Booting..."
+    display{msg}
+    reboot{}
+.>
+
+#Mainprogramm.end
+```
+
+```de
+// Simple OS kernel
+driver keyboard {
+    type = keyboard
+}
+
+fn main {
+    <.de
+        var key: i32 = 0
+        loop {
+            call #keyboard
+            readkey{key}
+            if key != 0 {
+                putchar{key}
+            }
+        }
+    .>
+}
+```
+
+---
+
 ## Limitations
 
 - No expression indexes in arrays: `arr[i + 1]` not supported
