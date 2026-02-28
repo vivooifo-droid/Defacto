@@ -19,5 +19,14 @@ install: $(TARGET)
 	cp $(TARGET) /usr/local/bin/defacto
 	@echo "installed: /usr/local/bin/defacto"
 
+uninstall:
+	rm -f /usr/local/bin/defacto
+	@echo "uninstalled: /usr/local/bin/defacto"
+
+brew: 
+	@echo "To install via Homebrew:"
+	@echo "  brew tap vivooifo-droid/Defacto"
+	@echo "  brew install defacto"
+
 clean:
 	rm -f $(TARGET) $(WIN_TARGET) *.o

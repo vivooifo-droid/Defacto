@@ -1,7 +1,20 @@
-# Defacto v0.30 (pre-alpha)
+# Defacto v0.40 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 Pre-alpha status: the language and toolchain are unstable and will change.
+
+**What's new in v0.40:**
+- **Comparison operators** — `!=`, `<`, `>`, `<=`, `>=`
+- **Return from functions** — `return{value}`
+- **While loops** — `while x < y { ... }`
+- **Library imports** — `Import{libname}`
+- **Homebrew installation** — `brew install defacto`
+
+**What's new in v0.35:**
+- **Pointers** — Rust-like pointer syntax (`*i32`, `&x`, `*ptr`, `ptr->field`)
+- **System allocator** — malloc/free support in terminal mode
+- **Null pointers** — `var ptr: *i32 = null`
+- **Double pointers** — `var ptr: **i32`
 
 Русская версия: `README.ru.md`
 
@@ -16,41 +29,66 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 
 ## Install
 
-### Windows
+### macOS (Homebrew) - Recommended
 
-Download and run the installer: [defacto-0.30-installer.exe](https://github.com/vivooifo-droid/Defacto/releases/download/v0.30/defacto-0.30-installer.exe)
+**The easiest way to install Defacto:**
 
-The installer will:
-- Install the Defacto compiler to `C:\Program Files\Defacto`
-- Add Defacto to your PATH
-- Create Start Menu shortcuts
-- Include example files
+```bash
+# Add the Defacto tap
+brew tap vivooifo-droid/Defacto
 
-**Requirements:** Install NASM first:
-- Download from: https://www.nasm.us/
-- Or use Chocolatey: `choco install nasm`
+# Install Defacto
+brew install defacto
 
-### macOS
-
+# Verify installation
+defacto -h
 ```
-xcode-select --install
-brew install nasm mingw-w64
-cd compiler && make
-./defacto -h
+
+This will automatically:
+- Download and install NASM dependency
+- Build and install the compiler
+- Add `defacto` to your PATH
+
+**For Apple Silicon Macs:** To run `-terminal-macos` binaries, you need Rosetta 2:
+```bash
+softwareupdate --install-rosetta
 ```
 
 ### Linux (Ubuntu/Debian)
 
-```
+**Requirements:**
+- Build essentials (gcc, make)
+- NASM assembler
+
+**Note:** Linux uses `-terminal` by default, producing ELF 32-bit binaries linked with libc.
+
+```bash
+# Install dependencies
 sudo apt update
 sudo apt install build-essential nasm
+
+# Build compiler
 cd compiler && make
+
+# Test installation
 ./defacto -h
 ```
 
-## Build compiler
+**Other Linux distributions:**
 
+```bash
+# Fedora
+sudo dnf install gcc make nasm
+
+# Arch Linux
+sudo pacman -S gcc make nasm
 ```
+
+## Build from Source
+
+See installation instructions above for your platform, or:
+
+```bash
 cd compiler
 make
 ./defacto -h
@@ -58,35 +96,81 @@ make
 
 ## Usage
 
-Compile a program:
-
+**macOS** (default: `-terminal-macos`):
+```bash
+./defacto hello.de -o hello
+./hello
 ```
+
+**Linux** (default: `-terminal`):
+```bash
+./defacto hello.de -o hello
+./hello
+```
+
+**Bare-metal kernel** (all platforms):
+```bash
+./defacto -kernel os.de -o kernel.bin
+```
+
+### Command Line
+
+Compile a program:
+```bash
 ./defacto program.de
 ```
 
-Output file:
-
+Specify output file:
+```bash
+./defacto program.de -o output
+./defacto -o output program.de    # order doesn't matter
 ```
-./defacto -o output.bin program.de
-```
 
-Assembly only:
-
-```
+Assembly output only:
+```bash
 ./defacto -S program.de
 ```
 
-Verbose:
-
-```
+Verbose mode:
+```bash
 ./defacto -v program.de
+```
+
+Help:
+```bash
+./defacto -h
 ```
 
 ## Modes
 
-- `-kernel` default bare-metal (x86-32)
-- `-terminal` Linux syscalls
-- `-terminal-macos` macOS syscalls (Mach-O x86_64)
+| Mode | Platform | Output | Default |
+|------|----------|--------|---------|
+| `-kernel` | All | Binary (x86-32) | Linux |
+| `-terminal` | Linux | ELF 32-bit | Linux |
+| `-terminal-macos` | macOS | Mach-O 64-bit | macOS |
+
+**Mode selection:**
+- **macOS**: Default is `-terminal-macos` (native macOS binaries)
+- **Linux**: Default is `-terminal` (Linux syscalls)
+- **Bare-metal**: Use `-kernel` for OS development (no OS dependencies)
+
+### Examples
+
+```bash
+# macOS native application
+./defacto app.de -o app
+./app
+
+# Linux application (on Linux)
+./defacto app.de -o app
+./app
+
+# Bare-metal kernel
+./defacto -kernel kernel.de -o kernel.bin
+
+# Run in QEMU
+qemu-system-i386 -kernel kernel.bin
+```
 
 ## Full language syntax
 
@@ -377,6 +461,16 @@ make
 ```
 
 See [`addons/cpp/`](addons/cpp/) for examples.
+
+## What's new in v0.35
+
+- **Pointers** — Rust-like pointer syntax with `*Type`, `&var`, `*ptr`, `ptr->field`
+- **System allocator** — malloc/free for dynamic memory in terminal mode
+- **Null pointers** — `null` keyword for null pointer values
+- **Double pointers** — `**Type` for pointer-to-pointer
+- **Address-of operator** — `&` for taking variable addresses
+- **Dereference operator** — `*` for pointer dereferencing
+- **Arrow operator** — `->` for struct field access through pointers
 
 ## What's new in v0.30
 

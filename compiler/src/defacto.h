@@ -26,15 +26,17 @@ inline void warn(const std::string& msg, int line = -1) {
 enum class TT {
     PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT, DRIVER, DRIVER_STOP,
     SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
-    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, ELSE, STOP, DISPLAY, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, ELSE, STOP, DISPLAY, PRINTNUM, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    IMPORT, RETURN, WHILE, FOR, ENUM, TRY, CATCH,
     STRUCT,
     MOV, REG_STATIC, REG_STOP,
     I32, I64, U8, STR, PTR,
     REGISTER, IDENT, NUMBER, STR_LIT, HEX,
-    EQ, EQEQ, PLUS, MINUS, MUL, DIV, LSHIFT,
+    EQ, EQEQ, NEQ, LT, GT, LTE, GTE, PLUS, MINUS, MUL, DIV, LSHIFT,
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
-    COLON, COMMA, DOT,
+    COLON, SEMICOLON, COMMA, DOT,
     DRV_FUNC_ASSIGN, DRV_CALL, DRV_CALL_NOT,
+    AMP, STAR, TOK_NULL, ALLOC, DEALLOC,
     EOF_T
 };
 
@@ -48,9 +50,12 @@ struct Token {
 
 enum class NT {
     PROGRAM, SECTION, VAR_DECL, FUNC_DECL, FUNC_CALL,
-    ASSIGN, LOOP, IF_STMT, REG_OP, DISPLAY, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    ASSIGN, LOOP, WHILE, FOR, IF_STMT, REG_OP, DISPLAY, PRINTNUM, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    RETURN,
+    IMPORT,
     DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL,
-    STRUCT_DECL, STRUCT_FIELD_ACCESS
+    STRUCT_DECL, STRUCT_FIELD_ACCESS,
+    PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -73,6 +78,7 @@ struct ProgramNode : Node {
     bool no_runtime = false, safe = false;
     NodeList interrupts, functions, main_sec;
     std::vector<std::unique_ptr<StructDecl>> structs;
+    std::vector<std::string> imports;  // List of imported libraries
     ProgramNode() { kind = NT::PROGRAM; }
 };
 
@@ -95,6 +101,11 @@ struct FuncCall : Node {
     FuncCall() { kind = NT::FUNC_CALL; }
 };
 
+struct ReturnNode : Node {
+    std::string value;
+    ReturnNode() { kind = NT::RETURN; }
+};
+
 struct Assign : Node {
     std::string target, value, idx;
     bool is_reg = false, is_arr = false;
@@ -104,6 +115,20 @@ struct Assign : Node {
 struct LoopNode : Node {
     NodeList body;
     LoopNode() { kind = NT::LOOP; }
+};
+
+struct WhileNode : Node {
+    std::string left, op, right;
+    NodeList body;
+    WhileNode() { kind = NT::WHILE; }
+};
+
+struct ForNode : Node {
+    std::string init_var, init_value;
+    std::string cond_left, cond_op, cond_right;
+    std::string step_var, step_value;
+    NodeList body;
+    ForNode() { kind = NT::FOR; }
 };
 
 struct IfNode : Node {
@@ -120,6 +145,11 @@ struct RegOp : Node {
 struct DisplayNode : Node {
     std::string var;
     DisplayNode() { kind = NT::DISPLAY; }
+};
+
+struct PrintNumNode : Node {
+    std::string var;
+    PrintNumNode() { kind = NT::PRINTNUM; }
 };
 
 struct FreeNode : Node {
@@ -195,4 +225,25 @@ struct StructFieldAccess : Node {
     std::string struct_var;
     std::string field_name;
     StructFieldAccess() { kind = NT::STRUCT_FIELD_ACCESS; }
+};
+
+// Pointer support
+struct PtrAddrNode : Node {
+    std::string var;  // Variable to take address of
+    PtrAddrNode() { kind = NT::PTR_ADDR; }
+};
+
+struct PtrDerefNode : Node {
+    std::string ptr;  // Pointer to dereference
+    PtrDerefNode() { kind = NT::PTR_DEREF; }
+};
+
+struct AllocNode : Node {
+    std::string size;  // Size in bytes
+    AllocNode() { kind = NT::ALLOC_NODE; }
+};
+
+struct DeallocNode : Node {
+    std::string ptr;  // Pointer to free
+    DeallocNode() { kind = NT::DEALLOC_NODE; }
 };

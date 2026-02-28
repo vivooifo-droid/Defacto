@@ -8,9 +8,11 @@
 class CodeGen {
     std::ostringstream code;
     std::ostringstream data;
+    std::ostringstream externs;  // For extern declarations (malloc, free)
 
     std::map<std::string,std::string> var_lbl;
     std::map<std::string,bool> var_is_ptr;
+    std::map<std::string,bool> var_on_heap;  // true if variable allocated on heap
     std::map<std::string,std::string> var_type;  // variable name -> type name
     std::map<std::string, std::map<std::string, int>> struct_field_offsets;  // struct_type -> (field_name -> offset)
     std::map<std::string, int> struct_sizes;  // struct_type -> total size in bytes
@@ -19,6 +21,7 @@ class CodeGen {
     int lcnt = 0, scnt = 0;
     bool bare_metal = true;
     bool macos_terminal = false;
+    bool use_allocator = false;  // Use system allocator (malloc/free)
 
     std::string lbl(const std::string& pfx="L") { return pfx+std::to_string(lcnt++); }
     std::string addr(const std::string& sym) { return macos_terminal ? ("rel "+sym) : sym; }
@@ -55,6 +58,25 @@ class CodeGen {
     void load(const std::string& dst, const std::string& src){
         if(is_reg(src))             code<<"    mov "<<dst<<", "<<reg(src)<<"\n";
         else if(is_num(src)||is_hex(src)) code<<"    mov "<<dst<<", "<<src<<"\n";
+        else if(src.size() > 0 && src[0] == '&') {
+            // Address-of: &var -> load address of var
+            std::string varname = src.substr(1);
+            auto it = var_lbl.find(varname);
+            if(it == var_lbl.end()) throw std::runtime_error("undefined variable '"+varname+"'");
+            code<<"    mov "<<dst<<", "<<addr(it->second)<<"\n";
+        }
+        else if(src.size() > 0 && src[0] == '*') {
+            // Dereference: *ptr -> load value from pointer
+            std::string ptrname = src.substr(1);
+            auto it = var_lbl.find(ptrname);
+            if(it == var_lbl.end()) throw std::runtime_error("undefined pointer '"+ptrname+"'");
+            code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
+            code<<"    mov "<<dst<<", dword [ecx]\n";
+        }
+        else if(src.size() > 0 && src[0] == '(') {
+            // Expression in parentheses: evaluate it
+            expr(dst, src);
+        }
         else{
             std::string aname, aidx;
             if(parse_arr_ref(src,aname,aidx)){
@@ -79,6 +101,17 @@ class CodeGen {
 
     void store(const std::string& src_reg, const std::string& dst){
         if(const_declared.count(dst)) throw std::runtime_error("cannot assign to const '"+dst+"'");
+        
+        // Check for dereference: *ptr = value
+        if(dst.size() > 0 && dst[0] == '*') {
+            std::string ptrname = dst.substr(1);
+            auto it = var_lbl.find(ptrname);
+            if(it == var_lbl.end()) throw std::runtime_error("undefined pointer '"+ptrname+"'");
+            code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
+            code<<"    mov dword [ecx], "<<src_reg<<"\n";
+            return;
+        }
+        
         auto it=var_lbl.find(dst);
         if(it==var_lbl.end()) throw std::runtime_error("undefined variable '"+dst+"'");
         if(macos_terminal && var_is_ptr[dst]) code<<"    mov qword ["<<addr(it->second)<<"], "<<src_reg<<"\n";
@@ -86,29 +119,158 @@ class CodeGen {
     }
 
     void expr(const std::string& dst, const std::string& e){
-        std::string s=e;
-        for(char c:{'(',')',' '}) s.erase(std::remove(s.begin(),s.end(),c),s.end());
-        size_t op=std::string::npos;
-        for(size_t i=1;i<s.size();i++) if(s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'){op=i;break;}
-        if(op==std::string::npos){load(dst,s);return;}
-        std::string L=s.substr(0,op), R=s.substr(op+1); char o=s[op];
-        load(dst,L);
-        auto rhs=[&]()->std::string{
-            if(is_reg(R)) return reg(R);
-            if(is_num(R)||is_hex(R)) return R;
-            auto it=var_lbl.find(R);
-            if(it==var_lbl.end()) throw std::runtime_error("undefined variable '"+R+"'");
-            return "dword ["+addr(it->second)+"]";
-        };
-        if(o=='+') code<<"    add "<<dst<<", "<<rhs()<<"\n";
-        else if(o=='-') code<<"    sub "<<dst<<", "<<rhs()<<"\n";
-        else if(o=='*') code<<"    imul "<<dst<<", "<<rhs()<<"\n";
-        else if(o=='/'){
-            code<<"    push edx\n    xor edx, edx\n    mov ecx, "<<rhs()<<"\n";
-            if(dst!="eax") code<<"    mov eax, "<<dst<<"\n";
-            code<<"    idiv ecx\n";
-            if(dst!="eax") code<<"    mov "<<dst<<", eax\n";
-            code<<"    pop edx\n";
+        // Parse and evaluate nested expressions
+        // Format: ((a+b)*c) or (a+(b*c)) etc.
+        std::string s = e;
+        
+        // Remove outer parentheses if present
+        while (s.size() >= 2 && s[0] == '(' && s[s.size()-1] == ')') {
+            // Check if these parens match each other
+            int depth = 0;
+            bool match = true;
+            for (size_t i = 0; i < s.size(); i++) {
+                if (s[i] == '(') depth++;
+                else if (s[i] == ')') depth--;
+                if (depth == 0 && i < s.size() - 1) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                s = s.substr(1, s.size() - 2);
+            } else {
+                break;
+            }
+        }
+        
+        // Find the main operator (lowest precedence first: + or -)
+        // Scan from right to left to handle left-associative operators
+        size_t op_pos = std::string::npos;
+        char op_char = 0;
+        int paren_depth = 0;
+        
+        // First pass: look for + or - (lowest precedence)
+        for (int i = (int)s.size() - 1; i >= 0; i--) {
+            char c = s[i];
+            if (c == ')') paren_depth++;
+            else if (c == '(') paren_depth--;
+            else if (paren_depth == 0 && (c == '+' || c == '-')) {
+                // Make sure it's not part of a negative number
+                if (i == 0 || (s[i-1] != '(' && s[i-1] != '+' && s[i-1] != '-' && s[i-1] != '*' && s[i-1] != '/')) {
+                    op_pos = i;
+                    op_char = c;
+                    break;
+                }
+            }
+        }
+        
+        // Second pass: if no + or -, look for * or / (higher precedence)
+        if (op_pos == std::string::npos) {
+            paren_depth = 0;
+            for (int i = (int)s.size() - 1; i >= 0; i--) {
+                char c = s[i];
+                if (c == ')') paren_depth++;
+                else if (c == '(') paren_depth--;
+                else if (paren_depth == 0 && (c == '*' || c == '/')) {
+                    op_pos = i;
+                    op_char = c;
+                    break;
+                }
+            }
+        }
+        
+        // No operator found: it's a value
+        if (op_pos == std::string::npos) {
+            load(dst, s);
+            return;
+        }
+        
+        // Split into left and right parts
+        std::string left_str = s.substr(0, op_pos);
+        std::string right_str = s.substr(op_pos + 1);
+        char op = op_char;
+        
+        // Evaluate left side first
+        expr(dst, left_str);
+        
+        // Check if right side is an expression
+        if (right_str.size() > 0 && right_str[0] == '(') {
+            // Evaluate right side into edx (not to conflict with dst)
+            if (macos_terminal) {
+                code << "    push r" << dst.substr(1) << "\n";  // Save left result (rax/rbx/etc)
+            } else {
+                code << "    push " << dst << "\n";  // Save left result
+            }
+            expr("edx", right_str);
+            if (macos_terminal) {
+                code << "    pop r" << dst.substr(1) << "\n";  // Restore left result
+            } else {
+                code << "    pop " << dst << "\n";  // Restore left result
+            }
+            // Apply operator
+            if (op == '+') {
+                code << "    add " << dst << ", edx\n";
+            } else if (op == '-') {
+                code << "    sub " << dst << ", edx\n";
+            } else if (op == '*') {
+                code << "    imul " << dst << ", edx\n";
+            } else if (op == '/') {
+                if (macos_terminal) {
+                    code << "    push rdx\n";
+                    code << "    xor edx, edx\n";
+                    code << "    mov ecx, ecx\n";
+                    if (dst != "eax") code << "    mov eax, " << dst << "\n";
+                    code << "    idiv ecx\n";
+                    if (dst != "eax") code << "    mov " << dst << ", eax\n";
+                    code << "    pop rdx\n";
+                } else {
+                    code << "    push edx\n    xor edx, edx\n";
+                    code << "    mov eax, " << dst << "\n";
+                    code << "    idiv ecx\n";
+                    code << "    mov " << dst << ", eax\n";
+                    code << "    pop edx\n";
+                }
+            }
+        } else {
+            // Right side is a simple value
+            auto rhs = [&]()->std::string {
+                if (is_reg(right_str)) return reg(right_str);
+                if (is_num(right_str) || is_hex(right_str)) return right_str;
+                auto it = var_lbl.find(right_str);
+                if (it == var_lbl.end()) throw std::runtime_error("undefined variable '" + right_str + "'");
+                return "dword [" + addr(it->second) + "]";
+            };
+            
+            if (op == '+') {
+                code << "    add " << dst << ", " << rhs() << "\n";
+            } else if (op == '-') {
+                code << "    sub " << dst << ", " << rhs() << "\n";
+            } else if (op == '*') {
+                // imul doesn't support mem operand directly in 64-bit, load to ecx first
+                std::string rhs_val = rhs();
+                if (rhs_val.find('[') != std::string::npos) {
+                    code << "    mov ecx, " << rhs_val << "\n";
+                    code << "    imul " << dst << ", ecx\n";
+                } else {
+                    code << "    imul " << dst << ", " << rhs_val << "\n";
+                }
+            } else if (op == '/') {
+                if (macos_terminal) {
+                    code << "    push rdx\n";
+                    code << "    xor edx, edx\n";
+                    code << "    mov ecx, " << rhs() << "\n";
+                    if (dst != "eax") code << "    mov eax, " << dst << "\n";
+                    code << "    idiv ecx\n";
+                    if (dst != "eax") code << "    mov " << dst << ", eax\n";
+                    code << "    pop rdx\n";
+                } else {
+                    code << "    push edx\n    xor edx, edx\n    mov ecx, " << rhs() << "\n";
+                    if (dst != "eax") code << "    mov eax, " << dst << "\n";
+                    code << "    idiv ecx\n";
+                    if (dst != "eax") code << "    mov " << dst << ", eax\n";
+                    code << "    pop edx\n";
+                }
+            }
         }
     }
 
@@ -116,7 +278,8 @@ class CodeGen {
         std::string lb="var_"+v->name;
         var_lbl[v->name]=lb;
         var_type[v->name]=v->type;  // Store variable type
-        var_is_ptr[v->name]=(v->type=="string"||v->type=="pointer");
+        var_is_ptr[v->name]=(v->type=="string"||v->type=="pointer"||v->type.find('*')==0);
+        var_on_heap[v->name]=false;  // By default, variables are on stack/data section
         if(v->is_const) const_declared.insert(v->name);
         else declared.insert(v->name);
         if(v->is_arr){
@@ -147,6 +310,38 @@ class CodeGen {
             }
             return;
         }
+        // Check if type is a pointer (*i32, *string, etc.)
+        if(v->type.find('*')==0){
+            // Pointer variable
+            if(v->init.find('&')==0){
+                // Initialize with address: var ptr: *i32 = &x
+                std::string refvar = v->init.substr(1);
+                // Need to handle this specially - store label reference
+                if(macos_terminal){
+                    data<<"    align 8\n";
+                    data<<"    "<<lb<<": dq var_"+refvar+"\n";
+                } else {
+                    data<<"    "<<lb<<": dd var_"+refvar+"\n";
+                }
+            } else if(v->init=="0" || v->init.empty()){
+                // Null or uninitialized pointer
+                if(macos_terminal){
+                    data<<"    align 8\n";
+                    data<<"    "<<lb<<": dq "<<(v->init.empty()?"0":v->init)<<"\n";
+                } else {
+                    data<<"    "<<lb<<": dd "<<(v->init.empty()?"0":v->init)<<"\n";
+                }
+            } else {
+                // Other initializer
+                if(macos_terminal){
+                    data<<"    align 8\n";
+                    data<<"    "<<lb<<": dq "<<v->init<<"\n";
+                } else {
+                    data<<"    "<<lb<<": dd "<<v->init<<"\n";
+                }
+            }
+            return;
+        }
         // Check if type is a struct
         auto sit = struct_sizes.find(v->type);
         if(sit != struct_sizes.end()){
@@ -154,7 +349,7 @@ class CodeGen {
             data<<"    "<<lb<<": times "<<sit->second<<" db 0\n";
             return;
         }
-        if(macos_terminal && v->type=="pointer"){
+        if(macos_terminal && (v->type=="pointer"||v->type.find('*')==0)){
             data<<"    align 8\n";
             data<<"    "<<lb<<": dq "<<(v->init.empty()?"0":v->init)<<"\n";
         } else {
@@ -252,6 +447,116 @@ class CodeGen {
         }
     }
 
+    void gen_printnum(PrintNumNode* p){
+        auto it = var_lbl.find(p->var);
+        if(it == var_lbl.end()){
+            warn("printnum: unknown variable '"+p->var+"'");
+            return;
+        }
+        
+        std::string L = lbl("pnum");
+        
+        if(bare_metal){
+            // Bare-metal: вывод числа через VGA память
+            // Алгоритм: делим на 10, получаем цифры, конвертируем в ASCII
+            code<<"    mov eax, dword ["<<addr(it->second)<<"]\n";
+            code<<"    mov ecx, 10\n";
+            code<<"    mov edi, dword [__defacto_cursor]\n";
+            code<<"    xor ebx, ebx  ; счетчик цифр\n";
+            code<<L<<"_div:\n";
+            code<<"    xor edx, edx\n";
+            code<<"    div ecx\n";
+            code<<"    push dx  ; сохраняем цифру\n";
+            code<<"    inc ebx\n";
+            code<<"    test eax, eax\n";
+            code<<"    jnz "<<L<<"_div\n";
+            code<<L<<"_print:\n";
+            code<<"    pop dx\n";
+            code<<"    add dl, 48  ; конвертируем в ASCII\n";
+            code<<"    mov [0xB8000 + edi], dl\n";
+            code<<"    mov bl, byte [__defacto_attr]\n";
+            code<<"    mov [0xB8000 + edi + 1], bl\n";
+            code<<"    add edi, 2\n";
+            code<<"    dec ebx\n";
+            code<<"    jnz "<<L<<"_print\n";
+            code<<"    mov dword [__defacto_cursor], edi\n";
+        } else if(macos_terminal){
+            // macOS terminal (64-bit): конвертация числа в строку и вывод
+            code<<"    mov eax, dword ["<<addr(it->second)<<"]\n";
+            code<<"    mov ecx, 10\n";
+            code<<"    sub rsp, 16  ; буфер\n";
+            code<<"    mov rdi, rsp\n";
+            code<<"    mov byte [rdi + 15], 0  ; null терминатор\n";
+            code<<"    mov ebx, 14  ; позиция\n";
+            code<<"    xor esi, esi  ; счетчик цифр\n";
+            code<<L<<"_div:\n";
+            code<<"    xor edx, edx\n";
+            code<<"    div ecx\n";
+            code<<"    add dl, 48\n";
+            code<<"    mov [rdi + rbx], dl\n";
+            code<<"    dec ebx\n";
+            code<<"    inc esi\n";
+            code<<"    test eax, eax\n";
+            code<<"    jnz "<<L<<"_div\n";
+            code<<"    inc ebx  ; корректировка\n";
+            code<<"    mov rsi, rdi\n";
+            code<<"    add rsi, rbx\n";
+            code<<"    mov rcx, rsi\n";
+            code<<L<<"_len:\n";
+            code<<"    cmp byte [rcx], 0\n";
+            code<<"    je "<<L<<"_write\n";
+            code<<"    inc rcx\n";
+            code<<"    jmp "<<L<<"_len\n";
+            code<<L<<"_write:\n";
+            code<<"    sub rcx, rsi\n";
+            code<<"    mov rax, 0x2000004\n";
+            code<<"    mov rdi, 1\n";
+            code<<"    mov rdx, rcx\n";
+            code<<"    syscall\n";
+            code<<"    add rsp, 16\n";
+            // newline
+            code<<"    mov rax, 0x2000004\n";
+            code<<"    mov rdi, 1\n";
+            code<<"    lea rsi, ["<<addr(L+"_nl")<<"]\n";
+            code<<"    mov rdx, 1\n";
+            code<<"    syscall\n";
+            data<<"    "<<L<<"_nl: db 10\n";
+        } else {
+            // Linux terminal: конвертация числа в строку и вывод
+            code<<"    mov eax, dword ["<<addr(it->second)<<"]\n";
+            code<<"    mov ecx, 10\n";
+            code<<"    sub esp, 16\n";
+            code<<"    mov edi, esp\n";
+            code<<"    mov byte [edi + 15], 0\n";
+            code<<"    mov ebx, 14\n";
+            code<<"    xor esi, esi\n";
+            code<<L<<"_div:\n";
+            code<<"    xor edx, edx\n";
+            code<<"    div ecx\n";
+            code<<"    add dl, 48\n";
+            code<<"    mov [edi + ebx], dl\n";
+            code<<"    dec ebx\n";
+            code<<"    inc esi\n";
+            code<<"    test eax, eax\n";
+            code<<"    jnz "<<L<<"_div\n";
+            code<<"    inc ebx\n";
+            code<<"    mov eax, 4\n";
+            code<<"    mov ebx, 1\n";
+            code<<"    mov ecx, edi\n";
+            code<<"    add ecx, ebx\n";
+            code<<"    mov edx, esi\n";
+            code<<"    int 0x80\n";
+            code<<"    add esp, 16\n";
+            // newline
+            code<<"    mov eax, 4\n";
+            code<<"    mov ebx, 1\n";
+            code<<"    mov ecx, "<<L<<"_nl\n";
+            code<<"    mov edx, 1\n";
+            code<<"    int 0x80\n";
+            data<<"    "<<L<<"_nl: db 10\n";
+        }
+    }
+
     void gen_color(ColorNode* c){
         if(!bare_metal) return;
         const std::string& v=c->value;
@@ -316,12 +621,40 @@ class CodeGen {
     }
 
     void gen_readchar(ReadCharNode* k){
-        auto it=var_lbl.find(k->var);
-        if(it==var_lbl.end()) throw std::runtime_error("readchar: undefined variable '"+k->var+"'");
+        auto it = var_lbl.find(k->var);
+        if(it == var_lbl.end()) throw std::runtime_error("readchar: undefined variable '"+k->var+"'");
+        
         if(!bare_metal){
-            code<<"    mov dword ["<<addr(it->second)<<"], 0\n";
+            // Terminal mode: читаем 1 байт со stdin
+            if(macos_terminal){
+                // macOS: sys_read
+                code<<"    mov rax, 0x2000003\n";
+                code<<"    mov rdi, 0  ; stdin\n";
+                code<<"    sub rsp, 8\n";
+                code<<"    mov rsi, rsp  ; буфер на стеке\n";
+                code<<"    mov rdx, 1  ; 1 байт\n";
+                code<<"    syscall\n";
+                code<<"    mov eax, dword [rsp]\n";
+                code<<"    add rsp, 8\n";
+                code<<"    and eax, 0xFF  ; только 1 байт\n";
+                code<<"    mov dword ["<<addr(it->second)<<"], eax\n";
+            } else {
+                // Linux: sys_read
+                code<<"    mov eax, 3\n";
+                code<<"    mov ebx, 0  ; stdin\n";
+                code<<"    sub esp, 4\n";
+                code<<"    mov ecx, esp  ; буфер\n";
+                code<<"    mov edx, 1  ; 1 байт\n";
+                code<<"    int 0x80\n";
+                code<<"    mov eax, dword [esp]\n";
+                code<<"    add esp, 4\n";
+                code<<"    and eax, 0xFF\n";
+                code<<"    mov dword ["<<addr(it->second)<<"], eax\n";
+            }
             return;
         }
+        
+        // Bare-metal: опрос клавиатуры
         std::string L=lbl("chr");
         code<<L<<"_wait:\n";
         code<<"    in al, 0x64\n";
@@ -552,10 +885,20 @@ class CodeGen {
                 int offset = fit->second;
                 load("eax", a->value);
                 if(offset == 0){
-                    code<<"    mov dword ["<<addr(vit->second)<<"], eax\n";
+                    if(macos_terminal){
+                        code<<"    mov qword [rel "<<vit->second<<"], rax\n";
+                    } else {
+                        code<<"    mov dword ["<<addr(vit->second)<<"], eax\n";
+                    }
                 } else {
-                    code<<"    mov ebx, "<<addr(vit->second)<<"\n";
-                    code<<"    mov dword [ebx + "<<offset<<"], eax\n";
+                    if(macos_terminal){
+                        // 64-bit: load base address into rbx, then store
+                        code<<"    lea rbx, [rel "<<vit->second<<"]\n";
+                        code<<"    mov dword [rbx + "<<offset<<"], eax\n";
+                    } else {
+                        code<<"    mov ebx, "<<addr(vit->second)<<"\n";
+                        code<<"    mov dword [ebx + "<<offset<<"], eax\n";
+                    }
                 }
                 return;
             }
@@ -587,6 +930,70 @@ class CodeGen {
         loop_ends.pop_back();
     }
 
+    void gen_while(WhileNode* w){
+        std::string ws=lbl("while_s"), we=lbl("while_e");
+        code<<ws<<":\n";
+        // Check condition
+        load("eax", w->left);
+        if(is_num(w->right)) code<<"    cmp eax, "<<w->right<<"\n";
+        else if(is_reg(w->right)) code<<"    cmp eax, "<<reg(w->right)<<"\n";
+        else {
+            auto it=var_lbl.find(w->right);
+            code<<"    cmp eax, dword ["<<addr(it->second)<<"]\n";
+        }
+        // Jump based on operator
+        if(w->op=="==") code<<"    je "<<we<<"\n";
+        else if(w->op=="!=") code<<"    jne "<<we<<"\n";
+        else if(w->op=="<") code<<"    jge "<<we<<"\n";
+        else if(w->op==">") code<<"    jle "<<we<<"\n";
+        else if(w->op=="<=") code<<"    jg "<<we<<"\n";
+        else if(w->op==">=") code<<"    jl "<<we<<"\n";
+        // Body
+        loop_ends.push_back(we);
+        for(auto& s:w->body) gen_stmt(s.get());
+        loop_ends.pop_back();
+        code<<"    jmp "<<ws<<"\n"<<we<<":\n";
+    }
+
+    void gen_for(ForNode* f){
+        std::string fs=lbl("for_s"), fe=lbl("for_e");
+        // Init: var = value
+        auto it=var_lbl.find(f->init_var);
+        if(it==var_lbl.end()) throw std::runtime_error("undefined variable '"+f->init_var+"'");
+        if(is_num(f->init_value)) code<<"    mov dword ["<<addr(it->second)<<"], "<<f->init_value<<"\n";
+        else {
+            load("eax", f->init_value);
+            code<<"    mov dword ["<<addr(it->second)<<"], eax\n";
+        }
+        code<<fs<<":\n";
+        // Check condition
+        load("eax", f->cond_left);
+        if(is_num(f->cond_right)) code<<"    cmp eax, "<<f->cond_right<<"\n";
+        else if(is_reg(f->cond_right)) code<<"    cmp eax, "<<reg(f->cond_right)<<"\n";
+        else {
+            auto jt=var_lbl.find(f->cond_right);
+            code<<"    cmp eax, dword ["<<addr(jt->second)<<"]\n";
+        }
+        // Jump based on operator
+        if(f->cond_op=="==") code<<"    je "<<fe<<"\n";
+        else if(f->cond_op=="!=") code<<"    jne "<<fe<<"\n";
+        else if(f->cond_op=="<") code<<"    jge "<<fe<<"\n";
+        else if(f->cond_op==">") code<<"    jle "<<fe<<"\n";
+        else if(f->cond_op=="<=") code<<"    jg "<<fe<<"\n";
+        else if(f->cond_op==">=") code<<"    jl "<<fe<<"\n";
+        // Body
+        loop_ends.push_back(fe);
+        for(auto& s:f->body) gen_stmt(s.get());
+        loop_ends.pop_back();
+        // Step: var = step_value
+        auto step_it=var_lbl.find(f->step_var);
+        if(step_it==var_lbl.end()) throw std::runtime_error("undefined variable '"+f->step_var+"'");
+        // Parse step expression and store
+        load("eax", f->step_value);
+        code<<"    mov dword ["<<addr(step_it->second)<<"], eax\n";
+        code<<"    jmp "<<fs<<"\n"<<fe<<":\n";
+    }
+
     void gen_if(IfNode* n){
         std::string L=lbl("if_skip"), Le=lbl("if_end");
         load("eax",n->left);
@@ -597,6 +1004,8 @@ class CodeGen {
         else if(n->op=="!=") code<<"    je  "<<L<<"\n";
         else if(n->op=="<")  code<<"    jge "<<L<<"\n";
         else if(n->op==">")  code<<"    jle "<<L<<"\n";
+        else if(n->op=="<=") code<<"    jg  "<<L<<"\n";
+        else if(n->op==">=") code<<"    jl  "<<L<<"\n";
         for(auto& s:n->then_body) gen_stmt(s.get());
         if(!n->else_body.empty()){
             code<<"    jmp "<<Le<<"\n";
@@ -614,8 +1023,11 @@ class CodeGen {
             case NT::ASSIGN:   gen_assign(static_cast<Assign*>(n)); break;
             case NT::REG_OP:   {auto r=static_cast<RegOp*>(n); if(r->op=="MOV") load(reg(r->target),r->source); break;}
             case NT::LOOP:     gen_loop(static_cast<LoopNode*>(n)); break;
+            case NT::WHILE:    gen_while(static_cast<WhileNode*>(n)); break;
+            case NT::FOR:      gen_for(static_cast<ForNode*>(n)); break;
             case NT::IF_STMT:  gen_if(static_cast<IfNode*>(n)); break;
             case NT::DISPLAY:  gen_display(static_cast<DisplayNode*>(n)); break;
+            case NT::PRINTNUM: gen_printnum(static_cast<PrintNumNode*>(n)); break;
             case NT::COLOR:    gen_color(static_cast<ColorNode*>(n)); break;
             case NT::READKEY:  gen_readkey(static_cast<ReadKeyNode*>(n)); break;
             case NT::READCHAR: gen_readchar(static_cast<ReadCharNode*>(n)); break;
@@ -626,6 +1038,33 @@ class CodeGen {
                                    throw std::runtime_error("cannot free const '"+static_cast<FreeNode*>(n)->var+"'");
                                freed.insert(static_cast<FreeNode*>(n)->var);
                                break;
+            case NT::DEALLOC_NODE: {
+                // Generate free() call for heap-allocated memory
+                auto dn = static_cast<DeallocNode*>(n);
+                auto it = var_lbl.find(dn->ptr);
+                if(it != var_lbl.end()){
+                    code<<"    push dword ["<<addr(it->second)<<"]\n";
+                    code<<"    call free\n";
+                    code<<"    add esp, 4\n";
+                    code<<"    mov dword ["<<addr(it->second)<<"], 0\n";
+                }
+                break;
+            }
+            case NT::ALLOC_NODE: {
+                // Generate malloc() call - result in EAX
+                auto an = static_cast<AllocNode*>(n);
+                std::string size = an->size;
+                if(is_num(size)){
+                    code<<"    push "<<size<<"\n";
+                } else {
+                    load("eax", size);
+                    code<<"    push eax\n";
+                }
+                code<<"    call malloc\n";
+                code<<"    add esp, 4\n";
+                // Result (pointer) is in EAX
+                break;
+            }
             case NT::FUNC_CALL:{
                 std::string nm=static_cast<FuncCall*>(n)->name;
                 if(!nm.empty()&&nm[0]=='#') {
@@ -664,6 +1103,17 @@ class CodeGen {
             }
             case NT::BREAK:    if(loop_ends.empty()) throw std::runtime_error("'stop' outside loop");
                                code<<"    jmp "<<loop_ends.back()<<"\n"; break;
+            case NT::RETURN:   {
+                auto rn = static_cast<ReturnNode*>(n);
+                // Load return value into eax (if provided)
+                if (!rn->value.empty()) {
+                    load("eax", rn->value);
+                }
+                // For now, just return from function
+                // TODO: implement proper function epilogue jump
+                code<<"    mov esp, ebp\n    pop ebp\n    ret\n";
+                break;
+            }
             default: break;
         }
     }
@@ -678,7 +1128,7 @@ class CodeGen {
         if (!s->driver_name.empty()) {
             driver_constants.insert(s->driver_name);
         }
-        
+
         // Generate driver initialization code
         std::string driver_type = s->driver_type;
         // Remove # prefix if present
@@ -687,35 +1137,53 @@ class CodeGen {
         }
 
         // Generate built-in driver routines based on type
+        // In terminal mode, drivers are stubs (no hardware access)
         if (driver_type == "keyboard") {
             code<<"\n__defacto_drv_keyboard:\n";
             code<<"    ; Built-in keyboard driver\n";
-            code<<"    pushad\n";
-            code<<"    call _init_keyboard\n";
-            code<<"    popad\n";
-            code<<"    ret\n";
+            if(!bare_metal){
+                // Terminal mode: stub - no hardware access
+                code<<"    ret\n";
+            } else {
+                code<<"    pushad\n";
+                code<<"    call _init_keyboard\n";
+                code<<"    popad\n";
+                code<<"    ret\n";
+            }
         } else if (driver_type == "mouse") {
             code<<"\n__defacto_drv_mouse:\n";
             code<<"    ; Built-in mouse driver\n";
-            code<<"    pushad\n";
-            code<<"    call _init_mouse\n";
-            code<<"    popad\n";
-            code<<"    ret\n";
+            if(!bare_metal){
+                // Terminal mode: stub - no hardware access
+                code<<"    ret\n";
+            } else {
+                code<<"    pushad\n";
+                code<<"    call _init_mouse\n";
+                code<<"    popad\n";
+                code<<"    ret\n";
+            }
         } else if (driver_type == "volume") {
             code<<"\n__defacto_drv_volume:\n";
             code<<"    ; Built-in volume driver (PC speaker)\n";
-            code<<"    pushad\n";
-            code<<"    call _init_speaker\n";
-            code<<"    popad\n";
-            code<<"    ret\n";
+            if(!bare_metal){
+                // Terminal mode: stub - no hardware access
+                code<<"    ret\n";
+            } else {
+                code<<"    pushad\n";
+                code<<"    call _init_speaker\n";
+                code<<"    popad\n";
+                code<<"    ret\n";
+            }
         }
     }
 
     void gen_func(FuncDecl* f){
         std::string nm=f->name;
         if(!nm.empty()&&nm[0]=='#') nm=nm.substr(1);
+        std::string func_ret = lbl("func_ret");
         code<<"\n"<<nm<<":\n    push ebp\n    mov ebp, esp\n";
         gen_section(f->body.get());
+        code<<func_ret<<":\n";
         code<<"    mov esp, ebp\n    pop ebp\n    ret\n";
     }
 
@@ -746,12 +1214,30 @@ class CodeGen {
     }
 
 public:
-    void set_mode(bool bm, bool macos=false){ bare_metal=bm; macos_terminal=macos; }
+    void set_mode(bool bm, bool macos=false){ 
+        bare_metal=bm; 
+        macos_terminal=macos;
+        use_allocator = !bm;  // Use allocator in terminal mode
+    }
 
     void emit(ProgramNode* prog, const std::string& out_path){
         code<<"global _start\n";
+        
+        // Add extern declarations for malloc/free in terminal mode
+        if(!bare_metal && !macos_terminal){
+            code<<"extern malloc\n";
+            code<<"extern free\n";
+            code<<"extern exit\n";
+        }
+        
         if(macos_terminal) code<<"section .text\n";
         code<<"_start:\n";
+        
+        // Setup stack frame for terminal mode
+        if(!bare_metal && !macos_terminal){
+            code<<"    push ebp\n";
+            code<<"    mov ebp, esp\n";
+        }
 
         // Generate struct definitions first
         for(auto& s:prog->structs) gen_struct(s.get());
@@ -772,7 +1258,7 @@ public:
 
         if(bare_metal){
             code<<"\n.hang:\n    cli\n    hlt\n    jmp .hang\n";
-            
+
             // Add built-in driver stubs
             code<<"\n; Built-in driver stubs\n";
             code<<"_init_keyboard:\n    ret\n";
@@ -782,7 +1268,9 @@ public:
             if(macos_terminal){
                 code<<"\n    mov rax, 0x2000001\n    xor rdi, rdi\n    syscall\n";
             } else {
-                code<<"\n    mov eax, 1\n    xor ebx, ebx\n    int 0x80\n";
+                code<<"\n    mov eax, 1\n";
+                code<<"    xor ebx, ebx\n";
+                code<<"    int 0x80\n";
             }
         }
 
@@ -798,7 +1286,9 @@ public:
             else f<<"[BITS 32]\n";
         }
         f<<code.str()<<"\n";
-        if(macos_terminal) f<<"section .data\n";
+        
+        // Add data section
+        if(!bare_metal) f<<"section .data\n";
         if(bare_metal){
             f<<"__defacto_cursor: dd 0\n";
             f<<"__defacto_attr: db 15\n";

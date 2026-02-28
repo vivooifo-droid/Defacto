@@ -1,7 +1,14 @@
-# Defacto v0.30 (pre-alpha)
+# Defacto v0.35 (pre-alpha)
 
 Низкоуровневый язык для x86-32, bare-metal экспериментов и собственных тулчейнов.
 Статус pre-alpha: язык и тулчейн нестабильны и будут меняться.
+
+**Что нового в v0.35:**
+- **Указатели** — синтаксис как в Rust (`*i32`, `&x`, `*ptr`, `ptr->field`)
+- **Системный аллокатор** — поддержка malloc/free в terminal режиме
+- **Null указатели** — `var ptr: *i32 = null`
+- **Двойные указатели** — `var ptr: **i32`
+- **Авто-режим для macOS** — по умолчанию используется `-terminal-macos`
 
 English version: `README.md`
 
@@ -32,25 +39,65 @@ English version: `README.md`
 
 ### macOS
 
-```
+**Требования:**
+- Xcode Command Line Tools
+- NASM assembler
+
+**Примечание:** macOS по умолчанию использует `-terminal-macos`, создавая нативные x86_64 бинарники.
+На Apple Silicon (M1/M2/M3) для запуска требуется Rosetta 2.
+
+```bash
+# Установить Xcode tools
 xcode-select --install
-brew install nasm mingw-w64
+
+# Установить NASM
+brew install nasm
+
+# Собрать компилятор
 cd compiler && make
+
+# Проверить установку
 ./defacto -h
+
+# Установить Rosetta (только Apple Silicon)
+softwareupdate --install-rosetta
 ```
 
 ### Linux (Ubuntu/Debian)
 
-```
+**Требования:**
+- Build essentials (gcc, make)
+- NASM assembler
+
+**Примечание:** Linux по умолчанию использует `-terminal`, создавая ELF 32-битные бинарники с libc.
+
+```bash
+# Установить зависимости
 sudo apt update
 sudo apt install build-essential nasm
+
+# Собрать компилятор
 cd compiler && make
+
+# Проверить установку
 ./defacto -h
 ```
 
-## Сборка компилятора
+**Другие дистрибутивы Linux:**
 
+```bash
+# Fedora
+sudo dnf install gcc make nasm
+
+# Arch Linux
+sudo pacman -S gcc make nasm
 ```
+
+## Сборка из исходников
+
+Смотрите инструкции установки выше для вашей платформы, или:
+
+```bash
 cd compiler
 make
 ./defacto -h
@@ -58,35 +105,83 @@ make
 
 ## Использование
 
-Компиляция программы:
+### Быстрый старт
 
+**macOS** (по умолчанию `-terminal-macos`):
+```bash
+./defacto hello.de -o hello
+./hello
 ```
+
+**Linux** (по умолчанию `-terminal`):
+```bash
+./defacto hello.de -o hello
+./hello
+```
+
+**Bare-metal ядро** (все платформы):
+```bash
+./defacto -kernel os.de -o kernel.bin
+```
+
+### Командная строка
+
+Компиляция программы:
+```bash
 ./defacto program.de
 ```
 
-Выходной файл:
-
-```
-./defacto -o output.bin program.de
+Указать выходной файл:
+```bash
+./defacto program.de -o output
+./defacto -o output program.de    # порядок не важен
 ```
 
 Только ассемблер:
-
-```
+```bash
 ./defacto -S program.de
 ```
 
-Подробный вывод:
-
-```
+Подробный режим:
+```bash
 ./defacto -v program.de
+```
+
+Помощь:
+```bash
+./defacto -h
 ```
 
 ## Режимы
 
-- `-kernel` по умолчанию bare-metal (x86-32)
-- `-terminal` Linux syscalls
-- `-terminal-macos` macOS syscalls (Mach-O x86_64)
+| Режим | Платформа | Вывод | По умолчанию |
+|-------|-----------|-------|--------------|
+| `-kernel` | Все | Binary (x86-32) | Linux |
+| `-terminal` | Linux | ELF 32-bit | Linux |
+| `-terminal-macos` | macOS | Mach-O 64-bit | macOS |
+
+**Выбор режима:**
+- **macOS**: По умолчанию `-terminal-macos` (нативные macOS бинарники)
+- **Linux**: По умолчанию `-terminal` (Linux syscalls)
+- **Bare-metal**: Используйте `-kernel` для разработки ОС (без зависимостей)
+
+### Примеры
+
+```bash
+# macOS приложение
+./defacto app.de -o app
+./app
+
+# Linux приложение (на Linux)
+./defacto app.de -o app
+./app
+
+# Bare-metal ядро
+./defacto -kernel kernel.de -o kernel.bin
+
+# Запуск в QEMU
+qemu-system-i386 -kernel kernel.bin
+```
 
 ## Полный синтаксис языка
 

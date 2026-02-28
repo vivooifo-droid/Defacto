@@ -54,9 +54,17 @@ class Lexer {
         if(w=="loop")          return TT::LOOP;
         if(w=="if")            return TT::IF;
         if(w=="else")          return TT::ELSE;
+        if(w=="import")        return TT::IMPORT;
+        if(w=="return")        return TT::RETURN;
+        if(w=="while")         return TT::WHILE;
+        if(w=="for")           return TT::FOR;
+        if(w=="enum")          return TT::ENUM;
+        if(w=="try")           return TT::TRY;
+        if(w=="catch")         return TT::CATCH;
         if(w=="struct")        return TT::STRUCT;
         if(w=="stop")          return TT::STOP;
         if(w=="display")       return TT::DISPLAY;
+        if(w=="printnum")      return TT::PRINTNUM;
         if(w=="free")          return TT::FREE;
         if(w=="color")         return TT::COLOR;
         if(w=="readkey")       return TT::READKEY;
@@ -69,6 +77,9 @@ class Lexer {
         if(w=="u8")            return TT::U8;
         if(w=="string")        return TT::STR;
         if(w=="pointer")       return TT::PTR;
+        if(w=="null")          return TT::TOK_NULL;
+        if(w=="alloc")         return TT::ALLOC;
+        if(w=="dealloc")       return TT::DEALLOC;
         if(w=="keyboard")      return TT::IDENT;  // Driver type
         if(w=="mouse")         return TT::IDENT;  // Driver type
         if(w=="volume")        return TT::IDENT;  // Driver type
@@ -145,13 +156,19 @@ public:
             }
             char ch=cur();
             if (ch=='='&&pk()=='=') { adv();adv(); out.emplace_back(TT::EQEQ, "==",l,c); }
+            else if(ch=='!'&&pk()=='=') { adv();adv(); out.emplace_back(TT::NEQ, "!=",l,c); }
+            else if(ch=='<'&&pk()=='=') { adv();adv(); out.emplace_back(TT::LTE, "<=",l,c); }
+            else if(ch=='>'&&pk()=='=') { adv();adv(); out.emplace_back(TT::GTE, ">=",l,c); }
+            else if(ch=='<') { adv(); out.emplace_back(TT::LT, "<",l,c); }
+            else if(ch=='>') { adv(); out.emplace_back(TT::GT, ">",l,c); }
             else if(ch=='<'&&pk()=='<') { adv();adv(); out.emplace_back(TT::DRV_FUNC_ASSIGN, "<<",l,c); }
             else if(ch=='-'&&pk()=='>') { adv();adv(); out.emplace_back(TT::LSHIFT, "->",l,c); }
             else if(ch=='>'&&pk()=='>') { adv();adv(); out.emplace_back(TT::RBRACK, ">>",l,c); }
+            else if(ch=='&') { adv(); out.emplace_back(TT::AMP, "&",l,c); }
+            else if(ch=='*') { adv(); out.emplace_back(TT::MUL, "*",l,c); }
             else if(ch=='='){adv();out.emplace_back(TT::EQ,    "=",l,c);}
             else if(ch=='+'){adv();out.emplace_back(TT::PLUS,  "+",l,c);}
             else if(ch=='-'){adv();out.emplace_back(TT::MINUS, "-",l,c);}
-            else if(ch=='*'){adv();out.emplace_back(TT::MUL,   "*",l,c);}
             else if(ch=='/'){adv();out.emplace_back(TT::DIV,   "/",l,c);}
             else if(ch=='('){adv();out.emplace_back(TT::LPAREN,"(",l,c);}
             else if(ch==')'){adv();out.emplace_back(TT::RPAREN,")",l,c);}
@@ -160,6 +177,7 @@ public:
             else if(ch=='['){adv();out.emplace_back(TT::LBRACK,"[",l,c);}
             else if(ch==']'){adv();out.emplace_back(TT::RBRACK,"]",l,c);}
             else if(ch==':'){adv();out.emplace_back(TT::COLON, ":",l,c);}
+            else if(ch==';'){adv();out.emplace_back(TT::SEMICOLON, ";",l,c);}
             else if(ch==','){adv();out.emplace_back(TT::COMMA, ",",l,c);}
             else if(ch=='.'){adv();out.emplace_back(TT::DOT, ".",l,c);}
             else { err("unknown character '"+std::string(1,ch)+"'", line); adv(); }

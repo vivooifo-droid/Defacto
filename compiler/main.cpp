@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <string>
+#include <iostream>
 
 static std::string read_file(const std::string& p){
     std::ifstream f(p);
@@ -25,13 +26,13 @@ static std::string sh_quote(const std::string& s){
 
 static void usage(const char* prog){
     std::cout
-        <<"Defacto Compiler v0.25\n\n"
+        <<"Defacto Compiler v0.35\n\n"
         <<"Usage: "<<prog<<" [options] <file.de>\n\n"
         <<"Options:\n"
         <<"  -o <file>    output file (default: a.out)\n"
         <<"  -S           emit assembly only, do not assemble\n"
         <<"  -kernel      bare-metal mode: [BITS 32][ORG 0x1000] + hlt (default)\n"
-        <<"  -terminal    terminal mode: Linux syscalls + exit\n"
+        <<"  -terminal    terminal mode: Linux syscalls + malloc/free support\n"
         <<"  -terminal-macos terminal mode: macOS syscalls (x86_64 Mach-O)\n"
         <<"  -v           verbose\n"
         <<"  -h           help\n\n"
@@ -45,7 +46,14 @@ int main(int argc, char** argv){
     if(argc<2){usage(argv[0]);return 1;}
 
     std::string input, output="a.out";
-    bool asm_only=false, verbose=false, bare_metal=true, macos_terminal=false;
+    bool asm_only=false, verbose=false;
+    bool bare_metal=true, macos_terminal=false;
+    
+    // Auto-detect macOS and use terminal-macos as default
+    #ifdef __APPLE__
+    bare_metal = false;
+    macos_terminal = true;
+    #endif
 
     for(int i=1;i<argc;i++){
         const std::string a=argv[i];
@@ -68,12 +76,74 @@ int main(int argc, char** argv){
 
     try{
         if(verbose) std::cout<<"reading "<<input<<"\n";
-        const auto src=read_file(input);
+        std::string src = read_file(input);
+        
+        // Find imports in source using simple regex-like parsing
+        std::vector<std::string> imports;
+        size_t pos = 0;
+        while((pos = src.find("Import{", pos)) != std::string::npos) {
+            size_t start = pos + 7;  // length of "Import{"
+            size_t end = src.find("}", start);
+            if(end != std::string::npos) {
+                std::string libname = src.substr(start, end - start);
+                imports.push_back(libname);
+                if(verbose) std::cout<<"  found import: " << libname << "\n";
+            }
+            pos = end + 1;
+        }
+        
+        // Load imported libraries and insert AFTER directives
+        std::string full_src = "";
+        bool inserted = false;
+        
+        // Read main file line by line
+        std::istringstream iss(src);
+        std::string line;
+        bool past_imports = false;
+        while(std::getline(iss, line)) {
+            // Skip Import{} lines (already processed)
+            if(line.find("Import{") != std::string::npos) {
+                past_imports = true;
+                continue;  // Skip this line
+            }
+            full_src += line + "\n";
+            // Insert libraries after all directives and Import statements
+            if(!inserted && past_imports && 
+                line.find("#Mainprogramm.start") == std::string::npos &&
+                line.find("#NO_RUNTIME") == std::string::npos &&
+                line.find("#SAFE") == std::string::npos &&
+                line.find("#DRIVER") == std::string::npos) {
+                // This line is after all directives, insert here
+                for(const auto& lib : imports) {
+                    if(verbose) std::cout<<"  importing: " << lib << ".de\n";
+                    std::string lib_path = lib + ".de";
+                    std::string lib_src;
+                    try {
+                        lib_src = read_file(lib_path);
+                    } catch(...) {
+                        size_t last_slash = input.find_last_of('/');
+                        if(last_slash != std::string::npos) {
+                            std::string base_dir = input.substr(0, last_slash + 1);
+                            lib_src = read_file(base_dir + lib_path);
+                        } else {
+                            try {
+                                lib_src = read_file("lib/" + lib_path);
+                            } catch(...) {
+                                err("library not found: " + lib);
+                                return 1;
+                            }
+                        }
+                    }
+                    full_src += lib_src + "\n";
+                }
+                inserted = true;
+            }
+        }
 
         if(verbose) std::cout<<"parsing...\n";
-        Lexer  lexer(src);
+        Lexer  lexer(full_src);
         Parser parser(lexer.tokenize());
-        auto ast=parser.parse();
+        auto ast=parser.parse(false);
 
         if(verbose){
             std::cout<<"  no_runtime: "<<ast->no_runtime<<"\n";
@@ -94,9 +164,19 @@ int main(int argc, char** argv){
         } else if(!macos_terminal) {
             const std::string obj=stem+".o";
             const std::string cmd_nasm="nasm -f elf32 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            // Link with libc for malloc/free support
+            // On macOS, use clang with -m32; on Linux use ld with -m elf_i386
+            #ifdef __APPLE__
+            const char* cc_env = std::getenv("DEFACTO_CC");
+            const std::string cc_bin = cc_env ? cc_env : "clang";
+            const std::string cmd_ld  = cc_bin+" -m32 -o "+sh_quote(output)+" "+sh_quote(obj);
+            std::cout<<"warning: -terminal mode (32-bit Linux) is not fully supported on macOS.\n";
+            std::cout<<"         Consider using -terminal-macos for native macOS binaries.\n";
+            #else
             const char* ld_env = std::getenv("DEFACTO_LD");
             const std::string ld_bin = ld_env ? ld_env : "ld";
-            const std::string cmd_ld  = ld_bin+" -m elf_i386 -o "+sh_quote(output)+" "+sh_quote(obj);
+            const std::string cmd_ld  = ld_bin+" -m elf_i386 -o "+sh_quote(output)+" "+sh_quote(obj)+" -lc";
+            #endif
             if(verbose) std::cout<<"$ "<<cmd_nasm<<"\n$ "<<cmd_ld<<"\n";
             if(std::system(cmd_nasm.c_str())!=0){err("assembler failed");return 1;}
             if(std::system(cmd_ld.c_str())!=0){err("linker failed");return 1;}

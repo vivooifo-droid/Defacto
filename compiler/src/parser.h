@@ -16,17 +16,99 @@ class Parser {
         adv();
     }
 
-    std::string rhs() {
-        if (at(TT::LPAREN)) {
-            std::string e; int d=0;
-            while (!at(TT::EOF_T)) {
-                if (at(TT::LPAREN)) d++;
-                if (at(TT::RPAREN)) { d--; e+=cur().val; adv(); if(!d) break; continue; }
-                e+=cur().val; adv();
+    // Expression AST node
+    struct ExprNode {
+        std::string op;       // "", "+", "-", "*", "/"
+        std::string value;    // variable, number, etc.
+        std::unique_ptr<ExprNode> left, right;
+        ExprNode() {}
+        ExprNode(std::string v) : value(v) {}
+        ExprNode(std::string o, std::unique_ptr<ExprNode> l, std::unique_ptr<ExprNode> r)
+            : op(o), left(std::move(l)), right(std::move(r)) {}
+    };
+    
+    std::unique_ptr<ExprNode> parse_primary() {
+        // Handle & (address-of)
+        if (at(TT::AMP)) {
+            adv();
+            if (!at(TT::IDENT)) {
+                throw std::runtime_error("expected variable name after '&' at line " + std::to_string(cur().line));
             }
-            return e;
+            std::string var = cur().val;
+            adv();
+            return std::make_unique<ExprNode>("&" + var);
         }
-        std::string v=cur().val; adv(); return v;
+
+        // Handle * (dereference) - only for pointer types, not in expressions
+        // This is now handled by the lexer as TT::MUL for multiplication
+        
+        // Handle parenthesized expressions
+        if (at(TT::LPAREN)) {
+            adv();  // consume '('
+            auto expr = parse_additive();
+            if (!at(TT::RPAREN)) {
+                throw std::runtime_error("expected ')' at line " + std::to_string(cur().line));
+            }
+            adv();  // consume ')'
+            return expr;
+        }
+
+        // Handle negative numbers
+        if (at(TT::MINUS)) {
+            adv();
+            std::string val = cur().val;
+            adv();
+            // Check if it's a number
+            bool is_number = !val.empty() && (isdigit(val[0]) || (val.size() > 1 && val[0] == '-' && isdigit(val[1])));
+            if (is_number) {
+                return std::make_unique<ExprNode>("-" + val);
+            }
+            return std::make_unique<ExprNode>("-" + val);
+        }
+
+        std::string v = cur().val;
+        adv();
+        return std::make_unique<ExprNode>(v);
+    }
+    
+    // Parse multiplication and division (higher precedence)
+    std::unique_ptr<ExprNode> parse_multiplicative() {
+        auto left = parse_primary();
+        while (at(TT::MUL) || at(TT::DIV)) {
+            std::string op = cur().val;
+            adv();
+            auto right = parse_primary();
+            left = std::make_unique<ExprNode>(op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+    
+    // Parse addition and subtraction (lower precedence)
+    std::unique_ptr<ExprNode> parse_additive() {
+        auto left = parse_multiplicative();
+        while (at(TT::PLUS) || at(TT::MINUS)) {
+            std::string op = cur().val;
+            adv();
+            auto right = parse_multiplicative();
+            left = std::make_unique<ExprNode>(op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ExprNode> parse_expression() {
+        return parse_additive();
+    }
+    
+    // Serialize expression AST to string for codegen
+    // Format: "a+b*c" or "(a+b)*c" with proper parentheses
+    std::string serialize_expr(ExprNode* node) {
+        if (!node) return "";
+        if (node->op.empty()) {
+            return node->value;
+        }
+        std::string left = serialize_expr(node->left.get());
+        std::string right = serialize_expr(node->right.get());
+        return "(" + left + node->op + right + ")";
     }
 
     NodePtr parse_decl() {
@@ -43,15 +125,28 @@ class Parser {
         if(!at(TT::IDENT)) throw std::runtime_error("expected variable name at line "+std::to_string(cur().line));
         n->name=cur().val; adv();
         expect(TT::COLON,"expected ':' after variable name at line "+std::to_string(cur().line));
+        
+        // Parse pointer types: *i32, **i32, *struct, etc.
+        std::string type_str = "";
+        while(at(TT::STAR)) {
+            type_str += "*";
+            adv();
+        }
+        
         // Accept built-in types or struct names (IDENT)
         if(at(TT::I32)||at(TT::I64)||at(TT::U8)||at(TT::STR)||at(TT::PTR)){
-            n->type=cur().val; adv();
+            type_str += cur().val;
+            n->type = type_str;
+            adv();
         } else if(at(TT::IDENT)){
             // Struct type or unknown type
-            n->type=cur().val; adv();
+            type_str += cur().val;
+            n->type = type_str;
+            adv();
         } else {
             throw std::runtime_error("expected type at line "+std::to_string(cur().line));
         }
+        
         if(at(TT::LBRACK)) {
             if(is_const_decl) throw std::runtime_error("const arrays are not supported at line "+std::to_string(cur().line));
             adv();
@@ -64,6 +159,14 @@ class Parser {
             if(at(TT::STR_LIT))      { n->init="\""+cur().val+"\""; adv(); }
             else if(at(TT::NUMBER))   { n->init=cur().val; adv(); }
             else if(at(TT::HEX))      { n->init=cur().val; adv(); }
+            else if(at(TT::TOK_NULL))     { n->init="0"; adv(); }  // null initializer for pointers
+            else if(at(TT::AMP)) {
+                // Address-of initializer: var ptr: *i32 = &x
+                adv();
+                if(!at(TT::IDENT)) throw std::runtime_error("expected variable name after '&' at line " + std::to_string(cur().line));
+                n->init = "&" + cur().val;
+                adv();
+            }
             else throw std::runtime_error("expected initializer at line "+std::to_string(cur().line));
         }
         if(is_const_decl && n->init.empty())
@@ -73,16 +176,24 @@ class Parser {
     }
 
     NodePtr parse_stmt() {
-        if (at(TT::FREE)) {
+        if (at(TT::FREE) || at(TT::DEALLOC)) {
             adv(); expect(TT::LBRACE,"expected '{'");
-            auto n=std::make_unique<FreeNode>(); n->var=cur().val; adv();
-            if(const_vars.count(n->var))
-                throw std::runtime_error("cannot free const '"+n->var+"' at line "+std::to_string(cur().line));
+            auto n=std::make_unique<DeallocNode>(); n->ptr=cur().val; adv();
+            expect(TT::RBRACE,"expected '}'"); return n;
+        }
+        if (at(TT::ALLOC)) {
+            adv(); expect(TT::LBRACE,"expected '{'");
+            auto n=std::make_unique<AllocNode>(); n->size=cur().val; adv();
             expect(TT::RBRACE,"expected '}'"); return n;
         }
         if (at(TT::DISPLAY)) {
             adv(); expect(TT::LBRACE,"expected '{'");
             auto n=std::make_unique<DisplayNode>(); n->var=cur().val; adv();
+            expect(TT::RBRACE,"expected '}'"); return n;
+        }
+        if (at(TT::PRINTNUM)) {
+            adv(); expect(TT::LBRACE,"expected '{'");
+            auto n=std::make_unique<PrintNumNode>(); n->var=cur().val; adv();
             expect(TT::RBRACE,"expected '}'"); return n;
         }
         if (at(TT::COLOR)) {
@@ -125,6 +236,33 @@ class Parser {
             while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->body.push_back(std::move(s)); }
             expect(TT::RBRACE,"expected '}'"); return n;
         }
+        if (at(TT::WHILE)) {
+            adv();
+            auto n=std::make_unique<WhileNode>();
+            n->left=cur().val; adv(); n->op=cur().val; adv(); n->right=cur().val; adv();
+            expect(TT::LBRACE,"expected '{'");
+            while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->body.push_back(std::move(s)); }
+            expect(TT::RBRACE,"expected '}'"); return n;
+        }
+        if (at(TT::FOR)) {
+            adv();
+            auto n=std::make_unique<ForNode>();
+            // for i = 0; i < 10; i = (i + 1) {
+            n->init_var=cur().val; adv();
+            expect(TT::EQ,"expected '='"); adv();
+            n->init_value=cur().val; adv();
+            expect(TT::SEMICOLON,"expected ';'"); adv();
+            // Condition: left op right
+            n->cond_left=cur().val; adv(); n->cond_op=cur().val; adv(); n->cond_right=cur().val; adv();
+            expect(TT::SEMICOLON,"expected ';'"); adv();
+            // Step: var = value (simple, no expressions)
+            n->step_var=cur().val; adv();
+            expect(TT::EQ,"expected '='"); adv();
+            n->step_value=cur().val; adv();
+            expect(TT::LBRACE,"expected '{'");
+            while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->body.push_back(std::move(s)); }
+            expect(TT::RBRACE,"expected '}'"); return n;
+        }
         if (at(TT::IF)) {
             adv();
             auto n=std::make_unique<IfNode>();
@@ -142,6 +280,15 @@ class Parser {
             return n;
         }
         if (at(TT::STOP)) { adv(); return std::make_unique<BreakNode>(); }
+        if (at(TT::RETURN)) {
+            adv();  // consume 'return'
+            auto n = std::make_unique<ReturnNode>();
+            expect(TT::LBRACE, "expected '{'");
+            n->value = cur().val;
+            adv();
+            expect(TT::RBRACE, "expected '}'");
+            return n;
+        }
         if (at(TT::MOV)) {
             adv(); expect(TT::LBRACE,"expected '{'");
             auto n=std::make_unique<RegOp>(); n->op="MOV";
@@ -177,7 +324,22 @@ class Parser {
                 throw std::runtime_error("cannot assign to const '"+n->target+"' at line "+std::to_string(cur().line));
             if (at(TT::LBRACK)) { n->is_arr=true; adv(); n->idx=cur().val; adv(); expect(TT::RBRACK,"expected ']'"); }
             expect(TT::EQ,"expected '='");
-            n->value=rhs(); return n;
+            // Parse full expression with nested support
+            auto expr = parse_expression();
+            // Convert expression AST to string for codegen
+            std::string expr_str = "";
+            if (expr) {
+                // Simple case: just a value
+                if (expr->op.empty()) {
+                    expr_str = expr->value;
+                } else {
+                    // Complex expression - need to generate temp variables
+                    // For now, store as flattened string (will be handled by codegen)
+                    expr_str = serialize_expr(expr.get());
+                }
+            }
+            n->value = expr_str;
+            return n;
         }
         if (!at(TT::SEC_CLOSE)&&!at(TT::RBRACE)&&!at(TT::EOF_T)) {
             warn("unexpected token '"+cur().val+"', skipping", cur().line); adv();
@@ -296,20 +458,52 @@ class Parser {
 public:
     explicit Parser(std::vector<Token> tokens) : tk(std::move(tokens)) {}
 
-    std::unique_ptr<ProgramNode> parse() {
+    std::unique_ptr<ProgramNode> parse(bool is_library = false) {
         auto p=std::make_unique<ProgramNode>();
-        expect(TT::PROG_START,"file must begin with '#Mainprogramm.start'");
-        while(at(TT::NO_RUNTIME)||at(TT::SAFE)||at(TT::DRIVER)) {
-            if(at(TT::NO_RUNTIME)){p->no_runtime=true;adv();}
-            if(at(TT::SAFE)){p->safe=true;adv();}
-            if(at(TT::DRIVER)){p->no_runtime=true;adv();}  // DRIVER implies NO_RUNTIME
+        
+        // Libraries don't require #Mainprogramm.start
+        if (!is_library) {
+            expect(TT::PROG_START,"file must begin with '#Mainprogramm.start'");
+            // Parse directives and imports after #Mainprogramm.start
+            while(at(TT::NO_RUNTIME)||at(TT::SAFE)||at(TT::DRIVER)||at(TT::IMPORT)) {
+                if(at(TT::NO_RUNTIME)){p->no_runtime=true;adv();}
+                if(at(TT::SAFE)){p->safe=true;adv();}
+                if(at(TT::DRIVER)){p->no_runtime=true;adv();}
+                if(at(TT::IMPORT)) {
+                    adv();
+                    expect(TT::LBRACE, "expected '{' after 'import'");
+                    std::string libname = cur().val;
+                    expect(TT::IDENT, "expected library name");
+                    expect(TT::RBRACE, "expected '}' after library name");
+                    p->imports.push_back(libname);
+                    adv();
+                }
+            }
+        } else {
+            // For libraries, skip comments and whitespace until we find content
+            while(!at(TT::EOF_T) && !at(TT::FUNCTION) && !at(TT::STRUCT) && !at(TT::IMPORT)) {
+                adv();
+            }
+            // Parse imports in library
+            while(at(TT::IMPORT)) {
+                adv();
+                expect(TT::LBRACE, "expected '{' after 'import'");
+                std::string libname = cur().val;
+                expect(TT::IDENT, "expected library name");
+                expect(TT::RBRACE, "expected '}' after library name");
+                p->imports.push_back(libname);
+                adv();
+            }
         }
+        
         while(at(TT::STRUCT))      p->structs.push_back(parse_struct());
         while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
         while(at(TT::FUNCTION))  p->functions.push_back(parse_function());
         if(at(TT::DRV_OPEN))     p->main_sec.push_back(parse_driver_section());
         if(at(TT::SEC_OPEN))     p->main_sec.push_back(parse_section());
-        expect(TT::PROG_END,"file must end with '#Mainprogramm.end'");
+        if (!is_library) {
+            expect(TT::PROG_END,"file must end with '#Mainprogramm.end'");
+        }
         if(at(TT::DRIVER_STOP)) adv();  // Optional #DRIVER.stop
         return p;
     }
