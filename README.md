@@ -1,7 +1,6 @@
-# Defacto v0.45 (pre-alpha)
+# Defacto v0.45 (alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
-Pre-alpha status: the language and toolchain are unstable and will change.
 
 **What's new in v0.45:**
 - Clean syntax only - old deprecated syntax removed

@@ -1,6 +1,7 @@
 # Defacto v0.45 Release Notes
 
 **Release Date:** February 28, 2026
+**Status:** Alpha
 
 ## Breaking Changes
 
