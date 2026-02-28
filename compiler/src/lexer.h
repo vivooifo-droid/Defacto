@@ -165,7 +165,7 @@ public:
             else if(ch=='>') { adv(); out.emplace_back(TT::GT, ">",l,c); }
             else if(ch=='-'&&pk()=='>') { adv();adv(); out.emplace_back(TT::LSHIFT, "->",l,c); }
             else if(ch=='&') { adv(); out.emplace_back(TT::AMP, "&",l,c); }
-            else if(ch=='*') { adv(); out.emplace_back(TT::MUL, "*",l,c); }
+            else if(ch=='*') { adv(); out.emplace_back(TT::STAR, "*",l,c); }
             else if(ch=='='){adv();out.emplace_back(TT::EQ,    "=",l,c);}
             else if(ch=='+'){adv();out.emplace_back(TT::PLUS,  "+",l,c);}
             else if(ch=='-'){adv();out.emplace_back(TT::MINUS, "-",l,c);}

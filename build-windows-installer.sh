@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION="0.40"
+VERSION="0.42"
 COMPILER_DIR="compiler"
 INSTALLER_NSI="installer.nsi"
 OUTPUT="defacto-${VERSION}-installer.exe"
@@ -53,12 +53,12 @@ cp "../installer.nsi" .
 
 makensis -V2 installer.nsi
 
-if [ ! -f "defacto-0.40-installer.exe" ]; then
+if [ ! -f "defacto-${VERSION}-installer.exe" ]; then
     echo "❌ Failed to build installer"
     exit 1
 fi
 
-mv "defacto-0.40-installer.exe" "../$OUTPUT"
+mv "defacto-${VERSION}-installer.exe" "../$OUTPUT"
 cd ..
 
 # Cleanup

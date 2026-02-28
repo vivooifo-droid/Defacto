@@ -1,0 +1,71 @@
+// Указатели в функциях
+// Defacto Pointers Prototype
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Функция принимает указатель и изменяет значение
+function == increment {
+    <.de
+        var ptr: *i32
+        static.pl>
+        *ptr = (*ptr + 1)
+    .>
+}
+
+// Функция с двумя указателями - сложение
+function == add_pointers {
+    <.de
+        var a: *i32
+        var b: *i32
+        var result: *i32
+        static.pl>
+        *result = (*a + *b)
+    .>
+}
+
+// Функция обмена значений (swap)
+function == swap {
+    <.de
+        var x: *i32
+        var y: *i32
+        var temp: i32 = 0
+        static.pl>
+        temp = *x
+        *x = *y
+        *y = temp
+    .>
+}
+
+<.de
+    var a: i32 = 5
+    var b: i32 = 10
+    var ptr_a: *i32 = &a
+    var ptr_b: *i32 = &b
+    var result: i32 = 0
+    var result_ptr: *i32 = &result
+    
+    static.pl>
+    
+    // Инкремент через указатель
+    call #increment             // a = 6
+    
+    // Сложение через указатели
+    #MOV {#R1, ptr_a}
+    #MOV {#R2, ptr_b}
+    #MOV {#R3, result_ptr}
+    call #add_pointers          // result = 6 + 10 = 16
+    
+    // Обмен значений
+    #MOV {#R1, ptr_a}
+    #MOV {#R2, ptr_b}
+    call #swap                  // a = 10, b = 6
+    
+    display{a}                  // 10
+    display{b}                  // 6
+    display{result}             // 16
+    
+.>
+
+#Mainprogramm.end

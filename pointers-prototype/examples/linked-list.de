@@ -1,0 +1,94 @@
+// Связанный список на указателях
+// Defacto Pointers Prototype
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Node {
+    data: i32
+    next: *Node
+}
+
+// Создать новый узел (возвращает указатель через параметр)
+function == create_node {
+    <.de
+        var data: i32
+        var out: **Node
+        static.pl>
+        // В реальной реализации здесь было бы выделение памяти
+        // Пока просто инициализируем
+        (*out)->data = data
+        (*out)->next = null
+    .>
+}
+
+// Добавить узел в начало списка
+function == push_front {
+    <.de
+        var head: **Node
+        var data: i32
+        static.pl>
+        // В реальной реализации:
+        // var new_node: *Node = allocate()
+        // new_node->data = data
+        // new_node->next = *head
+        // *head = new_node
+    .>
+}
+
+// Найти узел по значению
+function == find_node {
+    <.de
+        var head: *Node
+        var value: i32
+        var result: **Node
+        static.pl>
+        var current: *Node = head
+        loop {
+            if current == null { stop }
+            if current->data == value {
+                *result = current
+                stop
+            }
+            current = current->next
+        }
+    .>
+}
+
+<.de
+    var head: *Node = null
+    var node1: Node
+    var node2: Node
+    var node3: Node
+    
+    var ptr1: *Node = &node1
+    var ptr2: *Node = &node2
+    var ptr3: *Node = &node3
+    
+    // Инициализация узлов
+    node1.data = 10
+    node1.next = ptr2
+    
+    node2.data = 20
+    node2.next = ptr3
+    
+    node3.data = 30
+    node3.next = null
+    
+    head = ptr1
+    
+    static.pl>
+    
+    // Обход списка
+    var current: *Node = head
+    loop {
+        if current == null { stop }
+        display{current->data}
+        current = current->next
+    }
+    // Вывод: 10, 20, 30
+    
+.>
+
+#Mainprogramm.end

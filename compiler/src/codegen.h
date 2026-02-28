@@ -70,8 +70,15 @@ class CodeGen {
             std::string ptrname = src.substr(1);
             auto it = var_lbl.find(ptrname);
             if(it == var_lbl.end()) throw std::runtime_error("undefined pointer '"+ptrname+"'");
-            code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
-            code<<"    mov "<<dst<<", dword [ecx]\n";
+            if(macos_terminal){
+                // 64-bit: load 8-byte pointer
+                code<<"    mov rcx, qword ["<<addr(it->second)<<"]\n";
+                code<<"    mov "<<dst<<", dword [rcx]\n";
+            } else {
+                // 32-bit: load 4-byte pointer
+                code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
+                code<<"    mov "<<dst<<", dword [ecx]\n";
+            }
         }
         else if(src.size() > 0 && src[0] == '(') {
             // Expression in parentheses: evaluate it
@@ -101,17 +108,24 @@ class CodeGen {
 
     void store(const std::string& src_reg, const std::string& dst){
         if(const_declared.count(dst)) throw std::runtime_error("cannot assign to const '"+dst+"'");
-        
+
         // Check for dereference: *ptr = value
         if(dst.size() > 0 && dst[0] == '*') {
             std::string ptrname = dst.substr(1);
             auto it = var_lbl.find(ptrname);
             if(it == var_lbl.end()) throw std::runtime_error("undefined pointer '"+ptrname+"'");
-            code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
-            code<<"    mov dword [ecx], "<<src_reg<<"\n";
+            if(macos_terminal){
+                // 64-bit: load 8-byte pointer
+                code<<"    mov rcx, qword ["<<addr(it->second)<<"]\n";
+                code<<"    mov dword [rcx], "<<src_reg<<"\n";
+            } else {
+                // 32-bit: load 4-byte pointer
+                code<<"    mov ecx, dword ["<<addr(it->second)<<"]\n";
+                code<<"    mov dword [ecx], "<<src_reg<<"\n";
+            }
             return;
         }
-        
+
         auto it=var_lbl.find(dst);
         if(it==var_lbl.end()) throw std::runtime_error("undefined variable '"+dst+"'");
         if(macos_terminal && var_is_ptr[dst]) code<<"    mov qword ["<<addr(it->second)<<"], "<<src_reg<<"\n";
@@ -315,11 +329,12 @@ class CodeGen {
             // Pointer variable
             if(v->init.find('&')==0){
                 // Initialize with address: var ptr: *i32 = &x
+                // Need runtime initialization for 64-bit
                 std::string refvar = v->init.substr(1);
-                // Need to handle this specially - store label reference
                 if(macos_terminal){
                     data<<"    align 8\n";
-                    data<<"    "<<lb<<": dq var_"+refvar+"\n";
+                    data<<"    "<<lb<<": dq 0\n";
+                    // Will be initialized at runtime
                 } else {
                     data<<"    "<<lb<<": dd var_"+refvar+"\n";
                 }
@@ -349,6 +364,21 @@ class CodeGen {
             data<<"    "<<lb<<": times "<<sit->second<<" db 0\n";
             return;
         }
+        // Check if initializer is dereference: *ptr - need runtime initialization
+        if(v->init.find('*')==0){
+            // Runtime initialization required - initialize to 0 and assign later
+            std::string ptrname = v->init.substr(1);
+            // Use proper size based on type
+            if(macos_terminal && (v->type=="i64"||v->type=="string"||v->type=="pointer"||v->type.find('*')==0)){
+                data<<"    align 8\n";
+                data<<"    "<<lb<<": dq 0\n";
+            } else {
+                data<<"    "<<lb<<": dd 0\n";
+            }
+            // Store the initialization for later - will be handled in gen_section
+            // For now, just initialize to 0
+            return;
+        }
         if(macos_terminal && (v->type=="pointer"||v->type.find('*')==0)){
             data<<"    align 8\n";
             data<<"    "<<lb<<": dq "<<(v->init.empty()?"0":v->init)<<"\n";
@@ -374,6 +404,20 @@ class CodeGen {
     void gen_display(DisplayNode* d){
             auto it=var_lbl.find(d->var);
             if(it==var_lbl.end()){warn("display: unknown variable '"+d->var+"'");return;}
+            
+            // Check variable type - if i32/i64, use printnum instead
+            auto tit = var_type.find(d->var);
+            if(tit != var_type.end()){
+                std::string type = tit->second;
+                // If it's a numeric type (i32, i64, u8), use printnum
+                if(type == "i32" || type == "i64" || type == "u8"){
+                    PrintNumNode pn;
+                    pn.var = d->var;
+                    gen_printnum(&pn);
+                    return;
+                }
+            }
+            
             if(bare_metal){
             std::string L=lbl("disp");
             code<<"    mov esi, dword ["<<it->second<<"]\n";
@@ -858,6 +902,13 @@ class CodeGen {
             std::string dst=reg(a->target);
             if(a->value[0]=='(') expr(dst,a->value); else load(dst,a->value); return;
         }
+        // Check for dereference assignment: *ptr = value
+        if(a->target.size() > 0 && a->target[0] == '*') {
+            std::string ptrname = a->target.substr(1);
+            load("eax", a->value);
+            store("eax", "*" + ptrname);
+            return;
+        }
         // Check for struct field access: struct.field
         auto dot_pos = a->target.find('.');
         if(dot_pos != std::string::npos){
@@ -1120,6 +1171,34 @@ class CodeGen {
 
     void gen_section(SectionNode* s){
         for(auto& d:s->decls) gen_var(static_cast<VarDecl*>(d.get()));
+
+        // Handle address-of initializers FIRST: var ptr: *i32 = &x (runtime init for 64-bit)
+        // This must come before dereference initializers
+        for(auto& d:s->decls) {
+            auto v = static_cast<VarDecl*>(d.get());
+            if(v->init.find('&')==0 && v->type.find('*')==0){
+                std::string refvar = v->init.substr(1);
+                if(macos_terminal){
+                    // 64-bit: load address into register and store
+                    code<<"    lea rax, [rel var_"<<refvar<<"]\n";
+                    code<<"    mov qword [rel var_"<<v->name<<"], rax\n";
+                }
+            }
+        }
+
+        // Handle dereference initializers SECOND: var y: i32 = *ptr
+        for(auto& d:s->decls) {
+            auto v = static_cast<VarDecl*>(d.get());
+            if(v->init.find('*')==0){
+                std::string ptrname = v->init.substr(1);
+                // Generate: y = *ptr
+                auto assign = std::make_unique<Assign>();
+                assign->target = v->name;
+                assign->value = "*" + ptrname;
+                gen_assign(assign.get());
+            }
+        }
+
         for(auto& st:s->stmts) gen_stmt(st.get());
     }
 

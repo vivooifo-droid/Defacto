@@ -1,7 +1,13 @@
-# Defacto v0.40 (pre-alpha)
+# Defacto v0.42 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 Pre-alpha status: the language and toolchain are unstable and will change.
+
+**What's new in v0.42:**
+- **Pointer bug fixes** — Fixed lexer, parser, and codegen for pointers
+- **Dereference assignment** — `*ptr = value` now works correctly
+- **64-bit macOS support** — Proper pointer handling in terminal mode
+- **Auto type detection** — `display{}` now works with i32/i64/u8 types
 
 **What's new in v0.40:**
 - **Comparison operators** — `!=`, `<`, `>`, `<=`, `>=`

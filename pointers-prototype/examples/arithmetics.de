@@ -1,0 +1,48 @@
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var arr: i32[10]
+    var ptr: *i32 = &arr[0]
+    var i: i32 = 0
+
+    static.pl>
+    
+    loop {
+        if i == 10 { stop }
+        *ptr = (i * 10)
+        ptr = (ptr + 1)    
+        i = (i + 1)
+    }
+    
+    ptr = &arr[0]
+    i = 0
+    
+    loop {
+        if i == 10 { stop }
+        display{*ptr}          
+        ptr = (ptr + 1)
+        i = (i + 1)
+    }
+    
+
+    ptr = &arr[9]              
+    i = 0
+    loop {
+        if i == 10 { stop }
+        display{*ptr}           
+        ptr = (ptr - 1)        
+        i = (i + 1)
+    }
+    
+    var ptr_start: *i32 = &arr[0]
+    var ptr_end: *i32 = &arr[9]
+    
+    var diff: i32 = 0
+    diff = (ptr_end - ptr_start)  
+    
+.>
+
+#Mainprogramm.end

@@ -39,9 +39,17 @@ class Parser {
             return std::make_unique<ExprNode>("&" + var);
         }
 
-        // Handle * (dereference) - only for pointer types, not in expressions
-        // This is now handled by the lexer as TT::MUL for multiplication
-        
+        // Handle * (dereference): *ptr
+        if (at(TT::STAR)) {
+            adv();
+            if (!at(TT::IDENT)) {
+                throw std::runtime_error("expected variable name after '*' at line " + std::to_string(cur().line));
+            }
+            std::string ptr = cur().val;
+            adv();
+            return std::make_unique<ExprNode>("*" + ptr);
+        }
+
         // Handle parenthesized expressions
         if (at(TT::LPAREN)) {
             adv();  // consume '('
@@ -74,7 +82,7 @@ class Parser {
     // Parse multiplication and division (higher precedence)
     std::unique_ptr<ExprNode> parse_multiplicative() {
         auto left = parse_primary();
-        while (at(TT::MUL) || at(TT::DIV)) {
+        while (at(TT::STAR) || at(TT::DIV)) {
             std::string op = cur().val;
             adv();
             auto right = parse_primary();
@@ -165,6 +173,13 @@ class Parser {
                 adv();
                 if(!at(TT::IDENT)) throw std::runtime_error("expected variable name after '&' at line " + std::to_string(cur().line));
                 n->init = "&" + cur().val;
+                adv();
+            }
+            else if(at(TT::STAR)) {
+                // Dereference initializer: var y: i32 = *ptr
+                adv();
+                if(!at(TT::IDENT)) throw std::runtime_error("expected variable name after '*' at line " + std::to_string(cur().line));
+                n->init = "*" + cur().val;
                 adv();
             }
             else throw std::runtime_error("expected initializer at line "+std::to_string(cur().line));
@@ -301,6 +316,31 @@ class Parser {
             adv(); expect(TT::LBRACE,"expected '{'");
             auto n=std::make_unique<RegOp>(); n->op="STATIC"; n->target=cur().val; adv();
             expect(TT::RBRACE,"expected '}'"); return n;
+        }
+        // Check for dereference assignment: *ptr = value
+        if (at(TT::STAR)) {
+            adv();
+            if (!at(TT::IDENT)) {
+                throw std::runtime_error("expected variable name after '*' at line " + std::to_string(cur().line));
+            }
+            auto n=std::make_unique<Assign>();
+            n->target = "*" + cur().val;
+            adv();
+            expect(TT::EQ,"expected '='");
+            // Parse full expression with nested support
+            auto expr = parse_expression();
+            // Convert expression AST to string for codegen
+            std::string expr_str = "";
+            if (expr) {
+                // Simple case: just a value
+                if (expr->op.empty()) {
+                    expr_str = expr->value;
+                } else {
+                    expr_str = serialize_expr(expr.get());
+                }
+            }
+            n->value = expr_str;
+            return n;
         }
         if (at(TT::IDENT)||at(TT::REGISTER)) {
             auto n=std::make_unique<Assign>();

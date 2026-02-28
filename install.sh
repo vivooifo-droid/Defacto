@@ -1,6 +1,6 @@
 #!/bin/bash
 # Defacto Compiler Installer for macOS and Linux
-# Version 0.30
+# Version 0.42
 
 set -e
 
@@ -15,7 +15,7 @@ INSTALL_DIR="$HOME/.local/bin"
 COMPILER_DIR="$(cd "$(dirname "$0")" && pwd)/compiler"
 
 echo "========================================"
-echo "  Defacto Compiler Installer v0.30"
+echo "  Defacto Compiler Installer v0.42"
 echo "========================================"
 echo ""
 
