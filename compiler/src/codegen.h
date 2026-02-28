@@ -22,6 +22,7 @@ class CodeGen {
     bool bare_metal = true;
     bool macos_terminal = false;
     bool linux64_terminal = false;  // Linux 64-bit mode
+    bool arm64_terminal = false;    // ARM64 mode (macOS/Linux)
     bool use_allocator = false;  // Use system allocator (malloc/free)
 
     std::string lbl(const std::string& pfx="L") { return pfx+std::to_string(lcnt++); }
@@ -1437,10 +1438,11 @@ class CodeGen {
     }
 
 public:
-    void set_mode(bool bm, bool macos=false, bool linux64=false){
+    void set_mode(bool bm, bool macos=false, bool linux64=false, bool arm64=false){
         bare_metal=bm;
         macos_terminal=macos;
         linux64_terminal=linux64;
+        arm64_terminal=arm64;
         use_allocator = !bm;  // Use allocator in terminal mode
     }
 
@@ -1448,19 +1450,28 @@ public:
         code<<"global _start\n";
         
         // Add extern declarations for malloc/free in terminal mode
-        if(!bare_metal && !macos_terminal){
+        if(!bare_metal && !macos_terminal && !arm64_terminal){
             code<<"extern malloc\n";
             code<<"extern free\n";
             code<<"extern exit\n";
         }
+
+        if(macos_terminal || arm64_terminal) code<<"section .text\n";
         
-        if(macos_terminal) code<<"section .text\n";
-        code<<"_start:\n";
-        
-        // Setup stack frame for terminal mode
-        if(!bare_metal && !macos_terminal){
-            code<<"    push ebp\n";
-            code<<"    mov ebp, esp\n";
+        if(arm64_terminal) {
+            // ARM64 uses different entry point and calling convention
+            code<<"_start:\n";
+            code<<"    // ARM64 entry point\n";
+            code<<"    mov x29, sp\n";  // Set frame pointer
+            // Generate code for ARM64
+            // Note: Full ARM64 support requires rewriting register mappings
+        } else {
+            code<<"_start:\n";
+            // Setup stack frame for terminal mode
+            if(!bare_metal && !macos_terminal){
+                code<<"    push ebp\n";
+                code<<"    mov ebp, esp\n";
+            }
         }
 
         // Generate struct definitions first

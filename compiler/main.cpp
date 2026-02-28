@@ -26,23 +26,24 @@ static std::string sh_quote(const std::string& s){
 
 static void usage(const char* prog){
     std::cout
-        <<"Defacto Compiler v0.48\n\n"
+        <<"Defacto Compiler v0.49\n\n"
         <<"Usage: "<<prog<<" [options] <file.de>\n\n"
         <<"Options:\n"
-        <<"  -o <file>    output file (default: a.out)\n"
-        <<"  -S           emit assembly only, do not assemble\n"
-        <<"  -kernel      bare-metal mode: [BITS 32][ORG 0x1000] + hlt (default)\n"
-        <<"  -terminal    terminal mode: Linux 32-bit syscalls\n"
-        <<"  -terminal64  terminal mode: Linux 64-bit syscalls\n"
+        <<"  -o <file>       output file (default: a.out)\n"
+        <<"  -S              emit assembly only, do not assemble\n"
+        <<"  -kernel         bare-metal mode: [BITS 32][ORG 0x1000] + hlt (default)\n"
+        <<"  -terminal       terminal mode: Linux 32-bit syscalls\n"
+        <<"  -terminal64     terminal mode: Linux 64-bit syscalls\n"
         <<"  -terminal-macos terminal mode: macOS x86_64 syscalls\n"
-        <<"  -v           verbose\n"
-        <<"  -h           help\n\n"
+        <<"  -terminal-arm64 terminal mode: macOS/Linux ARM64 syscalls\n"
+        <<"  -v              verbose\n"
+        <<"  -h              help\n\n"
         <<"Examples:\n"
         <<"  "<<prog<<" -terminal hello.de       # Linux 32-bit\n"
         <<"  "<<prog<<" -terminal64 hello.de     # Linux 64-bit\n"
         <<"  "<<prog<<" -terminal-macos app.de   # macOS x86_64\n"
-        <<"  "<<prog<<" -kernel -o kernel.bin os.de\n"
-        <<"  "<<prog<<" -S -v program.de\n";
+        <<"  "<<prog<<" -terminal-arm64 app.de   # macOS/ARM64, Linux/ARM64\n"
+        <<"  "<<prog<<" -kernel -o kernel.bin os.de\n";
 }
 
 int main(int argc, char** argv){
@@ -50,12 +51,16 @@ int main(int argc, char** argv){
 
     std::string input, output="a.out";
     bool asm_only=false, verbose=false;
-    bool bare_metal=true, macos_terminal=false, linux64_terminal=false;
+    bool bare_metal=true, macos_terminal=false, linux64_terminal=false, arm64_terminal=false;
 
-    // Auto-detect macOS and use terminal-macos as default
+    // Auto-detect platform
     #ifdef __APPLE__
     bare_metal = false;
+    #if defined(__arm64__) || defined(__aarch64__)
+    arm64_terminal = true;
+    #else
     macos_terminal = true;
+    #endif
     #endif
 
     for(int i=1;i<argc;i++){
@@ -63,10 +68,11 @@ int main(int argc, char** argv){
         if(a=="-h"){usage(argv[0]);return 0;}
         else if(a=="-S")        asm_only=true;
         else if(a=="-v")        verbose=true;
-        else if(a=="-kernel")   { bare_metal=true; macos_terminal=false; linux64_terminal=false; }
-        else if(a=="-terminal") { bare_metal=false; macos_terminal=false; linux64_terminal=false; }
-        else if(a=="-terminal64") { bare_metal=false; macos_terminal=false; linux64_terminal=true; }
-        else if(a=="-terminal-macos") { bare_metal=false; macos_terminal=true; linux64_terminal=false; }
+        else if(a=="-kernel")   { bare_metal=true; macos_terminal=false; linux64_terminal=false; arm64_terminal=false; }
+        else if(a=="-terminal") { bare_metal=false; macos_terminal=false; linux64_terminal=false; arm64_terminal=false; }
+        else if(a=="-terminal64") { bare_metal=false; macos_terminal=false; linux64_terminal=true; arm64_terminal=false; }
+        else if(a=="-terminal-macos") { bare_metal=false; macos_terminal=true; linux64_terminal=false; arm64_terminal=false; }
+        else if(a=="-terminal-arm64") { bare_metal=false; macos_terminal=false; linux64_terminal=false; arm64_terminal=true; }
         else if(a=="-o"){if(++i>=argc){err("'-o' requires filename");return 1;} output=argv[i];}
         else if(a[0]!='-') input=a;
         else{err("unknown option '"+a+"'");return 1;}
@@ -156,7 +162,7 @@ int main(int argc, char** argv){
         }
 
         CodeGen cg;
-        cg.set_mode(bare_metal, macos_terminal, linux64_terminal);
+        cg.set_mode(bare_metal, macos_terminal, linux64_terminal, arm64_terminal);
         cg.emit(ast.get(), asm_file);
 
         if(asm_only){std::cout<<"done: "<<asm_file<<"\n";return 0;}
@@ -165,6 +171,24 @@ int main(int argc, char** argv){
             const std::string cmd="nasm -f bin "+sh_quote(asm_file)+" -o "+sh_quote(output);
             if(verbose) std::cout<<"$ "<<cmd<<"\n";
             if(std::system(cmd.c_str())!=0){err("assembler failed");return 1;}
+        } else if(arm64_terminal) {
+            // ARM64 (macOS or Linux)
+            const std::string obj=stem+".o";
+            #ifdef __APPLE__
+            const std::string cmd_nasm="nasm -f macho64 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const char* cc_env = std::getenv("DEFACTO_CC");
+            const std::string cc_bin = cc_env ? cc_env : "clang";
+            const std::string cmd_ld  = cc_bin+" -arch arm64 -Wl,-e,_start -o "+sh_quote(output)+" "+sh_quote(obj);
+            #else
+            const std::string cmd_nasm="nasm -f elf64 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const char* ld_env = std::getenv("DEFACTO_LD");
+            const std::string ld_bin = ld_env ? ld_env : "ld";
+            const std::string cmd_ld  = ld_bin+" -m aarch64linux -o "+sh_quote(output)+" "+sh_quote(obj)+" -lc";
+            #endif
+            if(verbose) std::cout<<"$ "<<cmd_nasm<<"\n$ "<<cmd_ld<<"\n";
+            if(std::system(cmd_nasm.c_str())!=0){err("assembler failed");return 1;}
+            if(std::system(cmd_ld.c_str())!=0){err("linker failed");return 1;}
+            if(!verbose) std::remove(obj.c_str());
         } else if(linux64_terminal) {
             // Linux 64-bit ELF
             const std::string obj=stem+".o";

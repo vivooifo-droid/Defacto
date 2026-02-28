@@ -1,13 +1,11 @@
-# Defacto v0.48 (alpha)
+# Defacto v0.49 (alpha)
 
-Low-level programming language for x86-32/64, bare-metal experiments, and custom toolchains.
+Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and custom toolchains.
 
-**What's new in v0.48:**
-- **Cross-platform support** — Linux 32-bit, Linux 64-bit, macOS x86_64
+**What's new in v0.49:**
+- **ARM64 support** — Apple Silicon (M1/M2/M3), Linux ARM64
+- **Cross-platform** — Linux 32/64-bit, macOS x86_64/ARM64
 - **Standard Library** — core, string, math, io modules
-- **Type aliases** — `type byte = u8`
-- **Compound assignment** — `+=`, `-=`, `*=`, `/=`
-- **Inline assembly** — `asm { mov eax, 1 }`
 
 ## Repository contents
 
@@ -140,10 +138,12 @@ Help:
 | `-kernel` | All | Binary (x86-32) | Linux |
 | `-terminal` | Linux | ELF 32-bit | Linux |
 | `-terminal64` | Linux | ELF 64-bit | — |
-| `-terminal-macos` | macOS | Mach-O 64-bit | macOS |
+| `-terminal-macos` | macOS | Mach-O 64-bit (x86_64) | macOS Intel |
+| `-terminal-arm64` | macOS/Linux | Mach-O/ELF 64-bit (ARM64) | macOS ARM |
 
 **Mode selection:**
-- **macOS**: Default is `-terminal-macos` (native macOS x86_64 binaries)
+- **macOS Intel**: Default is `-terminal-macos` (native macOS x86_64 binaries)
+- **macOS ARM (M1/M2/M3)**: Default is `-terminal-arm64` (native ARM64 binaries)
 - **Linux**: Default is `-terminal` (Linux 32-bit syscalls)
 - **Linux 64-bit**: Use `-terminal64` for native 64-bit binaries
 - **Bare-metal**: Use `-kernel` for OS development (no OS dependencies)
