@@ -1,12 +1,12 @@
 # Defacto v0.45 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
-Pre-alpha status: the language toolchain are unstable and will change.
+Pre-alpha status: the language and toolchain are unstable and will change.
 
 **What's new in v0.45:**
-- **Clean syntax only** — Old deprecated syntax removed
-- **No backward compatibility** — Only new `fn`, `driver`, `for..to` syntax supported
-- **Simplified codebase** — Removed legacy parser code
+- Clean syntax only - old deprecated syntax removed
+- No backward compatibility - only new fn, driver, for..to syntax
+- Simplified codebase - removed legacy parser code
 
 **What's new in v0.44:**
 - **Pointer bug fixes** — Fixed lexer, parser, and codegen for pointers

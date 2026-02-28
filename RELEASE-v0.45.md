@@ -4,9 +4,9 @@
 
 ## Breaking Changes
 
-### ⚠️ Old Syntax Removed
+### Old Syntax Removed
 
-v0.45 removes all deprecated syntax from v0.44 and earlier. This is a **breaking change**.
+v0.45 removes all deprecated syntax from v0.44 and earlier. This is a breaking change.
 
 ### Removed Features
 

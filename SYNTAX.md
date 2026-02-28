@@ -1,40 +1,40 @@
-# Defacto v0.44 — Полная документация по синтаксису
+# Defacto Language Syntax Reference
 
-## Оглавление
+Version 0.45
 
-1. [Структура файла](#структура-файла)
-2. [Директивы компилятора](#директивы-компилятора)
-3. [Секции кода](#секции-кода)
-4. [Типы данных](#типы-данных)
-5. [Переменные и константы](#переменные-и-константы)
-6. [Структуры](#структуры)
-7. [Выражения](#выражения)
-8. [Инструкции](#инструкции)
-9. [Функции](#функции)
-10. [Драйверы](#драйверы)
-11. [Встроенные функции](#встроенные-функции)
-12. [Регистры](#регистры)
-13. [Комментарии и строки](#комментарии-и-строки)
-14. [Управление памятью](#управление-памятью)
-15. [Ограничения языка](#ограничения-языка)
+## Table of Contents
+
+1. [File Structure](#file-structure)
+2. [Compiler Directives](#compiler-directives)
+3. [Code Sections](#code-sections)
+4. [Types](#types)
+5. [Variables and Constants](#variables-and-constants)
+6. [Structs](#structs)
+7. [Expressions](#expressions)
+8. [Statements](#statements)
+9. [Functions](#functions)
+10. [Drivers](#drivers)
+11. [Built-in Functions](#built-in-functions)
+12. [Registers](#registers)
+13. [Comments and Strings](#comments-and-strings)
+14. [Memory Management](#memory-management)
+15. [Language Limitations](#language-limitations)
 
 ---
 
-## Структура файла
+## File Structure
 
-Каждый файл Defacto должен иметь следующую структуру:
+Every Defacto file must have this structure:
 
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
 
-
 struct MyStruct {
     field: i32
 }
 
-// Новый синтаксис драйверов (v0.44+)
 driver keyboard {
     type = keyboard
 }
@@ -46,58 +46,50 @@ fn my_func {
     .>
 }
 
-
 <.de
-    var x: i32 = 0
-    display{x}
+    var msg: string = "Hello"
+    display{msg}
 .>
 
 #Mainprogramm.end
 ```
 
-### Порядок элементов
+### Element Order
 
-1. Директивы (`#NO_RUNTIME`, `#SAFE`)
-2. Структуры (`struct`)
-3. Драйверы (`<drv.` ... `.dr>`)
-4. Функции (`fn` или `function ==`)
-5. Основная секция (`<.de` ... `.>`)
-6. Завершающая директива (`#Mainprogramm.end`)
+1. Directives (`#NO_RUNTIME`, `#SAFE`)
+2. Structs (`struct`)
+3. Drivers (`driver`)
+4. Functions (`fn`)
+5. Main section (`<.de` ... `.>`)
+6. Closing directive (`#Mainprogramm.end`)
 
 ---
 
-## Директивы компилятора
+## Compiler Directives
 
 ### `#Mainprogramm.start`
 
-**Обязательная.** Начинает программу. Должна быть первой строкой.
+Required. Must be the first line.
 
 ### `#Mainprogramm.end`
 
-**Обязательная.** Завершает программу. Должна быть последней строкой.
+Required. Must be the last line.
 
 ### `#NO_RUNTIME`
 
-**Обязательная для bare-metal.** Отключает стандартную среду выполнения.
-Используется для ОС и загрузчиков.
+Required for bare-metal mode. Disables standard runtime.
 
 ### `#SAFE`
 
-Зарезервирована. Проверки памяти всегда включены.
-
-### `#DRIVER` / `#DRIVER.stop`
-
-Альтернатива `#NO_RUNTIME` для программ с драйверами.
+Reserved. Memory checks always enabled.
 
 ---
 
-## Секции кода
+## Code Sections
 
-### Основная секция `<.de` ... `.>`
+### Main Section `<.de` ... `.>`
 
-Вся исполняемая программа должна быть внутри этой секции.
-
-**Новое в v0.44:** Объявления и инструкции можно смешивать свободно:
+All executable code must be inside sections:
 
 ```de
 <.de
@@ -107,165 +99,115 @@ fn my_func {
     display{msg}
     x = (x + 1)
     
-    var y: i32 = 10  // Можно объявлять переменные в любом месте
+    var y: i32 = 10
     y = (y * 2)
 .>
 ```
 
-**Обратная совместимость:** `static.pl>` всё ещё работает:
+Rules:
 
-```de
-<.de
-    var x: i32 = 0
-    var msg: string = "hello"
-
-    static.pl>
-
-    display{msg}
-    x = (x + 1)
-.>
-```
-
-### Правило двух частей (устарело в v0.44+)
-
-Раньше секция делилась на две части через `static.pl>`:
-
-| До `static.pl>` | После `static.pl>` |
-| --- | --- |
-| Только `var` и `const` | Только инструкции |
-| Объявления переменных | Вызовы функций, присваивания |
-| Нет исполняемого кода | Нет объявлений |
-
-**В v0.44+:** Это ограничение снято.
+- Variables (`var`) and constants (`const`) can be declared anywhere
+- Statements and declarations can be mixed
+- `.>` closes the section
 
 ---
 
-## Типы данных
+## Types
 
-### Встроенные типы
+### Built-in Types
 
-| Тип | Размер | Диапазон | Описание |
-| --- | --- | --- | --- |
-| `i32` | 4 байта | -2³¹ ... 2³¹-1 | Знаковое целое |
-| `i64` | 8 байт | -2⁶³ ... 2⁶³-1 | Знаковое целое |
-| `u8` | 1 байт | 0 ... 255 | Беззнаковый байт |
-| `string` | 4 байта | - | Указатель на строку |
-| `pointer` | 4 байта | - | Сырой указатель |
+| Type | Size | Description |
+|------|------|-------------|
+| `i32` | 4 bytes | Signed integer |
+| `i64` | 8 bytes | Signed integer |
+| `u8` | 1 byte | Unsigned byte |
+| `string` | pointer | Null-terminated string |
+| `pointer` | 4 bytes | Raw pointer |
+| `bool` | 1 byte | Boolean (true/false) |
 
-### Пользовательские типы (структуры)
+### Arrays
 
 ```de
-struct Point {
-    x: i32
-    y: i32
-}
+var buf: u8[64]
+var arr: i32[10]
+```
 
-var p: Point
+### Pointers
+
+```de
+var ptr: *i32
+var ptr: *string
+var ptr: **i32
 ```
 
 ---
 
-## Переменные и константы
+## Variables and Constants
 
-### Объявление переменных
+### Variable Declaration
 
 ```de
-
 var count: i32 = 42
 var msg: string = "hello"
-
-
-var x: i32
-var buf: u8[64]
+var ptr: *i32 = &count
 ```
 
-### Константы
+### Constants
 
 ```de
 const MAX: i32 = 100
 const NAME: string = "Defacto"
 ```
 
-**Правила:**
-- `const` **должна** иметь инициализатор
-- `const` **нельзя** изменять
-- `const` **нельзя** освобождать через `free{}`
-
-### Массивы
-
-```de
-var arr: i32[10]
-var buf: u8[256]
-```
-
-**Важно:**
-- `const` массивы не поддерживаются
-- Индексация: `arr[i] = x`
-- Индекс должен быть: число, переменная или регистр
+Rules:
+- `const` must have an initializer
+- `const` cannot be modified
+- `const` cannot be freed
 
 ---
 
-## Структуры
+## Structs
 
-### Определение структуры
+### Definition
 
 ```de
-struct Player {
+struct Point {
     x: i32
     y: i32
-    health: i32
-    score: i32
+    z: i32
 }
 ```
 
-### Объявление переменной-структуры
+### Usage
 
 ```de
-var player: Player
+var p: Point
+p.x = 10
+p.y = 20
+p.z = 30
 ```
 
-### Доступ к полям
+### Pointer to Struct
 
 ```de
-player.x = 10
-player.y = 20
-player.health = 100
-player.score = 500
+var ptr: *Point = &p
+ptr->x = 100
 ```
-
-### Расположение в памяти
-
-Поля располагаются последовательно:
-
-```
-Player (16 байт):
-+0: x (i32)
-+4: y (i32)
-+8: health (i32)
-+12: score (i32)
-```
-
-### Размеры полей
-
-| Тип поля | Размер |
-| --- | --- |
-| `i32` | 4 байта |
-| `i64` | 8 байт |
-| `u8` | 1 байт |
-| `string` | 4 байта (указатель) |
-| `pointer` | 4 байта |
-
-### Вложенные структуры
-
-**Не поддерживаются в v0.30.** Поля могут быть только встроенных типов.
 
 ---
 
-## Выражения
+## Expressions
 
-### Новое в v0.44
+### Operators
 
-**Полная поддержка сложных выражений:**
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `+` | Addition | `x = (a + b)` |
+| `-` | Subtraction | `x = (x - 1)` |
+| `*` | Multiplication | `x = (x * 2)` |
+| `/` | Division | `x = (x / 4)` |
+
+### Nested Expressions
 
 ```de
 x = (a + b + c)
@@ -274,115 +216,43 @@ x = -5
 result = (a * b) + (c / d)
 ```
 
-### Поддерживаемые операторы
-
-| Оператор | Описание | Пример |
-| --- | --- | --- |
-| `+` | Сложение | `x = (a + b)` |
-| `-` | Вычитание | `x = (x - 1)` |
-| `*` | Умножение | `x = (x * 2)` |
-| `/` | Деление | `x = (x / 4)` |
-
-### Правила выражений
-
-**v0.44+:**
-- ✅ Вложенные выражения поддерживаются
-- ✅ Отрицательные литералы поддерживаются
-- ✅ Несколько операторов в одном выражении
-
-```de
-x = (a + b)
-x = (x * 2)
-x = -5  // Отрицательный литерал
-result = (a + b + c)  // Несколько операторов
-```
-
-### Присваивание выражений
-
-```de
-result = (a + b)
-```
-
 ---
 
-## Инструкции
+## Statements
 
-### Присваивание
+### Assignment
 
 ```de
-
-x = 5
-x = other_var
-x = #R1
-
-
+x = 1
+x = other
 x = (x + 1)
-y = (a * b)
-
-
 arr[i] = x
-arr[0] = 100
-
-
-player.x = 10
-player.health = (player.health - 1)
+p.x = 100
+*ptr = value
 ```
 
-### Цикл `loop`
+### If/Else
 
 ```de
-loop {
-
-    counter = (counter - 1)
-    
-
-    if counter == 0 { stop }
-}
-```
-
-**Правила:**
-- `loop` создаёт бесконечный цикл
-- `stop` выходит из цикла
-- Используйте `if` для условия выхода
-
-### Условие `if/else`
-
-```de
-if x == 10 {
-    display{msg}
-}
-
-if x == 10 {
+if x == y {
     display{msg}
 } else {
     display{err}
 }
-
-if x == 1 {
-    if y == 2 {
-        stop
-    }
-}
 ```
 
-**Операторы сравнения (v0.44+):**
+### Comparison Operators
 
-| Оператор | Пример | Описание |
-| --- | --- | --- |
-| `==` | `if x == y` | Равно |
-| `!=` | `if x != y` | Не равно |
-| `<` | `if x < y` | Меньше |
-| `>` | `if x > y` | Больше |
-| `<=` | `if x <= y` | Меньше или равно |
-| `>=` | `if x >= y` | Больше или равно |
+| Operator | Example | Description |
+|----------|---------|-------------|
+| `==` | `if x == y` | Equal |
+| `!=` | `if x != y` | Not equal |
+| `<` | `if x < y` | Less than |
+| `>` | `if x > y` | Greater than |
+| `<=` | `if x <= y` | Less than or equal |
+| `>=` | `if x >= y` | Greater than or equal |
 
-**Правила:**
-- `else` блок опционален
-- Все операторы сравнения поддерживаются
-
-### Цикл `for` (v0.44+)
-
-**Новый синтаксис:**
+### For Loop
 
 ```de
 for i = 0 to 10 {
@@ -390,15 +260,7 @@ for i = 0 to 10 {
 }
 ```
 
-**Старый синтаксис (всё ещё работает):**
-
-```de
-for i = 0; i < 10; i = (i + 1) {
-    display{i}
-}
-```
-
-### Цикл `while`
+### While Loop
 
 ```de
 while x < y {
@@ -406,23 +268,7 @@ while x < y {
 }
 ```
 
-### Цикл `loop`
-
-```de
-loop {
-    counter = (counter - 1)
-    
-    if counter == 0 { stop }
-}
-```
-
-**Правила:**
-- `loop` создаёт бесконечный цикл
-- `stop` выходит из цикла
-
-### `stop`
-
-Выход из цикла или программы:
+### Loop
 
 ```de
 loop {
@@ -430,13 +276,40 @@ loop {
 }
 ```
 
+### Stop
+
+Exit loop or program:
+
+```de
+loop {
+    if x == 10 { stop }
+}
+```
+
+### Continue
+
+Skip to next iteration:
+
+```de
+loop {
+    if x == 0 { continue }
+    x = (x - 1)
+}
+```
+
+### Return
+
+Return from function:
+
+```de
+return{value}
+```
+
 ---
 
-## Функции
+## Functions
 
-### Объявление функции (v0.44+)
-
-**Новый упрощённый синтаксис:**
+### Declaration
 
 ```de
 fn my_func {
@@ -450,7 +323,7 @@ fn my_func {
 call #my_func
 ```
 
-**С параметрами:**
+### With Parameters
 
 ```de
 fn add(a: i32, b: i32) {
@@ -464,47 +337,12 @@ fn add(a: i32, b: i32) {
 call #add
 ```
 
-**Старый синтаксис (всё ещё работает):**
-
-```de
-function == my_func {
-    <.de
-        var a: i32 = 0
-        static.pl>
-        a = (a + 1)
-    .>
-}
-
-call #my_func
-```
-
-### Вызов функции
-
-```de
-call #my_func
-```
-
-### Правила
-
-- Функции объявляются **до** основной секции
-- Вызов через `call #имя`
-- Каждая функция имеет свою секцию `<.de` ... `.>`
-- Локальные переменные внутри функции
-
 ---
 
-## Драйверы
+## Drivers
 
-### Новый синтаксис (v0.44+)
+### Declaration
 
-**Простое объявление:**
-```de
-driver keyboard
-
-call #keyboard
-```
-
-**С явным указанием типа:**
 ```de
 driver keyboard {
     type = keyboard
@@ -513,258 +351,149 @@ driver keyboard {
 call #keyboard
 ```
 
-**Своё имя с типом:**
+### Simplified
+
 ```de
-driver my_keyboard {
-    type = keyboard
+driver mouse
+
+call #mouse
+```
+
+### Custom Name
+
+```de
+driver my_volume {
+    type = volume
 }
 
-call #my_keyboard
+call #my_volume
 ```
 
-### Старый синтаксис (всё ещё работает)
-
-```de
-<drv.
-Const.driver = keyboard_driver
-keyboard_driver <<func = keyboard>>
-.dr>
-
-call #keyboard_driver
-```
-
-### Компоненты старого синтаксиса
-
-| Часть | Описание |
-| --- | --- |
-| `<drv.` ... `.dr>` | Блок драйвера |
-| `Const.driver = имя` | Объявление константы драйвера |
-| `имя <<func = тип>>` | Привязка функции драйвера |
-
-### Типы драйверов
-
-| Тип | Описание |
-| --- | --- |
-| `keyboard` | Клавиатура (PS/2) |
-| `mouse` | Мышь (PS/2) |
-| `volume` | PC Speaker |
-
-### Вызов драйвера
-
-```de
-call #keyboard       // Новый синтаксис
-call #keyboard_driver // Старый синтаксис
-```
-
-### Встроенные драйверы
-
-Компилятор генерирует код для встроенных драйверов автоматически.
+Supported driver types: `keyboard`, `mouse`, `volume`
 
 ---
 
-## Встроенные функции
+## Built-in Functions
 
-### Ввод/Вывод
+### I/O
 
-| Функция | Описание | Режим |
-| --- | --- | --- |
-| `display{var}` | Вывод строки | Все |
-| `readkey{var}` | Чтение скан-кода | Bare-metal |
-| `readchar{var}` | Чтение ASCII | Bare-metal |
-| `putchar{code}` | Вывод символа | Bare-metal |
+| Function | Description |
+|----------|-------------|
+| `display{var}` | Print string |
+| `readkey{var}` | Read scancode (bare-metal) |
+| `readchar{var}` | Read ASCII (bare-metal) |
+| `putchar{code}` | Print character (bare-metal) |
 
-### Графика (Bare-metal)
+### Graphics (Bare-metal)
 
-| Функция | Описание |
-| --- | --- |
-| `color{attr}` | Установить атрибут цвета |
-| `clear{}` | Очистить экран |
+| Function | Description |
+|----------|-------------|
+| `color{attr}` | Set color attribute |
+| `clear{}` | Clear screen |
 
-### Системные
+### System
 
-| Функция | Описание | Режим |
-| --- | --- | --- |
-| `reboot{}` | Перезагрузка | Bare-metal |
-
-### Примеры
-
-```de
-
-var msg: string = "Hello"
-static.pl>
-display{msg}
-
-
-var ch: i32 = 0
-static.pl>
-readchar{ch}
-display{ch}
-
-
-color{10}
-display{msg}
-
-
-clear{}
-
-
-reboot{}
-```
+| Function | Description |
+|----------|-------------|
+| `reboot{}` | Reboot system |
 
 ---
 
-## Регистры
+## Registers
 
-### Доступные регистры
+### Available Registers
 
-| Регистр | x86 | Описание |
-| --- | --- | --- |
-| `#R1` | EDI | Регистр 1 |
-| `#R2` | ESI | Регистр 2 |
-| `#R3` | EDX | Регистр 3 |
-| `#R4` | ECX | Регистр 4 |
-| `#R5` | EBX | Регистр 5 |
-| `#R6` | EAX | Регистр 6 (аккумулятор) |
-| `#R7` | EDI | Регистр 7 |
-| `#R8` | ESI | Регистр 8 |
-| `#R9` | EBX | Регистр 9 |
-| `#R10` | ECX | Регистр 10 |
-| `#R11` | EDX | Регистр 11 |
-| `#R12` | ESI | Регистр 12 |
-| `#R13` | EDI | Регистр 13 |
-| `#R14` | EAX | Регистр 14 |
-| `#R15` | EBP | Регистр 15 (базовый указатель) |
-| `#R16` | ESP | Регистр 16 (указатель стека) |
+| Register | x86 |
+|----------|-----|
+| `#R1` | EDI |
+| `#R2` | ESI |
+| `#R3` | EDX |
+| `#R4` | ECX |
+| `#R5` | EBX |
+| `#R6` | EAX |
+| `#R15` | EBP |
+| `#R16` | ESP |
 
-### Операции с регистрами
+### Operations
 
 ```de
-
 #MOV {#R1, x}
-
-
 #MOV {x, #R1}
-
-
 #R1 = (#R1 + #R2)
-#R3 = (#R3 - 5)
 ```
-
-### Правила
-
-- Регистры начинаются с `#`
-- Фиксированное отображение на x86-32
-- `#STATIC` парсится, но не генерируется
 
 ---
 
-## Комментарии и строки
+## Comments and Strings
 
-### Комментарии
+### Comments
 
 ```de
-
+// This is a comment
 var x: i32 = 0
 ```
 
-### Строковые литералы
+### Strings
 
 ```de
 var msg: string = "Hello, World!"
 var multiline: string = "Line 1\nLine 2"
-var with_tab: string = "Col1\tCol2"
 ```
 
-### Escape-последовательности
+### Escape Sequences
 
-| Последовательность | Символ |
-| --- | --- |
-| `\n` | Новая строка (LF) |
-| `\t` | Табуляция |
+| Sequence | Character |
+|----------|-----------|
+| `\n` | Newline |
+| `\t` | Tab |
 
 ---
 
-## Управление памятью
+## Memory Management
 
-### Автоматическое управление (v0.30+)
+### Automatic
 
-Компилятор **автоматически** освобождает все переменные в конце секции:
+Variables are automatically freed at end of section:
 
 ```de
 <.de
     var x: i32 = 0
     var msg: string = "hello"
-    static.pl>
     display{msg}
 .>
-
 ```
 
-### Ручное освобождение (legacy)
+### Manual (Legacy)
 
 ```de
-<.de
-    var x: i32 = 0
-    static.pl>
-    free{x}
-.>
+free{x}
 ```
 
-### Правила
+### Dynamic Allocation
 
-| Тип | Освобождение |
-| --- | --- |
-| `var` | Автоматически или `free{}` |
-| `const` | Нельзя освобождать |
-| `string` | Автоматически (статические данные) |
-| `array` | Автоматически |
+```de
+var ptr: *i32
+var size: i32 = 4
 
----
+static.pl>
 
-## Ограничения языка
+alloc{size}
+#MOV {ptr, #R1}
 
-### Исправлено в v0.44
-
-✅ **Все операторы сравнения работают:** `==`, `!=`, `<`, `>`, `<=`, `>=`
-
-✅ **Вложенные выражения поддерживаются:** `(a + b + c)`, `((a + b) * c)`
-
-✅ **Отрицательные литералы поддерживаются:** `-5`, `-42`
-
-✅ **`static.pl>` теперь опционален**
-
-### Выражения
-
-- ✅ Вложенные выражения: `(a + b + c)`
-- ✅ Отрицательные литералы: `-5`
-- ✅ Несколько операторов в выражении
-
-### Условия
-
-- ✅ Все операторы сравнения: `==`, `!=`, `<`, `>`, `<=`, `>=`
-- ❌ Нет `elseif`
-- ✅ `else` поддерживается
-
-### Массивы
-
-- ❌ Нет `const` массивов
-- ❌ Нет выражений в индексах: `arr[i + 1]`
-- ✅ Индекс: число, переменная, регистр
-
-### Структуры
-
-- ❌ Нет вложенных структур
-- ❌ Нет методов у структур
-- ✅ Поля: только встроенные типы
-
-### Прочее
-
-- ❌ Interrupt директивы не генерируются
-- ❌ `#STATIC` не генерируется
+dealloc{ptr}
+```
 
 ---
 
-## Примеры программ
+## Language Limitations
+
+- No expression indexes in arrays: `arr[i + 1]` not supported
+- Interrupt directives parsed but not generated
+- No nested struct definitions inside sections
+
+---
+
+## Examples
 
 ### Hello World
 
@@ -781,7 +510,7 @@ var with_tab: string = "Col1\tCol2"
 #Mainprogramm.end
 ```
 
-### Калькулятор
+### Calculator
 
 ```de
 #Mainprogramm.start
@@ -792,49 +521,17 @@ var with_tab: string = "Col1\tCol2"
     var a: i32 = 10
     var b: i32 = 5
     var result: i32 = 0
-    static.pl>
 
     result = (a + b)
     result = (a - b)
     result = (a * b)
     result = (a / b)
-
 .>
 
 #Mainprogramm.end
 ```
 
-### Структуры
-
-```de
-#Mainprogramm.start
-#NO_RUNTIME
-#SAFE
-
-struct Player {
-    x: i32
-    y: i32
-    health: i32
-    score: i32
-}
-
-<.de
-    var player: Player
-    static.pl>
-
-    player.x = 100
-    player.y = 200
-    player.health = 100
-    player.score = 0
-
-    player.health = (player.health - 10)
-    player.score = (player.score + 100)
-.>
-
-#Mainprogramm.end
-```
-
-### if/else со всеми операторами сравнения
+### For Loop
 
 ```de
 #Mainprogramm.start
@@ -842,40 +539,6 @@ struct Player {
 #SAFE
 
 <.de
-    var x: i32 = 5
-    var msg: string = "equal"
-    var err: string = "not equal"
-    static.pl>
-
-    if x == 5 {
-        display{msg}
-    } else {
-        display{err}
-    }
-    
-    if x != 10 {
-        display{"x is not 10"}
-    }
-    
-    if x > 3 {
-        display{"x is greater than 3"}
-    }
-.>
-
-#Mainprogramm.end
-```
-
-### for цикл
-
-```de
-#Mainprogramm.start
-#NO_RUNTIME
-#SAFE
-
-<.de
-    var i: i32 = 0
-    static.pl>
-
     for i = 0 to 10 {
         display{i}
     }
@@ -884,29 +547,8 @@ struct Player {
 #Mainprogramm.end
 ```
 
-### Цикл
+### Driver Usage
 
-```de
-#Mainprogramm.start
-#NO_RUNTIME
-#SAFE
-
-<.de
-    var counter: i32 = 10
-    static.pl>
-    
-    loop {
-        if counter == 0 { stop }
-        counter = (counter - 1)
-    }
-.>
-
-#Mainprogramm.end
-```
-
-### Драйвер клавиатуры
-
-**Новый синтаксис (v0.44+):**
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
@@ -929,84 +571,31 @@ driver keyboard {
 #Mainprogramm.end
 ```
 
-**Старый синтаксис (всё ещё работает):**
-```de
-#Mainprogramm.start
-#NO_RUNTIME
-#SAFE
-
-<drv.
-Const.driver = keyboard_driver
-keyboard_driver <<func = keyboard>>
-.dr>
-
-<.de
-    var key: i32 = 0
-    static.pl>
-
-    call #keyboard_driver
-    readkey{key}
-    display{key}
-.>
-
-#Mainprogramm.end
-```
-
 ---
 
-## Компиляция и запуск
-
-### Компиляция
+## Compilation
 
 ```bash
-# В бинарный файл
+# Compile
 ./defacto program.de
 
-# Только ассемблер
+# Specify output
+./defacto program.de -o output
+
+# Assembly output only
 ./defacto -S program.de
 
-# С указанием выхода
-./defacto -o output.bin program.de
-
-# Подробный вывод
+# Verbose
 ./defacto -v program.de
+
+# Help
+./defacto -h
 ```
 
-### Режимы
+### Modes
 
-```bash
-# Bare-metal (по умолчанию)
-./defacto -kernel program.de
-
-# Linux terminal
-./defacto -terminal program.de
-
-# macOS terminal
-./defacto -terminal-macos program.de
-```
-
----
-
-## Отладка
-
-### Сообщения об ошибках
-
-```
-error: undefined variable 'x'
-error: expected type at line 10
-error: cannot assign to const 'MAX'
-```
-
-### Предупреждения
-
-```
-warning: unexpected token '+', skipping
-```
-
-### Проверка памяти
-
-```
-error: Memory Abandonment: 'x' never freed
-```
-
-(В v0.30+ автоматически освобождается)
+| Mode | Platform | Output |
+|------|----------|--------|
+| `-kernel` | All | Binary (x86-32) |
+| `-terminal` | Linux | ELF 32-bit |
+| `-terminal-macos` | macOS | Mach-O 64-bit |
