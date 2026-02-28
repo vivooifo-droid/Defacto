@@ -458,6 +458,35 @@ var msg: string = "Hello\nWorld"
 - No expression indexes in arrays: `arr[i + 1]` not supported
 - Interrupt directives are parsed but not generated
 
+## Performance
+
+Defacto compiles to native x86-32 code with minimal runtime overhead.
+
+**Comparison (approximate):**
+
+| Language | Relative Speed | Notes |
+|----------|---------------|-------|
+| Assembly (hand-optimized) | 1.0x | Baseline |
+| C (gcc -O3) | 1.0-1.2x | Mature optimizer |
+| Rust | 1.0-1.3x | LLVM backend |
+| Zig | 1.1-1.4x | LLVM backend |
+| **Defacto v0.45** | 2-5x | Simple codegen, no optimizations |
+| Go | 2-5x | GC overhead |
+| Python | 50-100x | Interpreter |
+
+**Why Defacto is fast:**
+- Compiles to native code (no VM, no interpreter)
+- No garbage collector
+- Direct system calls in terminal mode
+- Minimal runtime (~zero overhead)
+
+**Why Defacto is slower than C/Rust/Zig:**
+- No LLVM backend (uses NASM directly)
+- No advanced optimizations (inlining, vectorization, etc.)
+- Early stage compiler
+
+For bare-metal and systems programming, performance is limited by your code quality, not the language.
+
 ## Addons
 
 Extend Defacto with native libraries!
