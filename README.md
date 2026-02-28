@@ -1,22 +1,30 @@
-# Defacto v0.50 (alpha)
+# Defacto v0.51 (alpha)
 
 Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and custom toolchains.
 
+**What's new in v0.51:**
+- **Bitwise operators** — `&`, `|`, `^`, `<<`, `>>`
+- **Package manager** — `defo` for libraries
+- **Dev tools** — linter, formatter
+- **Examples** — Complete feature examples
+
 **What's new in v0.50:**
-- **Full ARM64 support** — Complete ARM64 codegen with registers, instructions, syscalls
-- **Apple Silicon native** — M1/M2/M3 Macs supported natively
-- **Linux ARM64** — Raspberry Pi, AWS Graviton, etc.
-- **Standard Library** — core, string, math, io modules
+- Full ARM64 support — Complete ARM64 codegen
+- Apple Silicon native — M1/M2/M3 Macs
+- Linux ARM64 — Raspberry Pi, AWS Graviton
 
 ## Repository contents
 
 - Compiler (`compiler/`)
 - VS Code extension (`vscode-extension/`)
-- Naive package manager `defo`
+- **Package manager** (`tools/defo.sh`)
+- **Code formatter** (`tools/deformat.sh`)
+- **Code linter** (`tools/delint.sh`)
 - **Standard Library** (`stdlib/`) — core, string, math, io
-- C++ addons sandbox (`addons/cpp/`)
-- **Rust addons** (`addons/rust/`) - Write libraries in Rust!
-- **Backend framework** (`addons/rust-backend/`) - HTTP web framework for Defacto
+- **Examples** (`examples/`)
+- C++ addons (`addons/cpp/`)
+- Rust addons (`addons/rust/`)
+- Backend framework (`addons/rust-backend/`)
 
 ## Install
 
@@ -586,6 +594,37 @@ fn main {
 ```
 
 ---
+
+## Tools
+
+### Package Manager (defo)
+
+```bash
+# Initialize new project
+./tools/defo.sh init my-app
+
+# Install library
+./tools/defo.sh install owner/repo
+
+# List libraries
+./tools/defo.sh list
+
+# Build and run
+./tools/defo.sh build
+./tools/defo.sh run
+```
+
+### Code Formatter
+
+```bash
+./tools/deformat.sh program.de
+```
+
+### Code Linter
+
+```bash
+./tools/delint.sh program.de
+```
 
 ## Limitations
 

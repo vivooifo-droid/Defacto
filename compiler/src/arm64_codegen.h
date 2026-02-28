@@ -219,6 +219,25 @@ public:
         store("x0", a->target);
     }
 
+    void gen_bitwise(const std::string& dst, const std::string& left, const std::string& right, const std::string& op) {
+        load("x0", left);
+        if(is_num(right)) {
+            int val = std::stoi(right);
+            if (val >= 0 && val <= 0xFFFF) {
+                if (op == "&") code << "    and " << dst << ", x0, #" << val << "\n";
+                else if (op == "|") code << "    orr " << dst << ", x0, #" << val << "\n";
+                else if (op == "^") code << "    eor " << dst << ", x0, #" << val << "\n";
+            }
+        } else {
+            load("x1", right);
+            if (op == "&") code << "    and " << dst << ", x0, x1\n";
+            else if (op == "|") code << "    orr " << dst << ", x0, x1\n";
+            else if (op == "^") code << "    eor " << dst << ", x0, x1\n";
+            else if (op == "<<") code << "    lsl " << dst << ", x0, x1\n";
+            else if (op == ">>") code << "    lsr " << dst << ", x0, x1\n";
+        }
+    }
+
     void gen_display(DisplayNode* d) {
         auto it = var_lbl.find(d->var);
         if(it == var_lbl.end()) return;

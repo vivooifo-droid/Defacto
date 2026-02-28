@@ -1,0 +1,266 @@
+# Defacto v0.51 - Complete Feature Examples
+
+## 1. Bitwise Operators
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        var a: i32 = 12    // 1100 in binary
+        var b: i32 = 5     // 0101 in binary
+        var result: i32 = 0
+        
+        // AND
+        result = (a & b)   // 0100 = 4
+        display{result}
+        
+        // OR
+        result = (a | b)   // 1101 = 13
+        display{result}
+        
+        // XOR
+        result = (a ^ b)   // 1001 = 9
+        display{result}
+        
+        // Left shift
+        result = (a << 1)  // 11000 = 24
+        display{result}
+        
+        // Right shift
+        result = (a >> 1)  // 0110 = 6
+        display{result}
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 2. Compound Assignment
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        var x: i32 = 10
+        
+        x += 5   // x = 15
+        x -= 3   // x = 12
+        x *= 2   // x = 24
+        x /= 4   // x = 6
+        
+        display{x}
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 3. Type Aliases
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+type byte = u8
+type word = i32
+type ptr = *i32
+
+fn main {
+    <.de
+        var x: byte = 42
+        var y: word = 1000
+        var z: ptr = null
+        
+        display{x}
+        display{y}
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 4. Inline Assembly
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        var result: i32 = 0
+        
+        asm {
+            mov eax, 10
+            mov ebx, 20
+            add eax, ebx
+            mov [result], eax
+        }
+        
+        display{result}  // 30
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 5. Switch/Case
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        var x: i32 = 2
+        
+        switch x {
+            case 0:
+                display{"zero"}
+            case 1:
+                display{"one"}
+            case 2:
+                display{"two"}
+            default:
+                display{"other"}
+        }
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 6. Arrays in Structs
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Buffer {
+    data: u8[256]
+    size: i32
+}
+
+fn main {
+    <.de
+        var buf: Buffer
+        buf.size = 42
+        display{buf.size}
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 7. Extern Functions
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+extern printf
+extern malloc
+extern free
+
+fn main {
+    <.de
+        var msg: string = "Hello from C!"
+        // Would call printf in real implementation
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 8. For Loop with `to`
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        for i = 0 to 10 {
+            display{i}
+        }
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 9. All Comparison Operators
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn main {
+    <.de
+        var a: i32 = 5
+        var b: i32 = 10
+        
+        if a == b {
+            display{"equal"}
+        }
+        
+        if a != b {
+            display{"not equal"}
+        }
+        
+        if a < b {
+            display{"less"}
+        }
+        
+        if a > b {
+            display{"greater"}
+        }
+        
+        if a <= b {
+            display{"less or equal"}
+        }
+        
+        if a >= b {
+            display{"greater or equal"}
+        }
+    .>
+}
+
+#Mainprogramm.end
+```
+
+## 10. ARM64 Native Code
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// This will compile to native ARM64 on M1/M2/M3 Macs
+fn main {
+    <.de
+        var x: i32 = 42
+        
+        // ARM64 will use:
+        // - x0-x30 registers
+        // - SVC #0x80 for syscalls
+        // - ADRP/ADD for addressing
+        
+        display{x}
+    .>
+}
+
+#Mainprogramm.end
+```
