@@ -392,9 +392,27 @@ class CodeGen {
         int offset = 0;
         for(auto& f : s->fields){
             int fsize = 4;  // default size
-            if(f.second == "u8") fsize = 1;
-            else if(f.second == "i64" || f.second == "string" || f.second == "pointer") fsize = 8;
-            else if(f.second == "i32") fsize = 4;
+            std::string ftype = f.second;
+            
+            // Check for array type: u8[256], i32[10], etc.
+            size_t bracket_pos = ftype.find('[');
+            if (bracket_pos != std::string::npos) {
+                std::string base_type = ftype.substr(0, bracket_pos);
+                size_t close_bracket = ftype.find(']', bracket_pos);
+                int arr_size = std::stoi(ftype.substr(bracket_pos + 1, close_bracket - bracket_pos - 1));
+                
+                if (base_type == "u8") fsize = 1 * arr_size;
+                else if (base_type == "i32") fsize = 4 * arr_size;
+                else if (base_type == "i64" || base_type == "string" || base_type == "pointer") fsize = 8 * arr_size;
+                else fsize = 4 * arr_size;  // default
+            } else {
+                // Non-array type
+                if(ftype == "u8") fsize = 1;
+                else if(ftype == "i64" || ftype == "string" || ftype == "pointer") fsize = 8;
+                else if(ftype == "i32") fsize = 4;
+                else if(ftype.find('*') != std::string::npos) fsize = 4;  // pointer
+            }
+            
             struct_field_offsets[s->name][f.first] = offset;
             offset += fsize;
         }
@@ -1089,6 +1107,7 @@ class CodeGen {
             case NT::WHILE:    gen_while(static_cast<WhileNode*>(n)); break;
             case NT::FOR:      gen_for(static_cast<ForNode*>(n)); break;
             case NT::IF_STMT:  gen_if(static_cast<IfNode*>(n)); break;
+            case NT::SWITCH_STMT: gen_switch(static_cast<SwitchNode*>(n)); break;
             case NT::DISPLAY:  gen_display(static_cast<DisplayNode*>(n)); break;
             case NT::PRINTNUM: gen_printnum(static_cast<PrintNumNode*>(n)); break;
             case NT::COLOR:    gen_color(static_cast<ColorNode*>(n)); break;
@@ -1266,6 +1285,66 @@ class CodeGen {
         }
     }
 
+    void gen_extern(ExternDecl* e){
+        // Generate extern declaration
+        // For now, just declare it as external
+        code << "extern " << e->name << "\n";
+    }
+
+    void gen_switch(SwitchNode* s){
+        // Generate switch statement
+        // switch value { case 1: ... case 2: ... default: ... }
+        std::string switch_end = lbl("switch_end");
+        std::vector<std::string> case_labels;
+        
+        // Load switch value into eax
+        load("eax", s->value);
+        
+        // Generate case comparisons
+        for (auto& c : s->cases) {
+            std::string case_label = lbl("case");
+            std::string next_label = lbl("case_next");
+            case_labels.push_back(case_label);
+            
+            // Compare with case value
+            if (is_num(c.first)) {
+                code << "    cmp eax, " << c.first << "\n";
+            } else {
+                load("ebx", c.first);
+                code << "    cmp eax, ebx\n";
+            }
+            code << "    jne " << next_label << "\n";
+            code << "    jmp " << case_label << "\n";
+            code << next_label << ":\n";
+        }
+        
+        // Jump to default or end
+        if (!s->default_body.empty()) {
+            code << "    jmp " << lbl("default") << "\n";
+        } else {
+            code << "    jmp " << switch_end << "\n";
+        }
+        
+        // Generate case bodies
+        for (size_t i = 0; i < s->cases.size(); i++) {
+            code << case_labels[i] << ":\n";
+            for (auto& stmt : s->cases[i].second) {
+                gen_stmt(stmt.get());
+            }
+            code << "    jmp " << switch_end << "\n";
+        }
+        
+        // Generate default body
+        if (!s->default_body.empty()) {
+            code << lbl("default") << ":\n";
+            for (auto& stmt : s->default_body) {
+                gen_stmt(stmt.get());
+            }
+        }
+        
+        code << switch_end << ":\n";
+    }
+
     void gen_driver_section(DriverSectionNode* s){
         // Register driver constant so it doesn't need to be freed
         if (!s->driver_name.empty()) {
@@ -1384,6 +1463,11 @@ public:
 
         // Generate struct definitions first
         for(auto& s:prog->structs) gen_struct(s.get());
+
+        // Generate extern declarations
+        for(auto& e:prog->externs) {
+            gen_extern(e.get());
+        }
 
         // Generate driver declarations (new syntax)
         for(auto& d:prog->drivers) {

@@ -419,6 +419,9 @@ class Parser {
             }
             return n;
         }
+        if (at(TT::SWITCH)) {
+            return parse_switch();
+        }
         if (at(TT::STOP)) { adv(); return std::make_unique<BreakNode>(); }
         if (at(TT::CONTINUE)) { adv(); return std::make_unique<ContinueNode>(); }
         if (at(TT::RETURN)) {
@@ -546,11 +549,30 @@ class Parser {
             expect(TT::IDENT, "expected field name");
             expect(TT::COLON, "expected ':'");
             std::string ftype;
-            if (at(TT::I32) || at(TT::I64) || at(TT::U8) || at(TT::STR) || at(TT::PTR)) {
-                ftype = cur().val;
+            // Support pointer types: *i32, **i32, etc.
+            while (at(TT::STAR)) {
+                ftype += "*";
+                adv();
+            }
+            if (at(TT::I32) || at(TT::I64) || at(TT::U8) || at(TT::STR) || at(TT::PTR) || at(TT::BOOL)) {
+                ftype += cur().val;
+                adv();
+            } else if (at(TT::IDENT)) {
+                // Struct type
+                ftype += cur().val;
                 adv();
             } else {
                 throw std::runtime_error("expected type at line " + std::to_string(cur().line));
+            }
+            // Support array types: u8[256], i32[10], etc.
+            if (at(TT::LBRACK)) {
+                adv();  // consume '['
+                if (!at(TT::NUMBER)) {
+                    throw std::runtime_error("expected array size at line " + std::to_string(cur().line));
+                }
+                ftype += "[" + cur().val + "]";
+                adv();  // consume number
+                expect(TT::RBRACK, "expected ']'");
             }
             s->fields.push_back({fname, ftype});
         }
@@ -756,22 +778,95 @@ public:
             }
         }
 
-        // Parse enums (stored as structs for now - enums become constants)
-        while(at(TT::ENUM)) {
-            parse_enum();  // Parse but don't store - enums become simple constants
+        // Parse top-level declarations in any order
+        while (!at(TT::SEC_OPEN) && !at(TT::PROG_END) && !at(TT::EOF_T)) {
+            if (at(TT::ENUM)) {
+                parse_enum();
+            } else if (at(TT::DRIVER_KEYWORD)) {
+                p->drivers.push_back(parse_driver());
+            } else if (at(TT::EXTERN)) {
+                auto ext = parse_extern();
+                p->externs.push_back(std::unique_ptr<ExternDecl>(static_cast<ExternDecl*>(ext.release())));
+            } else if (at(TT::STRUCT)) {
+                p->structs.push_back(parse_struct());
+            } else if (at(TT::INTERRUPT)) {
+                p->interrupts.push_back(parse_interrupt());
+            } else if (at(TT::FN)) {
+                p->functions.push_back(parse_function());
+            } else if (at(TT::INCLUDE)) {
+                p->main_sec.push_back(parse_include());
+            } else {
+                adv();  // skip unknown token
+            }
         }
-        // Parse drivers (new syntax: driver name { type = keyboard })
-        while(at(TT::DRIVER_KEYWORD)) {
-            p->drivers.push_back(parse_driver());
-        }
-        while(at(TT::STRUCT))      p->structs.push_back(parse_struct());
-        while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
-        while(at(TT::FN))  p->functions.push_back(parse_function());
         if(at(TT::SEC_OPEN))     p->main_sec.push_back(parse_section());
         if (!is_library) {
             expect(TT::PROG_END,"file must end with '#Mainprogramm.end'");
         }
         if(at(TT::DRIVER_STOP)) adv();  // Optional #DRIVER.stop
         return p;
+    }
+
+    NodePtr parse_extern() {
+        expect(TT::EXTERN, "expected 'extern'");
+        auto e = std::make_unique<ExternDecl>();
+        e->name = cur().val;
+        expect(TT::IDENT, "expected function name");
+        // Optional: extern name from "library"
+        if (at(TT::FROM)) {
+            adv();
+            if (at(TT::STR_LIT)) {
+                e->library = cur().val;
+                adv();
+            }
+        }
+        return e;
+    }
+
+    NodePtr parse_include() {
+        expect(TT::INCLUDE, "expected 'include'");
+        auto i = std::make_unique<IncludeNode>();
+        i->path = cur().val;
+        if (at(TT::STR_LIT)) {
+            i->path = cur().val;
+            adv();
+        } else {
+            expect(TT::IDENT, "expected include path");
+        }
+        return i;
+    }
+
+    NodePtr parse_switch() {
+        expect(TT::SWITCH, "expected 'switch'");
+        auto s = std::make_unique<SwitchNode>();
+        s->value = cur().val;
+        adv();
+        expect(TT::LBRACE, "expected '{'");
+        
+        while (!at(TT::RBRACE) && !at(TT::EOF_T)) {
+            if (at(TT::CASE)) {
+                adv();  // consume 'case'
+                std::string case_val = cur().val;
+                adv();
+                expect(TT::COLON, "expected ':'");
+                NodeList body;
+                while (!at(TT::CASE) && !at(TT::DEFAULT) && !at(TT::RBRACE) && !at(TT::EOF_T)) {
+                    auto stmt = parse_stmt();
+                    if (stmt) body.push_back(std::move(stmt));
+                }
+                s->cases.push_back({case_val, std::move(body)});
+            } else if (at(TT::DEFAULT)) {
+                adv();  // consume 'default'
+                expect(TT::COLON, "expected ':'");
+                while (!at(TT::CASE) && !at(TT::RBRACE) && !at(TT::EOF_T)) {
+                    auto stmt = parse_stmt();
+                    if (stmt) s->default_body.push_back(std::move(stmt));
+                }
+            } else {
+                adv();
+            }
+        }
+        expect(TT::RBRACE, "expected '}'");
+        return s;
     }
 };

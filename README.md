@@ -1,11 +1,13 @@
-# Defacto v0.45 (alpha)
+# Defacto v0.46 (alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 
-**What's new in v0.45:**
-- Clean syntax only - old deprecated syntax removed
-- No backward compatibility - only new fn, driver, for..to syntax
-- Simplified codebase - removed legacy parser code
+**What's new in v0.46:**
+- **Arrays in structs** — `struct Buffer { data: u8[256] }`
+- **Switch/case statements** — `switch x { case 1: ... default: ... }`
+- **Extern functions** — `extern printf` for C library integration
+- **Include files** — `include "path.de"` for code modularization
+- **Compile-time constants** — const expressions evaluated at compile-time
 
 ## Repository contents
 
@@ -229,7 +231,7 @@ Rules:
 - `const` arrays are not supported.
 - `const` values must be initialized.
 
-### Structs (v0.30+)
+### Structs
 
 Define custom data structures:
 
@@ -244,6 +246,18 @@ var p: Point
 p.x = 10
 p.y = 20
 p.z = 30
+```
+
+**Arrays in structs (v0.46+):**
+
+```de
+struct Buffer {
+    data: u8[256]
+    size: i32
+}
+
+var buf: Buffer
+buf.size = 10
 ```
 
 Rules:
@@ -341,6 +355,19 @@ loop {
 }
 ```
 
+#### Switch/Case (v0.46+)
+
+```de
+switch x {
+    case 1:
+        display{"one"}
+    case 5:
+        display{"five"}
+    default:
+        display{"other"}
+}
+```
+
 ### Functions
 
 ```de
@@ -384,6 +411,16 @@ call #mouse
 ```
 
 Supported driver types: `keyboard`, `mouse`, `volume`
+
+### Extern Functions (v0.46+)
+
+Call C library functions:
+
+```de
+extern printf
+extern malloc
+extern free
+```
 
 ### Builtins
 

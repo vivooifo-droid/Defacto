@@ -27,8 +27,8 @@ enum class TT {
     PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT, DRIVER, DRIVER_STOP,
     SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
     VAR, CONST, CONST_DRIVER, FUNCTION, FN, DRIVER_KEYWORD, CALL, LOOP, IF, ELSE, STOP, DISPLAY, PRINTNUM, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
-    IMPORT, RETURN, WHILE, FOR, TO, ENUM, TRY, CATCH,
-    STRUCT, CONTINUE,
+    IMPORT, INCLUDE, FROM, RETURN, WHILE, FOR, TO, ENUM, TRY, CATCH, SWITCH, CASE, DEFAULT,
+    STRUCT, CONTINUE, EXTERN,
     MOV, REG_STATIC, REG_STOP,
     I32, I64, U8, STR, PTR, BOOL,
     TRUE, FALSE,
@@ -55,11 +55,12 @@ enum class NT {
     PROGRAM, SECTION, VAR_DECL, FUNC_DECL, FUNC_CALL,
     ASSIGN, LOOP, WHILE, FOR, IF_STMT, REG_OP, DISPLAY, PRINTNUM, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
     RETURN, CONTINUE_STMT,
-    IMPORT,
-    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL, DRIVER_DECL,
+    IMPORT, INCLUDE,
+    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL, DRIVER_DECL, EXTERN_DECL,
     STRUCT_DECL, STRUCT_FIELD_ACCESS, ENUM_DECL,
     PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE,
-    ARRAY_INIT, LOGIC_EXPR
+    ARRAY_INIT, LOGIC_EXPR,
+    SWITCH_STMT, CASE_LABEL
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -78,6 +79,25 @@ struct StructDecl : Node {
     StructDecl() { kind = NT::STRUCT_DECL; }
 };
 
+// Switch/Case support
+struct SwitchNode : Node {
+    std::string value;  // value to switch on
+    std::vector<std::pair<std::string, NodeList>> cases;  // case value -> body
+    NodeList default_body;  // default case body
+    SwitchNode() { kind = NT::SWITCH_STMT; }
+};
+
+struct ExternDecl : Node {
+    std::string name;
+    std::string library;  // optional library name
+    ExternDecl() { kind = NT::EXTERN_DECL; }
+};
+
+struct IncludeNode : Node {
+    std::string path;
+    IncludeNode() { kind = NT::INCLUDE; }
+};
+
 // Driver support - must be before ProgramNode
 struct DriverDecl : Node {
     std::string name;
@@ -90,6 +110,7 @@ struct ProgramNode : Node {
     NodeList interrupts, functions, main_sec;
     std::vector<std::unique_ptr<StructDecl>> structs;
     std::vector<std::unique_ptr<DriverDecl>> drivers;  // New driver declarations
+    std::vector<std::unique_ptr<ExternDecl>> externs;  // Extern function declarations
     std::vector<std::string> imports;  // List of imported libraries
     ProgramNode() { kind = NT::PROGRAM; }
 };

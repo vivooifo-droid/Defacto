@@ -50,21 +50,27 @@ class Lexer {
         if(w=="const")         return TT::CONST;
         if(w=="Const.driver")  return TT::CONST_DRIVER;
         if(w=="function")      return TT::FUNCTION;
-        if(w=="fn")            return TT::FN;  // New simplified function keyword
-        if(w=="driver")        return TT::DRIVER_KEYWORD;  // New driver keyword
+        if(w=="fn")            return TT::FN;
+        if(w=="driver")        return TT::DRIVER_KEYWORD;
         if(w=="call")          return TT::CALL;
         if(w=="loop")          return TT::LOOP;
         if(w=="if")            return TT::IF;
         if(w=="else")          return TT::ELSE;
         if(w=="import")        return TT::IMPORT;
+        if(w=="include")       return TT::INCLUDE;
+        if(w=="from")          return TT::FROM;
         if(w=="return")        return TT::RETURN;
         if(w=="while")         return TT::WHILE;
         if(w=="for")           return TT::FOR;
-        if(w=="to")            return TT::TO;  // New for loop keyword
+        if(w=="to")            return TT::TO;
         if(w=="enum")          return TT::ENUM;
         if(w=="try")           return TT::TRY;
         if(w=="catch")         return TT::CATCH;
         if(w=="struct")        return TT::STRUCT;
+        if(w=="switch")        return TT::SWITCH;
+        if(w=="case")          return TT::CASE;
+        if(w=="default")       return TT::DEFAULT;
+        if(w=="extern")        return TT::EXTERN;
         if(w=="continue")      return TT::CONTINUE;
         if(w=="stop")          return TT::STOP;
         if(w=="display")       return TT::DISPLAY;
@@ -87,10 +93,10 @@ class Lexer {
         if(w=="null")          return TT::TOK_NULL;
         if(w=="alloc")         return TT::ALLOC;
         if(w=="dealloc")       return TT::DEALLOC;
-        if(w=="keyboard")      return TT::IDENT;  // Driver type
-        if(w=="mouse")         return TT::IDENT;  // Driver type
-        if(w=="volume")        return TT::IDENT;  // Driver type
-        if(w=="type")          return TT::TYPE;  // Driver type keyword
+        if(w=="keyboard")      return TT::IDENT;
+        if(w=="mouse")         return TT::IDENT;
+        if(w=="volume")        return TT::IDENT;
+        if(w=="type")          return TT::TYPE;
         return TT::IDENT;
     }
 
