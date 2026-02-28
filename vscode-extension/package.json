@@ -1,12 +1,12 @@
 {
   "name": "defacto-lang",
   "displayName": "Defacto Language",
-  "description": "Syntax highlighting and language support for the Defacto programming language (.de, .defacto, .def, .defo)",
-  "version": "0.30.0",
+  "description": "Syntax highlighting and language support for the Defacto programming language (.de, .defacto, .def, .defo) - v0.40",
+  "version": "0.40.0",
   "publisher": "defacto",
   "engines": { "vscode": "^1.75.0" },
   "categories": ["Programming Languages"],
-  "icon": "icons/defacto-icon.svg",
+  "icon": "icons/defacto-icon-v040.svg",
   "repository": {
     "type": "git",
     "url": "https://github.com/vivooifo-droid/Defacto"
@@ -19,8 +19,8 @@
         "extensions": [".de", ".defacto", ".def", ".defo"],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./icons/defacto-icon.svg",
-          "dark":  "./icons/defacto-icon.svg"
+          "light": "./icons/defacto-icon-v040.svg",
+          "dark":  "./icons/defacto-icon-v040.svg"
         }
       }
     ],
