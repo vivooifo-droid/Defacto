@@ -26,8 +26,8 @@ inline void warn(const std::string& msg, int line = -1) {
 enum class TT {
     PROG_START, PROG_END, NO_RUNTIME, SAFE, INTERRUPT, DRIVER, DRIVER_STOP,
     SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
-    VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, ELSE, STOP, DISPLAY, PRINTNUM, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
-    IMPORT, RETURN, WHILE, FOR, ENUM, TRY, CATCH,
+    VAR, CONST, CONST_DRIVER, FUNCTION, FN, DRIVER_KEYWORD, CALL, LOOP, IF, ELSE, STOP, DISPLAY, PRINTNUM, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
+    IMPORT, RETURN, WHILE, FOR, TO, ENUM, TRY, CATCH,
     STRUCT, CONTINUE,
     MOV, REG_STATIC, REG_STOP,
     I32, I64, U8, STR, PTR, BOOL,
@@ -39,7 +39,7 @@ enum class TT {
     DRV_FUNC_ASSIGN, DRV_CALL, DRV_CALL_NOT,
     AMP, STAR, TOK_NULL, ALLOC, DEALLOC,
     LOGIC_AND, LOGIC_OR, LOGIC_NOT,
-    ARROW,
+    ARROW, TYPE,
     EOF_T
 };
 
@@ -56,7 +56,7 @@ enum class NT {
     ASSIGN, LOOP, WHILE, FOR, IF_STMT, REG_OP, DISPLAY, PRINTNUM, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
     RETURN, CONTINUE_STMT,
     IMPORT,
-    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL,
+    DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL, DRIVER_DECL,
     STRUCT_DECL, STRUCT_FIELD_ACCESS, ENUM_DECL,
     PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE,
     ARRAY_INIT, LOGIC_EXPR
@@ -78,10 +78,18 @@ struct StructDecl : Node {
     StructDecl() { kind = NT::STRUCT_DECL; }
 };
 
+// Driver support - must be before ProgramNode
+struct DriverDecl : Node {
+    std::string name;
+    std::string type;  // keyboard, mouse, volume
+    DriverDecl() { kind = NT::DRIVER_DECL; }
+};
+
 struct ProgramNode : Node {
     bool no_runtime = false, safe = false;
     NodeList interrupts, functions, main_sec;
     std::vector<std::unique_ptr<StructDecl>> structs;
+    std::vector<std::unique_ptr<DriverDecl>> drivers;  // New driver declarations
     std::vector<std::string> imports;  // List of imported libraries
     ProgramNode() { kind = NT::PROGRAM; }
 };

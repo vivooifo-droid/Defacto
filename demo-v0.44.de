@@ -1,0 +1,123 @@
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Defacto v0.44 Feature Demo
+// Shows all new features: mixed declarations, fn keyword, for..to, comparison operators
+
+struct Point {
+    x: i32
+    y: i32
+}
+
+fn compare_demo {
+    <.de
+        var a: i32 = 10
+        var b: i32 = 20
+        var msg: string = "a == b"
+        var msg2: string = "a != b"
+        var msg3: string = "a < b"
+        var msg4: string = "a > b"
+        var msg5: string = "a <= b"
+        var msg6: string = "a >= b"
+        
+        // All comparison operators now work!
+        if a == b {
+            display{msg}
+        }
+        
+        if a != b {
+            display{msg2}
+        }
+        
+        if a < b {
+            display{msg3}
+        }
+        
+        if a > b {
+            display{msg4}
+        }
+        
+        if a <= b {
+            display{msg5}
+        }
+        
+        if a >= b {
+            display{msg6}
+        }
+    .>
+}
+
+fn for_loop_demo {
+    <.de
+        var i: i32 = 0
+        
+        // New simplified for loop syntax
+        for i = 0 to 5 {
+            display{i}
+        }
+        
+        // Old syntax still works
+        for i = 10; i > 0; i = (i - 1) {
+            display{i}
+        }
+    .>
+}
+
+fn nested_expr_demo {
+    <.de
+        var a: i32 = 5
+        var b: i32 = 3
+        var c: i32 = 2
+        var result: i32 = 0
+        
+        // Complex nested expressions
+        result = (a + b + c)
+        display{result}
+        
+        result = ((a + b) * c)
+        display{result}
+        
+        result = (a * b) + (c * c)
+        display{result}
+    .>
+}
+
+fn mixed_decl_demo {
+    <.de
+        // Declarations can be mixed with statements
+        var x: i32 = 0
+        x = (x + 1)
+        
+        var y: i32 = 10
+        y = (y * 2)
+        
+        var z: i32 = 0
+        z = (x + y)
+        display{z}
+    .>
+}
+
+fn main {
+    <.de
+        var title: string = "=== Defacto v0.44 Demo ==="
+        
+        display{title}
+        
+        display{"--- Comparison Operators ---"}
+        call #compare_demo
+        
+        display{"--- For Loop ---"}
+        call #for_loop_demo
+        
+        display{"--- Nested Expressions ---"}
+        call #nested_expr_demo
+        
+        display{"--- Mixed Declarations ---"}
+        call #mixed_decl_demo
+        
+        display{"=== Demo Complete ==="}
+    .>
+}
+
+#Mainprogramm.end

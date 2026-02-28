@@ -1,19 +1,16 @@
-# Defacto v0.43 (pre-alpha)
+# Defacto v0.44 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
-Pre-alpha status: the language and toolchain are unstable and will change.
+Pre-alpha status: the language toolchain are unstable and will change.
+
+**What's new in v0.44:**
+- **No more static.pl>** — Declarations and statements can be mixed freely in sections
+- **Simplified function syntax** — `fn name { }` or `fn name(param: type) { }`
+- **For loop with `to`** — `for i = 0 to 10 { }` (old syntax still supported)
+- **Full comparison operators** — `==`, `!=`, `<`, `>`, `<=`, `>=` all work now
+- **Backward compatible** — Old syntax (`function ==`, `static.pl>`) still works
 
 **What's new in v0.43:**
-- **Complex expressions** — `a + b + c`, `(a * b) + c`, nested expressions
-- **Negative literals** — `-1`, `-42` directly supported
-- **Bool type** — `var flag: bool = true/false`
-- **Logical operators** — `&&`, `||`, `!` for boolean logic
-- **Continue statement** — `continue` in loops
-- **Enum support** — `enum Name { A, B, C }`
-- **Array initialization** — `var arr: i32[5] = [1, 2, 3, 4, 5]`
-- **Function parameters** — Functions can now accept parameters (parser support)
-
-**What's new in v0.42:**
 - **Pointer bug fixes** — Fixed lexer, parser, and codegen for pointers
 - **Dereference assignment** — `*ptr = value` now works correctly
 - **64-bit macOS support** — Proper pointer handling in terminal mode
@@ -215,6 +212,20 @@ All code must be inside sections:
 <.de
     var x: i32 = 0
     var msg: string = "hello"
+    
+    display{msg}
+    x = (x + 1)
+.>
+```
+
+**New in v0.44:** Declarations and statements can be mixed freely. The `static.pl>` separator is now optional.
+
+**Backward compatible:** You can still use `static.pl>` if you prefer:
+
+```de
+<.de
+    var x: i32 = 0
+    var msg: string = "hello"
 
     static.pl>
 
@@ -225,9 +236,9 @@ All code must be inside sections:
 
 Rules:
 
-- Before `static.pl>` only `var` and `const` are allowed.
-- After `static.pl>` only statements are allowed.
+- Variables (`var`) and constants (`const`) can be declared anywhere in the section (v0.44+)
 - `.>` closes the section.
+- `static.pl>` is optional for backward compatibility.
 
 ### Types and variables
 
@@ -284,21 +295,23 @@ Rules:
 
 ### Expressions
 
-Only simple expressions are supported:
+**New in v0.44:** Full nested expressions are supported:
 
 ```de
-x = (a + b)
-x = (x - 1)
-x = (x * 2)
-x = (x / 4)
+x = (a + b + c)
+x = ((a + b) * c)
+x = -5
+result = (a * b) + (c / d)
 ```
 
-Limitations:
+Supported operators:
 
-- Exactly one operator per expression.
-- No nested expressions like `(a + b + c)`.
-- Negative literals are not supported. Use `(0 - 1)` or a temp variable.
-- Array access in expressions must use `arr[idx]` with `idx` as number, variable, or register.
+| Operator | Description | Example |
+| --- | --- | --- |
+| `+` | Addition | `x = (a + b)` |
+| `-` | Subtraction | `x = (x - 1)` |
+| `*` | Multiplication | `x = (x * 2)` |
+| `/` | Division | `x = (x / 4)` |
 
 ### Statements
 
@@ -330,13 +343,86 @@ if x == y {
 }
 ```
 
+**New in v0.44:** All comparison operators are now supported:
+
+| Operator | Example | Description |
+| --- | --- | --- |
+| `==` | `if x == y` | Equal |
+| `!=` | `if x != y` | Not equal |
+| `<` | `if x < y` | Less than |
+| `>` | `if x > y` | Greater than |
+| `<=` | `if x <= y` | Less than or equal |
+| `>=` | `if x >= y` | Greater than or equal |
+
 Rules:
 
-- Only `==` is supported for comparison.
-- Left and right sides must be a single token (number, variable, register).
 - `else` block is optional.
 
+#### For Loop (v0.44+)
+
+**New syntax:**
+
+```de
+for i = 0 to 10 {
+    display{i}
+}
+```
+
+**Old syntax (still supported):**
+
+```de
+for i = 0; i < 10; i = (i + 1) {
+    display{i}
+}
+```
+
+#### While Loop
+
+```de
+while x < y {
+    x = (x + 1)
+}
+```
+
+#### Loop
+
+```de
+loop {
+    if x == 10 { stop }
+}
+```
+
 ### Functions
+
+**New in v0.44:** Simplified function syntax with `fn`:
+
+```de
+fn my_func {
+    <.de
+        var a: i32 = 0
+        a = (a + 1)
+        display{a}
+    .>
+}
+
+call #my_func
+```
+
+**With parameters:**
+
+```de
+fn add(a: i32, b: i32) {
+    <.de
+        var result: i32 = 0
+        result = (a + b)
+        display{result}
+    .>
+}
+
+call #add
+```
+
+**Old syntax (still supported):**
 
 ```de
 function == my_func {
@@ -352,8 +438,22 @@ call #my_func
 
 ### Drivers
 
-Define and use hardware drivers:
+**New in v0.44:** Simplified driver syntax!
 
+**New syntax:**
+```de
+driver keyboard {
+    type = keyboard
+}
+
+// Or even simpler - type inferred from name:
+driver mouse
+
+call #keyboard
+call #mouse
+```
+
+**Old syntax (still supported):**
 ```de
 <drv.
 Const.driver = keyboard_driver
@@ -435,11 +535,15 @@ var msg: string = "Hello\nWorld"
 
 ## Limitations
 
-- Only `==` in `if` conditions.
-- One operator per expression.
-- No negative number literals.
-- No expression indexes in arrays.
-- Interrupt directives are parsed but not generated.
+**Fixed in v0.44:**
+- ✅ All comparison operators now work: `==`, `!=`, `<`, `>`, `<=`, `>=`
+- ✅ Nested expressions are supported: `(a + b + c)`, `((a + b) * c)`
+- ✅ Negative literals are supported: `-1`, `-42`
+- ✅ `static.pl>` is now optional
+
+**Remaining limitations:**
+- No expression indexes in arrays: `arr[i + 1]` not supported
+- Interrupt directives are parsed but not generated
 
 ## Addons
 

@@ -2,22 +2,22 @@
 #NO_RUNTIME
 #SAFE
 
-<drv.
-Const.driver = keyboard_driver
-keyboard_driver <<func = keyboard>>
-.dr>
+// Новый синтаксис драйверов в Defacto v0.44+
+driver keyboard {
+    type = keyboard
+}
 
-<.de
-    var key: i32 = 0
-    var msg: string = "Press a key"
+fn main {
+    <.de
+        var key: i32 = 0
+        var msg: string = "Press a key"
+        var prompt: string = "You pressed: "
 
-    static.pl>
-
-    display{msg}
-
-    call #keyboard_driver
-
-    display{key}
-.>
+        display{msg}
+        call #keyboard
+        display{prompt}
+        display{key}
+    .>
+}
 
 #Mainprogramm.end

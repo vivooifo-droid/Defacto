@@ -1,4 +1,4 @@
-# Defacto v0.30 — Полная документация по синтаксису
+# Defacto v0.44 — Полная документация по синтаксису
 
 ## Оглавление
 
@@ -34,23 +34,21 @@ struct MyStruct {
     field: i32
 }
 
+// Новый синтаксис драйверов (v0.44+)
+driver keyboard {
+    type = keyboard
+}
 
-<drv.
-Const.driver = keyboard_driver
-keyboard_driver <<func = keyboard>>
-.dr>
-
-
-function == my_func {
+fn my_func {
     <.de
-
+        var x: i32 = 0
+        x = (x + 1)
     .>
 }
 
 
 <.de
     var x: i32 = 0
-    static.pl>
     display{x}
 .>
 
@@ -62,7 +60,7 @@ function == my_func {
 1. Директивы (`#NO_RUNTIME`, `#SAFE`)
 2. Структуры (`struct`)
 3. Драйверы (`<drv.` ... `.dr>`)
-4. Функции (`function ==`)
+4. Функции (`fn` или `function ==`)
 5. Основная секция (`<.de` ... `.>`)
 6. Завершающая директива (`#Mainprogramm.end`)
 
@@ -99,30 +97,46 @@ function == my_func {
 
 Вся исполняемая программа должна быть внутри этой секции.
 
+**Новое в v0.44:** Объявления и инструкции можно смешивать свободно:
+
 ```de
 <.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    
+    display{msg}
+    x = (x + 1)
+    
+    var y: i32 = 10  // Можно объявлять переменные в любом месте
+    y = (y * 2)
+.>
+```
 
+**Обратная совместимость:** `static.pl>` всё ещё работает:
+
+```de
+<.de
     var x: i32 = 0
     var msg: string = "hello"
 
-
     static.pl>
-
 
     display{msg}
     x = (x + 1)
 .>
 ```
 
-### Правило двух частей
+### Правило двух частей (устарело в v0.44+)
 
-Секция делится на две части через `static.pl>`:
+Раньше секция делилась на две части через `static.pl>`:
 
 | До `static.pl>` | После `static.pl>` |
 | --- | --- |
 | Только `var` и `const` | Только инструкции |
 | Объявления переменных | Вызовы функций, присваивания |
 | Нет исполняемого кода | Нет объявлений |
+
+**В v0.44+:** Это ограничение снято.
 
 ---
 
@@ -249,6 +263,17 @@ Player (16 байт):
 
 ## Выражения
 
+### Новое в v0.44
+
+**Полная поддержка сложных выражений:**
+
+```de
+x = (a + b + c)
+x = ((a + b) * c)
+x = -5
+result = (a * b) + (c / d)
+```
+
 ### Поддерживаемые операторы
 
 | Оператор | Описание | Пример |
@@ -260,22 +285,21 @@ Player (16 байт):
 
 ### Правила выражений
 
-```de
+**v0.44+:**
+- ✅ Вложенные выражения поддерживаются
+- ✅ Отрицательные литералы поддерживаются
+- ✅ Несколько операторов в одном выражении
 
+```de
 x = (a + b)
 x = (x * 2)
-x = (0 - 1)
-
-
-x = (a + b + c)
-x = ((a + b) * c)
-x = -5
+x = -5  // Отрицательный литерал
+result = (a + b + c)  // Несколько операторов
 ```
 
 ### Присваивание выражений
 
 ```de
-
 result = (a + b)
 ```
 
@@ -324,18 +348,15 @@ loop {
 ### Условие `if/else`
 
 ```de
-
 if x == 10 {
     display{msg}
 }
-
 
 if x == 10 {
     display{msg}
 } else {
     display{err}
 }
-
 
 if x == 1 {
     if y == 2 {
@@ -344,21 +365,60 @@ if x == 1 {
 }
 ```
 
-**Операторы сравнения:**
+**Операторы сравнения (v0.44+):**
 
-| Оператор | Поддержка |
-| --- | --- |
-| `==` | ✅ Да |
-| `!=` | ❌ Нет |
-| `<` | ❌ Нет |
-| `>` | ❌ Нет |
-| `<=` | ❌ Нет |
-| `>=` | ❌ Нет |
+| Оператор | Пример | Описание |
+| --- | --- | --- |
+| `==` | `if x == y` | Равно |
+| `!=` | `if x != y` | Не равно |
+| `<` | `if x < y` | Меньше |
+| `>` | `if x > y` | Больше |
+| `<=` | `if x <= y` | Меньше или равно |
+| `>=` | `if x >= y` | Больше или равно |
 
 **Правила:**
-- Только `==` поддерживается
-- Слева и справа: число, переменная или регистр
-- Нет `elseif`
+- `else` блок опционален
+- Все операторы сравнения поддерживаются
+
+### Цикл `for` (v0.44+)
+
+**Новый синтаксис:**
+
+```de
+for i = 0 to 10 {
+    display{i}
+}
+```
+
+**Старый синтаксис (всё ещё работает):**
+
+```de
+for i = 0; i < 10; i = (i + 1) {
+    display{i}
+}
+```
+
+### Цикл `while`
+
+```de
+while x < y {
+    x = (x + 1)
+}
+```
+
+### Цикл `loop`
+
+```de
+loop {
+    counter = (counter - 1)
+    
+    if counter == 0 { stop }
+}
+```
+
+**Правила:**
+- `loop` создаёт бесконечный цикл
+- `stop` выходит из цикла
 
 ### `stop`
 
@@ -374,7 +434,37 @@ loop {
 
 ## Функции
 
-### Объявление функции
+### Объявление функции (v0.44+)
+
+**Новый упрощённый синтаксис:**
+
+```de
+fn my_func {
+    <.de
+        var a: i32 = 0
+        a = (a + 1)
+        display{a}
+    .>
+}
+
+call #my_func
+```
+
+**С параметрами:**
+
+```de
+fn add(a: i32, b: i32) {
+    <.de
+        var result: i32 = 0
+        result = (a + b)
+        display{result}
+    .>
+}
+
+call #add
+```
+
+**Старый синтаксис (всё ещё работает):**
 
 ```de
 function == my_func {
@@ -382,9 +472,10 @@ function == my_func {
         var a: i32 = 0
         static.pl>
         a = (a + 1)
-        display{a}
     .>
 }
+
+call #my_func
 ```
 
 ### Вызов функции
@@ -404,16 +495,45 @@ call #my_func
 
 ## Драйверы
 
-### Определение драйвера
+### Новый синтаксис (v0.44+)
+
+**Простое объявление:**
+```de
+driver keyboard
+
+call #keyboard
+```
+
+**С явным указанием типа:**
+```de
+driver keyboard {
+    type = keyboard
+}
+
+call #keyboard
+```
+
+**Своё имя с типом:**
+```de
+driver my_keyboard {
+    type = keyboard
+}
+
+call #my_keyboard
+```
+
+### Старый синтаксис (всё ещё работает)
 
 ```de
 <drv.
 Const.driver = keyboard_driver
 keyboard_driver <<func = keyboard>>
 .dr>
+
+call #keyboard_driver
 ```
 
-### Компоненты
+### Компоненты старого синтаксиса
 
 | Часть | Описание |
 | --- | --- |
@@ -432,7 +552,8 @@ keyboard_driver <<func = keyboard>>
 ### Вызов драйвера
 
 ```de
-call #keyboard_driver
+call #keyboard       // Новый синтаксис
+call #keyboard_driver // Старый синтаксис
 ```
 
 ### Встроенные драйверы
@@ -602,17 +723,25 @@ var with_tab: string = "Col1\tCol2"
 
 ## Ограничения языка
 
+### Исправлено в v0.44
+
+✅ **Все операторы сравнения работают:** `==`, `!=`, `<`, `>`, `<=`, `>=`
+
+✅ **Вложенные выражения поддерживаются:** `(a + b + c)`, `((a + b) * c)`
+
+✅ **Отрицательные литералы поддерживаются:** `-5`, `-42`
+
+✅ **`static.pl>` теперь опционален**
+
 ### Выражения
 
-- ❌ Только один оператор на выражение
-- ❌ Нет вложенных выражений: `(a + b + c)`
-- ❌ Нет отрицательных литералов: `-5`
-- ✅ Используйте: `(0 - 5)`
+- ✅ Вложенные выражения: `(a + b + c)`
+- ✅ Отрицательные литералы: `-5`
+- ✅ Несколько операторов в выражении
 
 ### Условия
 
-- ❌ Только `==` поддерживается
-- ❌ Нет `!=`, `<`, `>`, `<=`, `>=`
+- ✅ Все операторы сравнения: `==`, `!=`, `<`, `>`, `<=`, `>=`
 - ❌ Нет `elseif`
 - ✅ `else` поддерживается
 
@@ -646,7 +775,6 @@ var with_tab: string = "Col1\tCol2"
 
 <.de
     var msg: string = "Hello, World!"
-    static.pl>
     display{msg}
 .>
 
@@ -665,16 +793,10 @@ var with_tab: string = "Col1\tCol2"
     var b: i32 = 5
     var result: i32 = 0
     static.pl>
-    
+
     result = (a + b)
-
-    
     result = (a - b)
-
-    
     result = (a * b)
-
-    
     result = (a / b)
 
 .>
@@ -699,23 +821,20 @@ struct Player {
 <.de
     var player: Player
     static.pl>
-    
+
     player.x = 100
     player.y = 200
     player.health = 100
     player.score = 0
-    
 
     player.health = (player.health - 10)
-    
-
     player.score = (player.score + 100)
 .>
 
 #Mainprogramm.end
 ```
 
-### if/else
+### if/else со всеми операторами сравнения
 
 ```de
 #Mainprogramm.start
@@ -727,11 +846,38 @@ struct Player {
     var msg: string = "equal"
     var err: string = "not equal"
     static.pl>
-    
+
     if x == 5 {
         display{msg}
     } else {
         display{err}
+    }
+    
+    if x != 10 {
+        display{"x is not 10"}
+    }
+    
+    if x > 3 {
+        display{"x is greater than 3"}
+    }
+.>
+
+#Mainprogramm.end
+```
+
+### for цикл
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var i: i32 = 0
+    static.pl>
+
+    for i = 0 to 10 {
+        display{i}
     }
 .>
 
@@ -760,6 +906,30 @@ struct Player {
 
 ### Драйвер клавиатуры
 
+**Новый синтаксис (v0.44+):**
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+driver keyboard {
+    type = keyboard
+}
+
+<.de
+    var key: i32 = 0
+    var msg: string = "Press a key"
+
+    display{msg}
+    call #keyboard
+    readkey{key}
+    display{key}
+.>
+
+#Mainprogramm.end
+```
+
+**Старый синтаксис (всё ещё работает):**
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
@@ -773,7 +943,7 @@ keyboard_driver <<func = keyboard>>
 <.de
     var key: i32 = 0
     static.pl>
-    
+
     call #keyboard_driver
     readkey{key}
     display{key}

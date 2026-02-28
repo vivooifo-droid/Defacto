@@ -50,6 +50,8 @@ class Lexer {
         if(w=="const")         return TT::CONST;
         if(w=="Const.driver")  return TT::CONST_DRIVER;
         if(w=="function")      return TT::FUNCTION;
+        if(w=="fn")            return TT::FN;  // New simplified function keyword
+        if(w=="driver")        return TT::DRIVER_KEYWORD;  // New driver keyword
         if(w=="call")          return TT::CALL;
         if(w=="loop")          return TT::LOOP;
         if(w=="if")            return TT::IF;
@@ -58,6 +60,7 @@ class Lexer {
         if(w=="return")        return TT::RETURN;
         if(w=="while")         return TT::WHILE;
         if(w=="for")           return TT::FOR;
+        if(w=="to")            return TT::TO;  // New for loop keyword
         if(w=="enum")          return TT::ENUM;
         if(w=="try")           return TT::TRY;
         if(w=="catch")         return TT::CATCH;
@@ -87,6 +90,7 @@ class Lexer {
         if(w=="keyboard")      return TT::IDENT;  // Driver type
         if(w=="mouse")         return TT::IDENT;  // Driver type
         if(w=="volume")        return TT::IDENT;  // Driver type
+        if(w=="type")          return TT::TYPE;  // Driver type keyword
         return TT::IDENT;
     }
 

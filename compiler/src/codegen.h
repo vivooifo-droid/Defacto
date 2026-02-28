@@ -1009,14 +1009,26 @@ class CodeGen {
     void gen_for(ForNode* f){
         std::string fs=lbl("for_s"), fe=lbl("for_e");
         // Init: var = value
-        auto it=var_lbl.find(f->init_var);
-        if(it==var_lbl.end()) throw std::runtime_error("undefined variable '"+f->init_var+"'");
-        if(is_num(f->init_value)) code<<"    mov dword ["<<addr(it->second)<<"], "<<f->init_value<<"\n";
-        else {
-            load("eax", f->init_value);
-            code<<"    mov dword ["<<addr(it->second)<<"], eax\n";
+        // Check if variable exists, if not create it (for new "for i = 0 to 10" syntax)
+        auto it = var_lbl.find(f->init_var);
+        if (it == var_lbl.end()) {
+            // Variable not declared, create it automatically
+            std::string lb = "var_" + f->init_var;
+            var_lbl[f->init_var] = lb;
+            var_type[f->init_var] = "i32";
+            var_is_ptr[f->init_var] = false;
+            var_on_heap[f->init_var] = false;
+            data << "    " << lb << ": dd " << f->init_value << "\n";
+            it = var_lbl.find(f->init_var);
+        } else {
+            // Variable exists, assign init_value
+            if (is_num(f->init_value)) code << "    mov dword [" << addr(it->second) << "], " << f->init_value << "\n";
+            else {
+                load("eax", f->init_value);
+                code << "    mov dword [" << addr(it->second) << "], eax\n";
+            }
         }
-        code<<fs<<":\n";
+        code << fs << ":\n";
         // Check condition
         load("eax", f->cond_left);
         if(is_num(f->cond_right)) code<<"    cmp eax, "<<f->cond_right<<"\n";
@@ -1211,6 +1223,49 @@ class CodeGen {
         for(auto& st:s->stmts) gen_stmt(st.get());
     }
 
+    void gen_driver(DriverDecl* d){
+        // Generate driver declaration (new syntax)
+        // Register driver name so it can be called
+        driver_constants.insert(d->name);
+        
+        std::string driver_type = d->type;
+        // Remove # prefix if present
+        if (!driver_type.empty() && driver_type[0] == '#') {
+            driver_type = driver_type.substr(1);
+        }
+
+        // Generate built-in driver routines based on type
+        std::string label = "__defacto_drv_" + d->name;
+        code << "\n" << label << ":\n";
+        code << "    ; Driver: " << d->name << " (type: " << driver_type << ")\n";
+        
+        if (!bare_metal) {
+            // Terminal mode: stub - no hardware access
+            code << "    ret\n";
+        } else {
+            // Bare-metal mode: call init routine
+            if (driver_type == "keyboard") {
+                code << "    pushad\n";
+                code << "    call _init_keyboard\n";
+                code << "    popad\n";
+                code << "    ret\n";
+            } else if (driver_type == "mouse") {
+                code << "    pushad\n";
+                code << "    call _init_mouse\n";
+                code << "    popad\n";
+                code << "    ret\n";
+            } else if (driver_type == "volume") {
+                code << "    pushad\n";
+                code << "    call _init_speaker\n";
+                code << "    popad\n";
+                code << "    ret\n";
+            } else {
+                // Unknown driver type - just return
+                code << "    ret\n";
+            }
+        }
+    }
+
     void gen_driver_section(DriverSectionNode* s){
         // Register driver constant so it doesn't need to be freed
         if (!s->driver_name.empty()) {
@@ -1330,7 +1385,12 @@ public:
         // Generate struct definitions first
         for(auto& s:prog->structs) gen_struct(s.get());
 
-        // Generate driver code first if present
+        // Generate driver declarations (new syntax)
+        for(auto& d:prog->drivers) {
+            gen_driver(d.get());
+        }
+
+        // Generate driver code first if present (old syntax)
         for(auto& s:prog->main_sec) {
             if (s->kind == NT::DRIVER_SECTION) {
                 gen_driver_section(static_cast<DriverSectionNode*>(s.get()));
