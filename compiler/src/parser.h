@@ -383,56 +383,21 @@ class Parser {
         if (at(TT::FOR)) {
             adv();
             auto n = std::make_unique<ForNode>();
-            // New syntax: for i = 0 to 10 { }
-            // Old syntax: for i = 0; i < 10; i = (i + 1) { }
+            // Syntax: for i = 0 to 10 { }
             n->init_var = cur().val;
             adv();
             expect(TT::EQ, "expected '='");
             n->init_value = cur().val;
             adv();
+            expect(TT::TO, "expected 'to' - old for syntax with ';' is no longer supported");
+            n->cond_left = n->init_var;
+            n->cond_op = "<";
+            n->cond_right = cur().val;
+            adv();  // consume the limit value
+            // Step is always i = (i + 1)
+            n->step_var = n->init_var;
+            n->step_value = "(" + n->init_var + "+1)";
 
-            // Check for 'to' keyword (new syntax)
-            if (at(TT::TO)) {
-                adv();  // consume 'to'
-                n->cond_left = n->init_var;
-                n->cond_op = "<";
-                n->cond_right = cur().val;
-                adv();  // consume the limit value (e.g., 10)
-                // Step is always i = (i + 1) for now
-                n->step_var = n->init_var;
-                n->step_value = "(" + n->init_var + "+1)";
-            } else {
-                // Old syntax: for i = 0; i < 10; i = (i + 1) { }
-                expect(TT::SEMICOLON, "expected ';'");
-                // Condition: left op right
-                n->cond_left = cur().val;
-                adv();
-                n->cond_op = cur().val;
-                adv();
-                n->cond_right = cur().val;
-                adv();
-                expect(TT::SEMICOLON, "expected ';'");
-                // Step: var = (expression)
-                n->step_var = cur().val;
-                adv();
-                expect(TT::EQ, "expected '='");
-                // Parse step value - can be simple value or expression in parens
-                if (at(TT::LPAREN)) {
-                    // Expression: (i + 1)
-                    n->step_value = cur().val;  // '('
-                    adv();
-                    while (!at(TT::RPAREN) && !at(TT::EOF_T)) {
-                        n->step_value += cur().val;
-                        adv();
-                    }
-                    n->step_value += cur().val;  // ')'
-                    adv();
-                } else {
-                    // Simple value
-                    n->step_value = cur().val;
-                }
-            }
-            
             expect(TT::LBRACE, "expected '{'");
             while(!at(TT::RBRACE)&&!at(TT::EOF_T)) { auto s=parse_stmt(); if(s) n->body.push_back(std::move(s)); }
             expect(TT::RBRACE, "expected '}'");
@@ -551,9 +516,8 @@ class Parser {
     std::unique_ptr<SectionNode> parse_section() {
         expect(TT::SEC_OPEN, "expected '<.de'");
         auto s = std::make_unique<SectionNode>();
-        // New syntax: no static.pl> required - declarations and statements can be mixed
-        // But we still support static.pl> for backward compatibility
-        while (!at(TT::SEC_CLOSE) && !at(TT::EOF_T) && !at(TT::STATIC_PL)) {
+        // Declarations and statements can be mixed freely
+        while (!at(TT::SEC_CLOSE) && !at(TT::EOF_T)) {
             if (at(TT::VAR) || at(TT::CONST)) {
                 s->decls.push_back(parse_decl());
             } else if (at(TT::STRUCT) || at(TT::ENUM)) {
@@ -562,15 +526,6 @@ class Parser {
                     "struct/enum definitions are not allowed inside sections (at line " + std::to_string(cur().line) + ")");
             } else {
                 // Parse statement
-                auto st = parse_stmt();
-                if (st) s->stmts.push_back(std::move(st));
-            }
-        }
-        // Check for optional static.pl>
-        if (at(TT::STATIC_PL)) {
-            adv();  // consume 'static.pl>'
-            // After static.pl>, only statements are allowed
-            while (!at(TT::SEC_CLOSE) && !at(TT::EOF_T)) {
                 auto st = parse_stmt();
                 if (st) s->stmts.push_back(std::move(st));
             }
@@ -684,14 +639,7 @@ class Parser {
     }
 
     NodePtr parse_function() {
-        bool is_new_syntax = false;
-        if (at(TT::FN)) {
-            is_new_syntax = true;
-            adv();
-        } else {
-            expect(TT::FUNCTION, "expected 'function'");
-            expect(TT::EQEQ, "expected '=='");
-        }
+        expect(TT::FN, "expected 'fn'");
         auto n = std::make_unique<FuncDecl>();
         n->name = cur().val;
         adv();
@@ -724,17 +672,10 @@ class Parser {
             expect(TT::RPAREN, "expected ')' after parameters");
         }
         
-        if (is_new_syntax) {
-            // New syntax: fn name { <.de ... .> } or fn name(params) { <.de ... .> }
-            expect(TT::LBRACE, "expected '{' after function name");
-            n->body = parse_section();
-            expect(TT::RBRACE, "expected '}'");
-        } else {
-            // Old syntax: function == name { <.de ... .> }
-            expect(TT::LBRACE, "expected '{'");
-            n->body = parse_section();
-            expect(TT::RBRACE, "expected '}'");
-        }
+        // fn name { <.de ... .> }
+        expect(TT::LBRACE, "expected '{' after function name");
+        n->body = parse_section();
+        expect(TT::RBRACE, "expected '}'");
         return n;
     }
 
@@ -800,7 +741,7 @@ public:
             }
         } else {
             // For libraries, skip comments and whitespace until we find content
-            while(!at(TT::EOF_T) && !at(TT::FUNCTION) && !at(TT::FN) && !at(TT::STRUCT) && !at(TT::IMPORT)) {
+            while(!at(TT::EOF_T) && !at(TT::FN) && !at(TT::STRUCT) && !at(TT::IMPORT)) {
                 adv();
             }
             // Parse imports in library
@@ -825,8 +766,7 @@ public:
         }
         while(at(TT::STRUCT))      p->structs.push_back(parse_struct());
         while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
-        while(at(TT::FUNCTION) || at(TT::FN))  p->functions.push_back(parse_function());
-        if(at(TT::DRV_OPEN))     p->main_sec.push_back(parse_driver_section());
+        while(at(TT::FN))  p->functions.push_back(parse_function());
         if(at(TT::SEC_OPEN))     p->main_sec.push_back(parse_section());
         if (!is_library) {
             expect(TT::PROG_END,"file must end with '#Mainprogramm.end'");

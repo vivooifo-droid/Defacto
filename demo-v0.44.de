@@ -51,14 +51,13 @@ fn compare_demo {
 fn for_loop_demo {
     <.de
         var i: i32 = 0
-        
-        // New simplified for loop syntax
+
+        // For loop with 'to' keyword
         for i = 0 to 5 {
             display{i}
         }
-        
-        // Old syntax still works
-        for i = 10; i > 0; i = (i - 1) {
+
+        for i = 10 to 1 {
             display{i}
         }
     .>
