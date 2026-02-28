@@ -50,6 +50,52 @@ class Parser {
             return std::make_unique<ExprNode>("*" + ptr);
         }
 
+        // Handle logical NOT: !x
+        if (at(TT::LOGIC_NOT)) {
+            adv();
+            auto operand = parse_primary();
+            return std::make_unique<ExprNode>("!", std::move(operand), std::make_unique<ExprNode>("0"));
+        }
+
+        // Handle true/false literals
+        if (at(TT::TRUE)) {
+            adv();
+            return std::make_unique<ExprNode>("1");
+        }
+        if (at(TT::FALSE)) {
+            adv();
+            return std::make_unique<ExprNode>("0");
+        }
+
+        // Handle array initialization: [1, 2, 3]
+        if (at(TT::LBRACK)) {
+            adv();  // consume '['
+            std::string arr_init = "[";
+            bool first = true;
+            while (!at(TT::RBRACK) && !at(TT::EOF_T)) {
+                if (!first) arr_init += ",";
+                first = false;
+                if (at(TT::NUMBER) || at(TT::HEX) || at(TT::STR_LIT)) {
+                    arr_init += cur().val;
+                    adv();
+                } else if (at(TT::TRUE)) {
+                    arr_init += "1";
+                    adv();
+                } else if (at(TT::FALSE)) {
+                    arr_init += "0";
+                    adv();
+                } else if (at(TT::IDENT)) {
+                    arr_init += cur().val;
+                    adv();
+                } else {
+                    break;
+                }
+            }
+            arr_init += "]";
+            if (at(TT::RBRACK)) adv();  // consume ']'
+            return std::make_unique<ExprNode>(arr_init);
+        }
+
         // Handle parenthesized expressions
         if (at(TT::LPAREN)) {
             adv();  // consume '('
@@ -61,7 +107,7 @@ class Parser {
             return expr;
         }
 
-        // Handle negative numbers
+        // Handle negative numbers (unary minus)
         if (at(TT::MINUS)) {
             adv();
             std::string val = cur().val;
@@ -103,8 +149,44 @@ class Parser {
         return left;
     }
 
+    // Parse comparison operators (even lower precedence)
+    std::unique_ptr<ExprNode> parse_comparison() {
+        auto left = parse_additive();
+        while (at(TT::EQEQ) || at(TT::NEQ) || at(TT::LT) || at(TT::GT) || at(TT::LTE) || at(TT::GTE)) {
+            std::string op = cur().val;
+            adv();
+            auto right = parse_additive();
+            left = std::make_unique<ExprNode>(op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    // Parse logical AND (&&) - higher precedence than ||
+    std::unique_ptr<ExprNode> parse_logic_and() {
+        auto left = parse_comparison();
+        while (at(TT::LOGIC_AND)) {
+            std::string op = cur().val;
+            adv();
+            auto right = parse_comparison();
+            left = std::make_unique<ExprNode>(op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    // Parse logical OR (||) - lowest precedence
+    std::unique_ptr<ExprNode> parse_logic_or() {
+        auto left = parse_logic_and();
+        while (at(TT::LOGIC_OR)) {
+            std::string op = cur().val;
+            adv();
+            auto right = parse_logic_and();
+            left = std::make_unique<ExprNode>(op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
     std::unique_ptr<ExprNode> parse_expression() {
-        return parse_additive();
+        return parse_logic_or();
     }
     
     // Serialize expression AST to string for codegen
@@ -142,7 +224,7 @@ class Parser {
         }
         
         // Accept built-in types or struct names (IDENT)
-        if(at(TT::I32)||at(TT::I64)||at(TT::U8)||at(TT::STR)||at(TT::PTR)){
+        if(at(TT::I32)||at(TT::I64)||at(TT::U8)||at(TT::STR)||at(TT::PTR)||at(TT::BOOL)){
             type_str += cur().val;
             n->type = type_str;
             adv();
@@ -154,7 +236,7 @@ class Parser {
         } else {
             throw std::runtime_error("expected type at line "+std::to_string(cur().line));
         }
-        
+
         if(at(TT::LBRACK)) {
             if(is_const_decl) throw std::runtime_error("const arrays are not supported at line "+std::to_string(cur().line));
             adv();
@@ -168,6 +250,18 @@ class Parser {
             else if(at(TT::NUMBER))   { n->init=cur().val; adv(); }
             else if(at(TT::HEX))      { n->init=cur().val; adv(); }
             else if(at(TT::TOK_NULL))     { n->init="0"; adv(); }  // null initializer for pointers
+            else if(at(TT::TRUE))     { n->init="1"; adv(); }  // true for bool
+            else if(at(TT::FALSE))    { n->init="0"; adv(); }  // false for bool
+            else if(at(TT::MINUS)) {
+                // Negative number: var x: i32 = -42
+                adv();
+                if(at(TT::NUMBER)) {
+                    n->init = "-" + cur().val;
+                    adv();
+                } else {
+                    throw std::runtime_error("expected number after '-' at line " + std::to_string(cur().line));
+                }
+            }
             else if(at(TT::AMP)) {
                 // Address-of initializer: var ptr: *i32 = &x
                 adv();
@@ -181,6 +275,33 @@ class Parser {
                 if(!at(TT::IDENT)) throw std::runtime_error("expected variable name after '*' at line " + std::to_string(cur().line));
                 n->init = "*" + cur().val;
                 adv();
+            }
+            else if(at(TT::LBRACK)) {
+                // Array initializer: var arr: i32[5] = [1, 2, 3]
+                n->init = "[";
+                bool first = true;
+                adv();  // consume '['
+                while (!at(TT::RBRACK) && !at(TT::EOF_T)) {
+                    if (!first) n->init += ",";
+                    first = false;
+                    if (at(TT::NUMBER) || at(TT::HEX) || at(TT::STR_LIT)) {
+                        n->init += cur().val;
+                        adv();
+                    } else if (at(TT::TRUE)) {
+                        n->init += "1";
+                        adv();
+                    } else if (at(TT::FALSE)) {
+                        n->init += "0";
+                        adv();
+                    } else if (at(TT::IDENT)) {
+                        n->init += cur().val;
+                        adv();
+                    } else {
+                        break;
+                    }
+                }
+                n->init += "]";
+                if (at(TT::RBRACK)) adv();
             }
             else throw std::runtime_error("expected initializer at line "+std::to_string(cur().line));
         }
@@ -295,6 +416,7 @@ class Parser {
             return n;
         }
         if (at(TT::STOP)) { adv(); return std::make_unique<BreakNode>(); }
+        if (at(TT::CONTINUE)) { adv(); return std::make_unique<ContinueNode>(); }
         if (at(TT::RETURN)) {
             adv();  // consume 'return'
             auto n = std::make_unique<ReturnNode>();
@@ -425,6 +547,35 @@ class Parser {
         return s;
     }
 
+    std::unique_ptr<EnumDecl> parse_enum() {
+        expect(TT::ENUM, "expected 'enum'");
+        auto e = std::make_unique<EnumDecl>();
+        e->name = cur().val;
+        expect(TT::IDENT, "expected enum name");
+        expect(TT::LBRACE, "expected '{'");
+        int val = 0;
+        while (!at(TT::RBRACE) && !at(TT::EOF_T)) {
+            std::string vname = cur().val;
+            expect(TT::IDENT, "expected variant name");
+            e->variants.push_back(vname);
+            // Check for = value
+            if (at(TT::EQ)) {
+                adv();
+                if (at(TT::NUMBER)) {
+                    val = std::stoi(cur().val);
+                    adv();
+                }
+            }
+            val++;
+            // Check for comma or end
+            if (at(TT::COMMA)) {
+                adv();
+            }
+        }
+        expect(TT::RBRACE, "expected '}'");
+        return e;
+    }
+
     std::unique_ptr<DriverSectionNode> parse_driver_section() {
         expect(TT::DRV_OPEN, "expected '<drv.'");
         auto s=std::make_unique<DriverSectionNode>();
@@ -535,7 +686,11 @@ public:
                 adv();
             }
         }
-        
+
+        // Parse enums (stored as structs for now - enums become constants)
+        while(at(TT::ENUM)) {
+            parse_enum();  // Parse but don't store - enums become simple constants
+        }
         while(at(TT::STRUCT))      p->structs.push_back(parse_struct());
         while(at(TT::INTERRUPT)) p->interrupts.push_back(parse_interrupt());
         while(at(TT::FUNCTION))  p->functions.push_back(parse_function());

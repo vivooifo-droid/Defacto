@@ -1,7 +1,17 @@
-# Defacto v0.42 (pre-alpha)
+# Defacto v0.43 (pre-alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 Pre-alpha status: the language and toolchain are unstable and will change.
+
+**What's new in v0.43:**
+- **Complex expressions** — `a + b + c`, `(a * b) + c`, nested expressions
+- **Negative literals** — `-1`, `-42` directly supported
+- **Bool type** — `var flag: bool = true/false`
+- **Logical operators** — `&&`, `||`, `!` for boolean logic
+- **Continue statement** — `continue` in loops
+- **Enum support** — `enum Name { A, B, C }`
+- **Array initialization** — `var arr: i32[5] = [1, 2, 3, 4, 5]`
+- **Function parameters** — Functions can now accept parameters (parser support)
 
 **What's new in v0.42:**
 - **Pointer bug fixes** — Fixed lexer, parser, and codegen for pointers

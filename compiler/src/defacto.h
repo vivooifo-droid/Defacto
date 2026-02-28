@@ -28,15 +28,18 @@ enum class TT {
     SEC_OPEN, SEC_CLOSE, STATIC_PL, DRV_OPEN, DRV_CLOSE,
     VAR, CONST, CONST_DRIVER, FUNCTION, CALL, LOOP, IF, ELSE, STOP, DISPLAY, PRINTNUM, FREE, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
     IMPORT, RETURN, WHILE, FOR, ENUM, TRY, CATCH,
-    STRUCT,
+    STRUCT, CONTINUE,
     MOV, REG_STATIC, REG_STOP,
-    I32, I64, U8, STR, PTR,
+    I32, I64, U8, STR, PTR, BOOL,
+    TRUE, FALSE,
     REGISTER, IDENT, NUMBER, STR_LIT, HEX,
     EQ, EQEQ, NEQ, LT, GT, LTE, GTE, PLUS, MINUS, MUL, DIV, LSHIFT,
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
     COLON, SEMICOLON, COMMA, DOT,
     DRV_FUNC_ASSIGN, DRV_CALL, DRV_CALL_NOT,
     AMP, STAR, TOK_NULL, ALLOC, DEALLOC,
+    LOGIC_AND, LOGIC_OR, LOGIC_NOT,
+    ARROW,
     EOF_T
 };
 
@@ -51,11 +54,12 @@ struct Token {
 enum class NT {
     PROGRAM, SECTION, VAR_DECL, FUNC_DECL, FUNC_CALL,
     ASSIGN, LOOP, WHILE, FOR, IF_STMT, REG_OP, DISPLAY, PRINTNUM, FREE, BREAK, INTERRUPT, COLOR, READKEY, READCHAR, PUTCHAR, CLEAR, REBOOT,
-    RETURN,
+    RETURN, CONTINUE_STMT,
     IMPORT,
     DRIVER_SECTION, CONST_DRIVER_DECL, DRV_FUNC_ASSIGN, DRV_CALL,
-    STRUCT_DECL, STRUCT_FIELD_ACCESS,
-    PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE
+    STRUCT_DECL, STRUCT_FIELD_ACCESS, ENUM_DECL,
+    PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE,
+    ARRAY_INIT, LOGIC_EXPR
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -92,13 +96,31 @@ struct VarDecl : Node {
 
 struct FuncDecl : Node {
     std::string name;
+    std::vector<std::pair<std::string, std::string>> params;  // param name -> type
+    std::string return_type;
     std::unique_ptr<SectionNode> body;
     FuncDecl() { kind = NT::FUNC_DECL; }
 };
 
 struct FuncCall : Node {
     std::string name;
+    std::vector<std::string> args;  // Function arguments
     FuncCall() { kind = NT::FUNC_CALL; }
+};
+
+struct ContinueNode : Node {
+    ContinueNode() { kind = NT::CONTINUE_STMT; }
+};
+
+struct EnumDecl : Node {
+    std::string name;
+    std::vector<std::string> variants;
+    EnumDecl() { kind = NT::ENUM_DECL; }
+};
+
+struct ArrayInit : Node {
+    std::vector<std::string> values;
+    ArrayInit() { kind = NT::ARRAY_INIT; }
 };
 
 struct ReturnNode : Node {

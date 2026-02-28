@@ -62,6 +62,7 @@ class Lexer {
         if(w=="try")           return TT::TRY;
         if(w=="catch")         return TT::CATCH;
         if(w=="struct")        return TT::STRUCT;
+        if(w=="continue")      return TT::CONTINUE;
         if(w=="stop")          return TT::STOP;
         if(w=="display")       return TT::DISPLAY;
         if(w=="printnum")      return TT::PRINTNUM;
@@ -77,6 +78,9 @@ class Lexer {
         if(w=="u8")            return TT::U8;
         if(w=="string")        return TT::STR;
         if(w=="pointer")       return TT::PTR;
+        if(w=="bool")          return TT::BOOL;
+        if(w=="true")          return TT::TRUE;
+        if(w=="false")         return TT::FALSE;
         if(w=="null")          return TT::TOK_NULL;
         if(w=="alloc")         return TT::ALLOC;
         if(w=="dealloc")       return TT::DEALLOC;
@@ -161,6 +165,9 @@ public:
             else if(ch=='>'&&pk()=='=') { adv();adv(); out.emplace_back(TT::GTE, ">=",l,c); }
             else if(ch=='<'&&pk()=='<') { adv();adv(); out.emplace_back(TT::DRV_FUNC_ASSIGN, "<<",l,c); }
             else if(ch=='>'&&pk()=='>') { adv();adv(); out.emplace_back(TT::RBRACK, ">>",l,c); }
+            else if(ch=='&'&&pk()=='&') { adv();adv(); out.emplace_back(TT::LOGIC_AND, "&&",l,c); }
+            else if(ch=='|'&&pk()=='|') { adv();adv(); out.emplace_back(TT::LOGIC_OR, "||",l,c); }
+            else if(ch=='!') { adv(); out.emplace_back(TT::LOGIC_NOT, "!",l,c); }
             else if(ch=='<') { adv(); out.emplace_back(TT::LT, "<",l,c); }
             else if(ch=='>') { adv(); out.emplace_back(TT::GT, ">",l,c); }
             else if(ch=='-'&&pk()=='>') { adv();adv(); out.emplace_back(TT::LSHIFT, "->",l,c); }

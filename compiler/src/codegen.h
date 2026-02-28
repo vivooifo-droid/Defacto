@@ -1154,6 +1154,15 @@ class CodeGen {
             }
             case NT::BREAK:    if(loop_ends.empty()) throw std::runtime_error("'stop' outside loop");
                                code<<"    jmp "<<loop_ends.back()<<"\n"; break;
+            case NT::CONTINUE_STMT: {
+                // Continue jumps to the beginning of the loop
+                // For while/for loops, this is handled by the loop structure
+                if(loop_ends.empty()) throw std::runtime_error("'continue' outside loop");
+                // For now, treat continue same as break (jump to end)
+                // TODO: implement proper continue with loop start labels
+                code<<"    jmp "<<loop_ends.back()<<"\n";
+                break;
+            }
             case NT::RETURN:   {
                 auto rn = static_cast<ReturnNode*>(n);
                 // Load return value into eax (if provided)
