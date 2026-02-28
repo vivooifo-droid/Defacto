@@ -1,13 +1,16 @@
-# Defacto v0.46 (alpha)
+# Defacto v0.47 (alpha)
 
 Низкоуровневый язык программирования для x86-32, bare-metal экспериментов и собственных тулчейнов.
 
+**Что нового в v0.47:**
+- **Type aliases** — `type byte = u8`
+- **Compound assignment** — `+=`, `-=`, `*=`, `/=`
+- **Inline assembly** — `asm { mov eax, 1 }`
+
 **Что нового в v0.46:**
-- **Массивы в структурах** — `struct Buffer { data: u8[256] }`
-- **Switch/case** — `switch x { case 1: ... default: ... }`
-- **Extern функции** — `extern printf` для интеграции с C библиотеками
-- **Include файлов** — `include "path.de"` для модуляризации кода
-- **Compile-time константы** — const выражения вычисляются на этапе компиляции
+- Массивы в структурах — `struct Buffer { data: u8[256] }`
+- Switch/case — `switch x { case 1: ... }`
+- Extern функции — `extern printf`
 
 ## Содержимое репозитория
 
@@ -420,6 +423,38 @@ call #mouse
 extern printf
 extern malloc
 extern free
+```
+
+### Type Aliases (v0.47+)
+
+Создание псевдонимов типов для лучшей читаемости:
+
+```de
+type byte = u8
+type int32 = i32
+type pointer = *i32
+```
+
+### Inline Assembly (v0.47+)
+
+Вставка assembly кода напрямую:
+
+```de
+asm {
+    mov eax, 1
+    add eax, ebx
+}
+```
+
+### Compound Assignment (v0.47+)
+
+Краткие операторы присваивания:
+
+```de
+x += 1    // x = (x + 1)
+y -= 5    // y = (y - 5)
+z *= 2    // z = (z * 2)
+w /= 4    // w = (w / 4)
 ```
 
 ### Встроенные функции

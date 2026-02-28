@@ -1,13 +1,16 @@
-# Defacto v0.46 (alpha)
+# Defacto v0.47 (alpha)
 
 Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
 
+**What's new in v0.47:**
+- **Type aliases** — `type byte = u8`
+- **Compound assignment** — `+=`, `-=`, `*=`, `/=`
+- **Inline assembly** — `asm { mov eax, 1 }`
+
 **What's new in v0.46:**
-- **Arrays in structs** — `struct Buffer { data: u8[256] }`
-- **Switch/case statements** — `switch x { case 1: ... default: ... }`
-- **Extern functions** — `extern printf` for C library integration
-- **Include files** — `include "path.de"` for code modularization
-- **Compile-time constants** — const expressions evaluated at compile-time
+- Arrays in structs — `struct Buffer { data: u8[256] }`
+- Switch/case statements
+- Extern functions — `extern printf`
 
 ## Repository contents
 
@@ -420,6 +423,38 @@ Call C library functions:
 extern printf
 extern malloc
 extern free
+```
+
+### Type Aliases (v0.47+)
+
+Create type aliases for better readability:
+
+```de
+type byte = u8
+type int32 = i32
+type pointer = *i32
+```
+
+### Inline Assembly (v0.47+)
+
+Embed assembly code directly:
+
+```de
+asm {
+    mov eax, 1
+    add eax, ebx
+}
+```
+
+### Compound Assignment (v0.47+)
+
+Shorter assignment operators:
+
+```de
+x += 1    // x = (x + 1)
+y -= 5    // y = (y - 5)
+z *= 2    // z = (z * 2)
+w /= 4    // w = (w / 4)
 ```
 
 ### Builtins
