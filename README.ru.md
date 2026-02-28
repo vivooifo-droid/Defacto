@@ -1,41 +1,55 @@
 # Defacto v0.45 (alpha)
 
-Низкоуровневый язык для x86-32, bare-metal экспериментов и собственных тулчейнов.
+Низкоуровневый язык программирования для x86-32, bare-metal экспериментов и собственных тулчейнов.
 
 **Что нового в v0.45:**
 - Чистый синтаксис — старый синтаксис удалён
 - Обратная совместимость не поддерживается — только новый синтаксис fn, driver, for..to
 - Упрощённая кодовая база — удалён легаси код парсера
 
-English version: `README.md`
-
 ## Содержимое репозитория
 
 - Компилятор (`compiler/`)
 - VS Code расширение (`vscode-extension/`)
 - Пакетный менеджер `defo`
-- Rust аддоны (`addons/rust/`)
-- Backend фреймворк (`addons/rust-backend/`)
+- C++ аддоны (`addons/cpp/`)
+- **Rust аддоны** (`addons/rust/`) — пишите библиотеки на Rust!
+- **Backend фреймворк** (`addons/rust-backend/`) — HTTP веб-фреймворк для Defacto
 
 ## Установка
 
-### macOS
+### macOS (Homebrew) — Рекомендуется
+
+**Самый простой способ установить Defacto:**
 
 ```bash
-# Установить Xcode tools
-xcode-select --install
+# Добавить tap Defacto
+brew tap vivooifo-droid/Defacto
 
-# Установить NASM
-brew install nasm
-
-# Собрать компилятор
-cd compiler && make
+# Установить Defacto
+brew install defacto
 
 # Проверить установку
-./defacto -h
+defacto -h
+```
+
+Автоматически:
+- Загрузит и установит зависимость NASM
+- Соберёт и установит компилятор
+- Добавит `defacto` в PATH
+
+**Для Mac на Apple Silicon:** Для запуска бинарников `-terminal-macos` нужен Rosetta 2:
+```bash
+softwareupdate --install-rosetta
 ```
 
 ### Linux (Ubuntu/Debian)
+
+**Требования:**
+- Build essentials (gcc, make)
+- Ассемблер NASM
+
+**Примечание:** Linux по умолчанию использует `-terminal`, создавая ELF 32-битные бинарники с линковкой на libc.
 
 ```bash
 # Установить зависимости
@@ -49,69 +63,310 @@ cd compiler && make
 ./defacto -h
 ```
 
-## Использование
+**Другие дистрибутивы Linux:**
 
 ```bash
-# Компилировать
-./defacto hello.de -o hello
+# Fedora
+sudo dnf install gcc make nasm
 
-# Запустить
+# Arch Linux
+sudo pacman -S gcc make nasm
+```
+
+## Сборка из исходников
+
+Смотрите инструкции по установке выше для вашей платформы, или:
+
+```bash
+cd compiler
+make
+./defacto -h
+```
+
+## Использование
+
+**macOS** (по умолчанию: `-terminal-macos`):
+```bash
+./defacto hello.de -o hello
 ./hello
 ```
 
-### Режимы
+**Linux** (по умолчанию: `-terminal`):
+```bash
+./defacto hello.de -o hello
+./hello
+```
 
-| Режим | Платформа | Вывод |
-|------|----------|-------|
-| `-kernel` | Все | Binary (x86-32) |
-| `-terminal` | Linux | ELF 32-bit |
-| `-terminal-macos` | macOS | Mach-O 64-bit |
+**Bare-metal ядро** (все платформы):
+```bash
+./defacto -kernel os.de -o kernel.bin
+```
 
-## Синтаксис
+### Командная строка
 
-### Структура файла
+Компилировать программу:
+```bash
+./defacto program.de
+```
+
+Указать выходной файл:
+```bash
+./defacto program.de -o output
+./defacto -o output program.de    # порядок не важен
+```
+
+Только ассемблер:
+```bash
+./defacto -S program.de
+```
+
+Подробный режим:
+```bash
+./defacto -v program.de
+```
+
+Помощь:
+```bash
+./defacto -h
+```
+
+## Режимы
+
+| Режим | Платформа | Вывод | По умолчанию |
+|------|----------|--------|---------|
+| `-kernel` | Все | Binary (x86-32) | Linux |
+| `-terminal` | Linux | ELF 32-bit | Linux |
+| `-terminal-macos` | macOS | Mach-O 64-bit | macOS |
+
+**Выбор режима:**
+- **macOS**: По умолчанию `-terminal-macos` (нативные macOS бинарники)
+- **Linux**: По умолчанию `-terminal` (Linux syscall)
+- **Bare-metal**: Используйте `-kernel` для разработки ОС (без зависимостей ОС)
+
+### Примеры
+
+```bash
+# Нативное приложение macOS
+./defacto app.de -o app
+./app
+
+# Приложение Linux (на Linux)
+./defacto app.de -o app
+./app
+
+# Bare-metal ядро
+./defacto -kernel kernel.de -o kernel.bin
+
+# Запустить в QEMU
+qemu-system-i386 -kernel kernel.bin
+```
+
+## Полный синтаксис языка
+
+### Обязательные директивы файла
 
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
 
-fn main {
-    <.de
-        var msg: string = "Hello"
-        display{msg}
-    .>
-}
-
 #Mainprogramm.end
 ```
 
-### Переменные
+Примечания:
+
+- `#Mainprogramm.start` / `#Mainprogramm.end` обязательны.
+- `#NO_RUNTIME` обязателен для bare-metal режима.
+- `#SAFE` зарезервирована; проверки памяти всегда включены.
+- `#INTERRUPT {num} == func` парсится, но ещё не генерируется.
+
+### Секции
+
+Весь код должен быть внутри секций:
 
 ```de
-var x: i32 = 42
-const MAX: i32 = 100
+<.de
+    var x: i32 = 0
+    var msg: string = "hello"
+
+    display{msg}
+    x = (x + 1)
+.>
+```
+
+Правила:
+
+- Переменные (`var`) и константы (`const`) можно объявлять в любом месте секции
+- `.>` закрывает секцию.
+
+### Типы и переменные
+
+```de
+var count: i32 = 42
+const big: i64 = 1000000
+```
+
+Поддерживаемые типы:
+
+| Тип | Размер | Описание |
+| --- | --- | --- |
+| `i32` | 4 байта | знаковое целое |
+| `i64` | 8 байт | знаковое целое |
+| `u8` | 1 байт | беззнаковый байт |
+| `string` | указатель | null-терминированная строка |
+| `pointer` | 4 байта | сырой указатель |
+| `struct_name` | варьируется | пользовательский тип структуры |
+
+Массивы:
+
+```de
+var buf: u8[64]
+var arr: i32[10]
+```
+
+Правила:
+
+- `const` массивы не поддерживаются.
+- `const` значения должны быть инициализированы.
+
+### Структуры
+
+Определение пользовательских структур данных:
+
+```de
+struct Point {
+    x: i32
+    y: i32
+    z: i32
+}
+
+var p: Point
+p.x = 10
+p.y = 20
+p.z = 30
+```
+
+Правила:
+
+- Поля структур могут быть любого встроенного типа.
+- Структуры хранятся inline (без указателей).
+- Доступ к полям через точку: `struct.field`
+
+### Выражения
+
+Поддерживаются полные вложенные выражения:
+
+```de
+x = (a + b + c)
+x = ((a + b) * c)
+x = -5
+result = (a * b) + (c / d)
+```
+
+Поддерживаемые операторы:
+
+| Оператор | Описание | Пример |
+| --- | --- | --- |
+| `+` | Сложение | `x = (a + b)` |
+| `-` | Вычитание | `x = (x - 1)` |
+| `*` | Умножение | `x = (x * 2)` |
+| `/` | Деление | `x = (x / 4)` |
+
+### Инструкции
+
+#### Присваивание
+
+```de
+x = 1
+x = other
+x = (x + 1)
+arr[i] = x
+p.x = 100
+```
+
+#### Цикл loop
+
+```de
+loop {
+    if x == 10 { stop }
+}
+```
+
+#### If/Else
+
+```de
+if x == y {
+    display{msg}
+} else {
+    display{err}
+}
+```
+
+Все операторы сравнения поддерживаются:
+
+| Оператор | Пример | Описание |
+|----------|---------|-------------|
+| `==` | `if x == y` | Равно |
+| `!=` | `if x != y` | Не равно |
+| `<` | `if x < y` | Меньше |
+| `>` | `if x > y` | Больше |
+| `<=` | `if x <= y` | Меньше или равно |
+| `>=` | `if x >= y` | Больше или равно |
+
+Правила:
+
+- Блок `else` опционален.
+
+#### Цикл For
+
+```de
+for i = 0 to 10 {
+    display{i}
+}
+```
+
+#### Цикл While
+
+```de
+while x < y {
+    x = (x + 1)
+}
+```
+
+#### Цикл Loop
+
+```de
+loop {
+    if x == 10 { stop }
+}
 ```
 
 ### Функции
+
+```de
+fn my_func {
+    <.de
+        var a: i32 = 0
+        a = (a + 1)
+        display{a}
+    .>
+}
+
+call #my_func
+```
+
+**С параметрами:**
 
 ```de
 fn add(a: i32, b: i32) {
     <.de
         var result: i32 = 0
         result = (a + b)
+        display{result}
     .>
 }
 
 call #add
-```
-
-### Цикл for
-
-```de
-for i = 0 to 10 {
-    display{i}
-}
 ```
 
 ### Драйверы
@@ -121,7 +376,80 @@ driver keyboard {
     type = keyboard
 }
 
+// Или проще — тип определяется по имени:
+driver mouse
+
 call #keyboard
+call #mouse
+```
+
+Поддерживаемые типы драйверов: `keyboard`, `mouse`, `volume`
+
+### Встроенные функции
+
+```de
+display{msg}
+color{10}
+readkey{key}
+readchar{ch}
+putchar{65}
+clear{}
+reboot{}
+```
+
+Примечания:
+
+- `display{string}` выводит строку. В terminal режиме добавляет новую строку.
+- `readkey` и `readchar` работают только в bare-metal режиме. В terminal режиме возвращают `0`.
+- `readchar` поддерживает ASCII `a-z`, `0-9`, пробел, enter, backspace.
+- `color`, `putchar`, `clear`, `reboot` работают только в bare-metal режиме.
+
+### Регистры
+
+```de
+#MOV {#R1, x}
+#MOV {x, #R1}
+#R1 = (#R1 + #R2)
+```
+
+Примечания:
+
+- Отображение регистров фиксировано на x86-32.
+- `#STATIC` парсится, но ещё не генерируется.
+
+## Управление памятью
+
+**Автоматическое управление памятью:**
+
+Компилятор автоматически освобождает все переменные в конце каждой секции. Не нужно вызывать `free{}` вручную.
+
+```de
+<.de
+    var x: i32 = 0
+    var msg: string = "hello"
+    display{msg}
+.>
+```
+
+Легаси `free{}` всё ещё поддерживается.
+
+## Комментарии и строки
+
+- Строковые комментарии используют `//`.
+- Строки поддерживают экранирование `\n` и `\t`.
+
+```de
+var msg: string = "Hello\nWorld"
+```
+
+## Пакетный менеджер defo
+
+```
+./defo init my-app
+./defo install https://github.com/owner/repo.git
+./defo install owner/repo
+./defo install owner/repo#main
+./defo list
 ```
 
 ## Ограничения
@@ -129,7 +457,39 @@ call #keyboard
 - Нет индексов выражений в массивах: `arr[i + 1]` не поддерживается
 - Директивы прерываний парсятся, но не генерируются
 
-## Документация
+## Аддоны
 
-- [SYNTAX.md](SYNTAX.md) — полная документация по синтаксису
-- [RELEASE-v0.45.md](RELEASE-v0.45.md) — заметки о релизе
+Расширьте Defacto нативными библиотеками!
+
+### Rust аддоны
+
+Пишите высокопроизводительные аддоны на Rust с безопасностью памяти:
+
+```bash
+cd addons/rust
+cargo build --release
+```
+
+Смотрите [`addons/rust/README.md`](addons/rust/README.md) для полного руководства.
+
+### Backend фреймворк (Rust)
+
+HTTP веб-фреймворк для создания серверов:
+
+```bash
+cd addons/rust-backend
+cargo build --release
+```
+
+Смотрите [`addons/rust-backend/README.md`](addons/rust-backend/README.md) для API документации.
+
+### C++ аддоны
+
+Традиционные C++ аддоны также поддерживаются:
+
+```bash
+cd addons/cpp
+make
+```
+
+Смотрите [`addons/cpp/`](addons/cpp/) для примеров.
