@@ -1,0 +1,177 @@
+// Defacto Standard Library - Collections Module
+// Dynamic arrays and maps
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// ============ Dynamic Array ============
+
+struct Array {
+    data: *i32
+    size: i32
+    capacity: i32
+}
+
+// Create new array
+fn array_new(cap: i32) -> *Array {
+    <.de
+        // Placeholder - would need proper allocation
+        var arr: *Array = null
+    .>
+}
+
+// Append element
+fn array_push(arr: *Array, value: i32) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Get element at index
+fn array_get(arr: *Array, index: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        // Placeholder
+    .>
+}
+
+// Set element at index
+fn array_set(arr: *Array, index: i32, value: i32) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Get array size
+fn array_size(arr: *Array) -> i32 {
+    <.de
+        var result: i32 = 0
+        if arr != null {
+            result = arr->size
+        }
+    .>
+}
+
+// ============ String Builder ============
+
+struct StringBuilder {
+    data: *u8
+    length: i32
+    capacity: i32
+}
+
+// Create new string builder
+fn sb_new(cap: i32) -> *StringBuilder {
+    <.de
+        var sb: *StringBuilder = null
+    .>
+}
+
+// Append character
+fn sb_append_char(sb: *StringBuilder, ch: u8) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Append string
+fn sb_append_str(sb: *StringBuilder, str: string) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Get length
+fn sb_length(sb: *StringBuilder) -> i32 {
+    <.de
+        var result: i32 = 0
+        if sb != null {
+            result = sb->length
+        }
+    .>
+}
+
+// ============ Stack ============
+
+struct Stack {
+    data: *i32
+    top: i32
+    capacity: i32
+}
+
+// Create new stack
+fn stack_new(cap: i32) -> *Stack {
+    <.de
+        var stack: *Stack = null
+    .>
+}
+
+// Push element
+fn stack_push(stack: *Stack, value: i32) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Pop element
+fn stack_pop(stack: *Stack) -> i32 {
+    <.de
+        var result: i32 = 0
+        // Placeholder
+    .>
+}
+
+// Check if empty
+fn stack_is_empty(stack: *Stack) -> bool {
+    <.de
+        var result: bool = false
+        if stack != null && stack->top == 0 {
+            result = true
+        }
+    .>
+}
+
+// ============ Queue ============
+
+struct Queue {
+    data: *i32
+    front: i32
+    rear: i32
+    size: i32
+    capacity: i32
+}
+
+// Create new queue
+fn queue_new(cap: i32) -> *Queue {
+    <.de
+        var queue: *Queue = null
+    .>
+}
+
+// Enqueue element
+fn queue_enqueue(queue: *Queue, value: i32) {
+    <.de
+        // Placeholder
+    .>
+}
+
+// Dequeue element
+fn queue_dequeue(queue: *Queue) -> i32 {
+    <.de
+        var result: i32 = 0
+        // Placeholder
+    .>
+}
+
+// Check if empty
+fn queue_is_empty(queue: *Queue) -> bool {
+    <.de
+        var result: bool = false
+        if queue != null && queue->size == 0 {
+            result = true
+        }
+    .>
+}
+
+#Mainprogramm.end

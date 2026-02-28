@@ -1,12 +1,17 @@
-# Defacto v0.51 (alpha)
+# Defacto v0.52 (alpha)
 
 Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and custom toolchains.
 
+**What's new in v0.52:**
+- **Defo Package Manager** — Full package management with config, lock files
+- **Standard Library** — Complete stdlib: core, math, collections, io, string, test
+- **Test Framework** — Built-in unit testing
+- **Collections** — Array, Stack, Queue, StringBuilder
+
 **What's new in v0.51:**
-- **Bitwise operators** — `&`, `|`, `^`, `<<`, `>>`
-- **Package manager** — `defo` for libraries
-- **Dev tools** — linter, formatter
-- **Examples** — Complete feature examples
+- Bitwise operators — `&`, `|`, `^`, `<<`, `>>`
+- Dev tools — linter, formatter
+- Examples — Complete feature examples
 
 **What's new in v0.50:**
 - Full ARM64 support — Complete ARM64 codegen

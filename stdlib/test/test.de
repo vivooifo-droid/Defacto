@@ -1,0 +1,125 @@
+// Defacto Standard Library - Test Framework
+// Simple unit testing framework
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Test result tracking
+var tests_run: i32 = 0
+var tests_passed: i32 = 0
+var tests_failed: i32 = 0
+
+// ============ Test Macros ============
+
+// Assert equal
+fn assert_eq(actual: i32, expected: i32, msg: string) {
+    <.de
+        tests_run = (tests_run + 1)
+        if actual == expected {
+            tests_passed = (tests_passed + 1)
+            display{"✓ "}
+            display{msg}
+        } else {
+            tests_failed = (tests_failed + 1)
+            display{"✗ "}
+            display{msg}
+            display{" (expected: "}
+            display{expected}
+            display{", got: "}
+            display{actual}
+            display{"}"}
+        }
+    .>
+}
+
+// Assert true
+fn assert_true(cond: bool, msg: string) {
+    <.de
+        tests_run = (tests_run + 1)
+        if cond == true {
+            tests_passed = (tests_passed + 1)
+            display{"✓ "}
+            display{msg}
+        } else {
+            tests_failed = (tests_failed + 1)
+            display{"✗ "}
+            display{msg}
+        }
+    .>
+}
+
+// Assert false
+fn assert_false(cond: bool, msg: string) {
+    <.de
+        tests_run = (tests_run + 1)
+        if cond == false {
+            tests_passed = (tests_passed + 1)
+            display{"✓ "}
+            display{msg}
+        } else {
+            tests_failed = (tests_failed + 1)
+            display{"✗ "}
+            display{msg}
+        }
+    .>
+}
+
+// ============ Test Runner ============
+
+// Print test results
+fn test_print_results() {
+    <.de
+        display{"\n====================\n"}
+        display{"Test Results:\n"}
+        display{"  Run: "}
+        display{tests_run}
+        display{"\n"}
+        display{"  Passed: "}
+        display{tests_passed}
+        display{"\n"}
+        display{"  Failed: "}
+        display{tests_failed}
+        display{"\n"}
+        display{"====================\n"}
+        
+        if tests_failed == 0 {
+            display{"All tests passed!\n"}
+        } else {
+            display{"Some tests failed!\n"}
+        }
+    .>
+}
+
+// Reset counters
+fn test_reset() {
+    <.de
+        tests_run = 0
+        tests_passed = 0
+        tests_failed = 0
+    .>
+}
+
+// ============ Example Test ============
+
+fn test_math_abs() {
+    <.de
+        display{"Testing abs()...\n"}
+        // Would call actual tests here
+    .>
+}
+
+fn run_all_tests() {
+    <.de
+        test_reset()
+        
+        display{"Running tests...\n"}
+        display{"====================\n"}
+        
+        test_math_abs()
+        
+        test_print_results()
+    .>
+}
+
+#Mainprogramm.end

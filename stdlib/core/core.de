@@ -1,25 +1,77 @@
 // Defacto Standard Library - Core Module
-// Basic types and utilities
+// Basic types, constants, and utilities
 
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
 
-// Type aliases
+// ============ Type Aliases ============
+
 type byte = u8
+type sbyte = i8
 type word = i32
 type dword = i32
 type qword = i64
 type ptr = pointer
+type uint = i32
+type int = i32
 
-// Constants
+// ============ Boolean Constants ============
+
 const TRUE: bool = true
 const FALSE: bool = false
+
+// ============ Null Pointer ============
+
 const NULL: pointer = null
 
-// Min/Max constants
+// ============ Numeric Limits ============
+
+const I8_MIN: i32 = -128
+const I8_MAX: i32 = 127
+const U8_MAX: i32 = 255
+const I16_MIN: i32 = -32768
+const I16_MAX: i32 = 32767
 const I32_MIN: i32 = -2147483648
 const I32_MAX: i32 = 2147483647
-const U8_MAX: u8 = 255
+
+// ============ Buffer Sizes ============
+
+const BUFFER_SMALL: i32 = 64
+const BUFFER_MEDIUM: i32 = 256
+const BUFFER_LARGE: i32 = 1024
+
+// ============ Exit Codes ============
+
+const EXIT_SUCCESS: i32 = 0
+const EXIT_FAILURE: i32 = 1
+
+// ============ Core Functions ============
+
+// No-op function
+fn nop() {
+    <.de
+        // Does nothing
+    .>
+}
+
+// Panic/halt
+fn panic(msg: string) {
+    <.de
+        display{"PANIC: "}
+        display{msg}
+        // In bare-metal, could halt here
+    .>
+}
+
+// Assert (debug only)
+fn assert(cond: bool, msg: string) {
+    <.de
+        if cond == false {
+            display{"ASSERT FAILED: "}
+            display{msg}
+        }
+    .>
+}
 
 #Mainprogramm.end
