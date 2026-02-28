@@ -1,0 +1,62 @@
+// Defacto Standard Library - I/O Module
+// Input/Output functions
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Print string with newline
+fn println(msg: string) {
+    <.de
+        display{msg}
+        // In terminal mode, display{} adds newline automatically
+        // In bare-metal, we might need explicit newline
+    .>
+}
+
+// Print character
+fn printch(ch: u8) {
+    <.de
+        putchar{ch}
+    .>
+}
+
+// Print integer
+fn printi(num: i32) {
+    <.de
+        // Would need itoa conversion first
+        // Placeholder for now
+    .>
+}
+
+// Read character from input
+fn readch() -> i32 {
+    <.de
+        var ch: i32 = 0
+        readchar{ch}
+    .>
+}
+
+// Read key from input
+fn readk() -> i32 {
+    <.de
+        var key: i32 = 0
+        readkey{key}
+    .>
+}
+
+// Clear screen (bare-metal only)
+fn cls() {
+    <.de
+        clear{}
+    .>
+}
+
+// Set color (bare-metal only)
+fn setcolor(attr: i32) {
+    <.de
+        color{attr}
+    .>
+}
+
+#Mainprogramm.end

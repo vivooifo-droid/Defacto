@@ -1,0 +1,84 @@
+// Defacto Standard Library - Math Module
+// Mathematical functions
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Absolute value
+fn abs(x: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        if x < 0 {
+            result = (0 - x)
+        } else {
+            result = x
+        }
+    .>
+}
+
+// Minimum of two values
+fn min(a: i32, b: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        if a < b {
+            result = a
+        } else {
+            result = b
+        }
+    .>
+}
+
+// Maximum of two values
+fn max(a: i32, b: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        if a > b {
+            result = a
+        } else {
+            result = b
+        }
+    .>
+}
+
+// Power (x^n)
+fn pow(base: i32, exp: i32) -> i32 {
+    <.de
+        var result: i32 = 1
+        var i: i32 = 0
+        
+        for i = 0 to exp {
+            result = (result * base)
+        }
+    .>
+}
+
+// Square root (integer)
+fn sqrt(x: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        var i: i32 = 0
+        
+        if x == 0 {
+            result = 0
+        } else {
+            for i = 1 to x {
+                if (i * i) > x {
+                    result = (i - 1)
+                    stop
+                }
+            }
+            result = x
+        }
+    .>
+}
+
+// Modulo
+fn mod(a: i32, b: i32) -> i32 {
+    <.de
+        var result: i32 = 0
+        // Placeholder - would use assembly for efficiency
+    .>
+}
+
+#Mainprogramm.end

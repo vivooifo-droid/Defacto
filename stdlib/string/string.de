@@ -1,0 +1,42 @@
+// Defacto Standard Library - String Module
+// String manipulation functions
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Get string length
+fn strlen(str: string) -> i32 {
+    <.de
+        var len: i32 = 0
+        var ch: u8 = 0
+        
+        // Simple strlen implementation
+        // In real impl, would iterate through string
+        len = 0  // Placeholder
+    .>
+}
+
+// Copy string
+fn strcpy(dest: *u8, src: string) {
+    <.de
+        // Placeholder for strcpy
+    .>
+}
+
+// Compare strings
+fn strcmp(s1: string, s2: string) -> i32 {
+    <.de
+        var result: i32 = 0
+        // Placeholder for strcmp
+    .>
+}
+
+// Convert integer to string
+fn itoa(num: i32, buf: *u8) {
+    <.de
+        // Placeholder for itoa
+    .>
+}
+
+#Mainprogramm.end

@@ -1,0 +1,25 @@
+// Defacto Standard Library - Core Module
+// Basic types and utilities
+
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+// Type aliases
+type byte = u8
+type word = i32
+type dword = i32
+type qword = i64
+type ptr = pointer
+
+// Constants
+const TRUE: bool = true
+const FALSE: bool = false
+const NULL: pointer = null
+
+// Min/Max constants
+const I32_MIN: i32 = -2147483648
+const I32_MAX: i32 = 2147483647
+const U8_MAX: u8 = 255
+
+#Mainprogramm.end

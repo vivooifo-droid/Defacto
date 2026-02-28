@@ -1,22 +1,20 @@
-# Defacto v0.47 (alpha)
+# Defacto v0.48 (alpha)
 
-Low-level programming language for x86-32, bare-metal experiments, and custom toolchains.
+Low-level programming language for x86-32/64, bare-metal experiments, and custom toolchains.
 
-**What's new in v0.47:**
+**What's new in v0.48:**
+- **Cross-platform support** — Linux 32-bit, Linux 64-bit, macOS x86_64
+- **Standard Library** — core, string, math, io modules
 - **Type aliases** — `type byte = u8`
 - **Compound assignment** — `+=`, `-=`, `*=`, `/=`
 - **Inline assembly** — `asm { mov eax, 1 }`
-
-**What's new in v0.46:**
-- Arrays in structs — `struct Buffer { data: u8[256] }`
-- Switch/case statements
-- Extern functions — `extern printf`
 
 ## Repository contents
 
 - Compiler (`compiler/`)
 - VS Code extension (`vscode-extension/`)
 - Naive package manager `defo`
+- **Standard Library** (`stdlib/`) — core, string, math, io
 - C++ addons sandbox (`addons/cpp/`)
 - **Rust addons** (`addons/rust/`) - Write libraries in Rust!
 - **Backend framework** (`addons/rust-backend/`) - HTTP web framework for Defacto
@@ -141,11 +139,13 @@ Help:
 |------|----------|--------|---------|
 | `-kernel` | All | Binary (x86-32) | Linux |
 | `-terminal` | Linux | ELF 32-bit | Linux |
+| `-terminal64` | Linux | ELF 64-bit | — |
 | `-terminal-macos` | macOS | Mach-O 64-bit | macOS |
 
 **Mode selection:**
-- **macOS**: Default is `-terminal-macos` (native macOS binaries)
-- **Linux**: Default is `-terminal` (Linux syscalls)
+- **macOS**: Default is `-terminal-macos` (native macOS x86_64 binaries)
+- **Linux**: Default is `-terminal` (Linux 32-bit syscalls)
+- **Linux 64-bit**: Use `-terminal64` for native 64-bit binaries
 - **Bare-metal**: Use `-kernel` for OS development (no OS dependencies)
 
 ### Examples

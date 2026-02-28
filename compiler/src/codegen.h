@@ -21,6 +21,7 @@ class CodeGen {
     int lcnt = 0, scnt = 0;
     bool bare_metal = true;
     bool macos_terminal = false;
+    bool linux64_terminal = false;  // Linux 64-bit mode
     bool use_allocator = false;  // Use system allocator (malloc/free)
 
     std::string lbl(const std::string& pfx="L") { return pfx+std::to_string(lcnt++); }
@@ -1436,9 +1437,10 @@ class CodeGen {
     }
 
 public:
-    void set_mode(bool bm, bool macos=false){ 
-        bare_metal=bm; 
+    void set_mode(bool bm, bool macos=false, bool linux64=false){
+        bare_metal=bm;
         macos_terminal=macos;
+        linux64_terminal=linux64;
         use_allocator = !bm;  // Use allocator in terminal mode
     }
 
