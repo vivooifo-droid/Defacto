@@ -1,10 +1,11 @@
-# Defacto v0.49 (alpha)
+# Defacto v0.50 (alpha)
 
 Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and custom toolchains.
 
-**What's new in v0.49:**
-- **ARM64 support** — Apple Silicon (M1/M2/M3), Linux ARM64
-- **Cross-platform** — Linux 32/64-bit, macOS x86_64/ARM64
+**What's new in v0.50:**
+- **Full ARM64 support** — Complete ARM64 codegen with registers, instructions, syscalls
+- **Apple Silicon native** — M1/M2/M3 Macs supported natively
+- **Linux ARM64** — Raspberry Pi, AWS Graviton, etc.
 - **Standard Library** — core, string, math, io modules
 
 ## Repository contents

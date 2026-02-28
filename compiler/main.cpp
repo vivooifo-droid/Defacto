@@ -2,6 +2,7 @@
 #include "src/lexer.h"
 #include "src/parser.h"
 #include "src/codegen.h"
+#include "src/arm64_codegen.h"
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
@@ -51,13 +52,14 @@ int main(int argc, char** argv){
 
     std::string input, output="a.out";
     bool asm_only=false, verbose=false;
-    bool bare_metal=true, macos_terminal=false, linux64_terminal=false, arm64_terminal=false;
+    bool bare_metal=true, macos_terminal=false, linux64_terminal=false, arm64_terminal=false, macos_arm64=false;
 
     // Auto-detect platform
     #ifdef __APPLE__
     bare_metal = false;
     #if defined(__arm64__) || defined(__aarch64__)
     arm64_terminal = true;
+    macos_arm64 = true;
     #else
     macos_terminal = true;
     #endif
@@ -158,12 +160,20 @@ int main(int argc, char** argv){
         if(verbose){
             std::cout<<"  no_runtime: "<<ast->no_runtime<<"\n";
             std::cout<<"  functions:  "<<ast->functions.size()<<"\n";
-            std::cout<<"  mode: "<<(bare_metal?"kernel (bare-metal)":"terminal (Linux)")<<"\n";
+            std::cout<<"  mode: "<<(bare_metal?"kernel (bare-metal)":(arm64_terminal?"ARM64 terminal":(linux64_terminal?"Linux 64-bit":"Linux 32-bit")) )<<"\n";
         }
 
-        CodeGen cg;
-        cg.set_mode(bare_metal, macos_terminal, linux64_terminal, arm64_terminal);
-        cg.emit(ast.get(), asm_file);
+        if (arm64_terminal) {
+            // Use ARM64 codegen
+            ARM64CodeGen cg;
+            cg.set_mode(macos_arm64);
+            cg.emit(ast.get(), asm_file);
+        } else {
+            // Use x86 codegen
+            CodeGen cg;
+            cg.set_mode(bare_metal, macos_terminal, linux64_terminal, arm64_terminal);
+            cg.emit(ast.get(), asm_file);
+        }
 
         if(asm_only){std::cout<<"done: "<<asm_file<<"\n";return 0;}
 
@@ -172,15 +182,15 @@ int main(int argc, char** argv){
             if(verbose) std::cout<<"$ "<<cmd<<"\n";
             if(std::system(cmd.c_str())!=0){err("assembler failed");return 1;}
         } else if(arm64_terminal) {
-            // ARM64 (macOS or Linux)
+            // ARM64 (macOS or Linux) - uses ARM64 assembly directly
             const std::string obj=stem+".o";
             #ifdef __APPLE__
-            const std::string cmd_nasm="nasm -f macho64 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const std::string cmd_nasm="as -arch arm64 -o "+sh_quote(obj)+" "+sh_quote(asm_file);
             const char* cc_env = std::getenv("DEFACTO_CC");
             const std::string cc_bin = cc_env ? cc_env : "clang";
-            const std::string cmd_ld  = cc_bin+" -arch arm64 -Wl,-e,_start -o "+sh_quote(output)+" "+sh_quote(obj);
+            const std::string cmd_ld  = cc_bin+" -arch arm64 -o "+sh_quote(output)+" "+sh_quote(obj);
             #else
-            const std::string cmd_nasm="nasm -f elf64 "+sh_quote(asm_file)+" -o "+sh_quote(obj);
+            const std::string cmd_nasm="as -o "+sh_quote(obj)+" "+sh_quote(asm_file);
             const char* ld_env = std::getenv("DEFACTO_LD");
             const std::string ld_bin = ld_env ? ld_env : "ld";
             const std::string cmd_ld  = ld_bin+" -m aarch64linux -o "+sh_quote(output)+" "+sh_quote(obj)+" -lc";
