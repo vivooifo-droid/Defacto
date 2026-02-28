@@ -8,27 +8,6 @@ Pre-alpha status: the language and toolchain are unstable and will change.
 - No backward compatibility - only new fn, driver, for..to syntax
 - Simplified codebase - removed legacy parser code
 
-**What's new in v0.44:**
-- **Pointer bug fixes** — Fixed lexer, parser, and codegen for pointers
-- **Dereference assignment** — `*ptr = value` now works correctly
-- **64-bit macOS support** — Proper pointer handling in terminal mode
-- **Auto type detection** — `display{}` now works with i32/i64/u8 types
-
-**What's new in v0.40:**
-- **Comparison operators** — `!=`, `<`, `>`, `<=`, `>=`
-- **Return from functions** — `return{value}`
-- **While loops** — `while x < y { ... }`
-- **Library imports** — `Import{libname}`
-- **Homebrew installation** — `brew install defacto`
-
-**What's new in v0.35:**
-- **Pointers** — Rust-like pointer syntax (`*i32`, `&x`, `*ptr`, `ptr->field`)
-- **System allocator** — malloc/free support in terminal mode
-- **Null pointers** — `var ptr: *i32 = null`
-- **Double pointers** — `var ptr: **i32`
-
-Русская версия: `README.ru.md`
-
 ## Repository contents
 
 - Compiler (`compiler/`)
@@ -276,7 +255,7 @@ Rules:
 
 ### Expressions
 
-**New in v0.44:** Full nested expressions are supported:
+Full nested expressions are supported:
 
 ```de
 x = (a + b + c)
@@ -324,10 +303,10 @@ if x == y {
 }
 ```
 
-**New in v0.44:** All comparison operators are now supported:
+All comparison operators are supported:
 
 | Operator | Example | Description |
-| --- | --- | --- |
+|----------|---------|-------------|
 | `==` | `if x == y` | Equal |
 | `!=` | `if x != y` | Not equal |
 | `<` | `if x < y` | Less than |
