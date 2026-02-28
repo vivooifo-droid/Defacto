@@ -1,12 +1,12 @@
 ; Defacto Compiler Windows Installer
-; NSIS Script - Version 0.30
+; NSIS Script - Version 0.40
 
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
 ; General
-Name "Defacto Compiler v0.30"
-OutFile "defacto-0.30-installer.exe"
+Name "Defacto Compiler v0.40"
+OutFile "defacto-0.40-installer.exe"
 InstallDir "$PROGRAMFILES\Defacto"
 InstallDirRegKey HKLM "Software\Defacto" "InstallDir"
 RequestExecutionLevel admin

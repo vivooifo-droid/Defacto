@@ -1,5 +1,5 @@
 # Defacto Compiler PowerShell Installer
-# Version 0.30
+# Version 0.40
 
 param(
     [string]$InstallPath = "C:\Program Files\Defacto",
@@ -26,7 +26,7 @@ function Write-Error-Custom {
 
 # Header
 Write-Host "========================================"
-Write-Host "  Defacto Compiler Installer v0.30"
+Write-Host "  Defacto Compiler Installer v0.40"
 Write-Host "========================================"
 Write-Host ""
 
