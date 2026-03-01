@@ -1,5 +1,6 @@
 #pragma once
 #include "defacto.h"
+#ifdef HAS_LLVM
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -9,6 +10,7 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/FileSystem.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
@@ -18,6 +20,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#endif
 
 class LLVMCodeGen {
     llvm::LLVMContext context;
@@ -44,6 +47,7 @@ class LLVMCodeGen {
 
 public:
     LLVMCodeGen() : builder(context), use_gc(false), bare_metal(false), is_64bit(false) {
+#ifdef HAS_LLVM
         // Initialize LLVM
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmPrinter();
@@ -56,8 +60,9 @@ public:
         i64_type = llvm::Type::getInt64Ty(context);
         i8_type = llvm::Type::getInt8Ty(context);
         i1_type = llvm::Type::getInt1Ty(context);
-        ptr_type = llvm::Type::getPtrTy(context);
+        ptr_type = llvm::PointerType::getUnqual(context);  // Updated for LLVM 22
         void_type = llvm::Type::getVoidTy(context);
+#endif
     }
     
     void set_gc(bool enable) { use_gc = enable; }
@@ -419,6 +424,7 @@ public:
     }
     
     bool write_bitcode(const std::string& filename) {
+#ifdef HAS_LLVM
         std::error_code EC;
         llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OF_None);
         
@@ -430,5 +436,7 @@ public:
         llvm::WriteBitcodeToFile(*module, dest);
         dest.flush();
         return true;
+#endif
+        return false;
     }
 };

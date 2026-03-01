@@ -6,14 +6,15 @@ WIN_TARGET = defacto.exe
 WIN_STRIP ?= x86_64-w64-mingw32-strip
 
 # LLVM support (optional)
-LLVM_CONFIG = llvm-config
+# Try to find llvm-config in common locations
+LLVM_CONFIG ?= $(shell which llvm-config 2>/dev/null || echo "/opt/homebrew/opt/llvm/bin/llvm-config")
 LLVM_CXXFLAGS = $(shell $(LLVM_CONFIG) --cflags 2>/dev/null)
 LLVM_LDFLAGS = $(shell $(LLVM_CONFIG) --ldflags 2>/dev/null)
 LLVM_LIBS = $(shell $(LLVM_CONFIG) --libs 2>/dev/null)
 LLVM_SYSROOT = $(shell $(LLVM_CONFIG) --sysroot 2>/dev/null)
 
 # Detect if LLVM is available
-HAS_LLVM = $(shell command -v $(LLVM_CONFIG) >/dev/null 2>&1 && echo 1 || echo 0)
+HAS_LLVM = $(shell $(LLVM_CONFIG) --version >/dev/null 2>&1 && echo 1 || echo 0)
 
 # Add LLVM flags if available
 ifeq ($(HAS_LLVM), 1)

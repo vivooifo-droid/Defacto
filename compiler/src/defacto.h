@@ -6,20 +6,20 @@
 #include <set>
 #include <iostream>
 
-
-#define RED    "\033[1;31m"
-#define YELLOW "\033[1;33m"
-#define RESET  "\033[0m"
+// Color macros - renamed to avoid conflicts with LLVM
+#define DEFACTO_RED    "\033[1;31m"
+#define DEFACTO_YELLOW "\033[1;33m"
+#define DEFACTO_RESET  "\033[0m"
 
 inline void err(const std::string& msg, int line = -1) {
-    std::cerr << RED << "error";
+    std::cerr << DEFACTO_RED << "error";
     if (line > 0) std::cerr << "[" << line << "]";
-    std::cerr << ": " << msg << RESET << "\n";
+    std::cerr << ": " << msg << DEFACTO_RESET << "\n";
 }
 inline void warn(const std::string& msg, int line = -1) {
-    std::cerr << YELLOW << "warning";
+    std::cerr << DEFACTO_YELLOW << "warning";
     if (line > 0) std::cerr << "[" << line << "]";
-    std::cerr << ": " << msg << RESET << "\n";
+    std::cerr << ": " << msg << DEFACTO_RESET << "\n";
 }
 
 
