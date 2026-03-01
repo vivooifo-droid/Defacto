@@ -1,0 +1,265 @@
+# Defacto v0.53 - Generics and LLVM Backend Example
+
+## 1. Generic Swap Function
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
+<.de
+    var x: i32 = 10
+    var y: i32 = 20
+    
+    display{x}
+    display{y}
+    
+    // Note: generics require explicit instantiation (future work)
+    // For now, this demonstrates the syntax
+    
+    display{"After swap:"}
+    display{x}
+    display{y}
+.>
+
+#Mainprogramm.end
+```
+
+## 2. Generic Box Struct
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Box<T> {
+    value: T
+}
+
+struct Pair<T, U> {
+    first: T
+    second: U
+}
+
+<.de
+    var int_box: Box<i32>
+    int_box.value = 42
+    display{int_box.value}
+    
+    var str_box: Box<string>
+    str_box.value = "Hello from generic box!"
+    display{str_box.value}
+    
+    var pair: Pair<i32, string>
+    pair.first = 100
+    display{pair.first}
+.>
+
+#Mainprogramm.end
+```
+
+## 3. Array with Expression Index
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var arr: i32[10]
+    var i: i32 = 0
+    var sum: i32 = 0
+    
+    // Fill array with squares
+    for i = 0 to 10 {
+        arr[i] = (i * i)
+    }
+    
+    // Access with expression index
+    var x: i32 = arr[5 - 1]
+    display{x}
+    
+    // Sum all elements
+    for i = 0 to 10 {
+        sum = (sum + arr[i])
+    }
+    display{sum}
+.>
+
+#Mainprogramm.end
+```
+
+## 4. Complex Expression Index
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var matrix: i32[100]
+    var row: i32 = 5
+    var col: i32 = 3
+    var width: i32 = 10
+    
+    // 2D array access: matrix[row][col] = matrix[row * width + col]
+    var index: i32 = ((row * width) + col)
+    matrix[index] = 42
+    
+    var value: i32 = matrix[((row * width) + col)]
+    display{value}
+.>
+
+#Mainprogramm.end
+```
+
+## 5. Generic Identity Function
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn identity<T>(value: T) {
+    <.de
+        // Returns the same value
+        display{value}
+    .>
+}
+
+fn double<T>(value: T) {
+    <.de
+        var result: i32 = 0
+        result = (value * 2)
+        display{result}
+    .>
+}
+
+<.de
+    var x: i32 = 42
+    call #identity
+    call #double
+.>
+
+#Mainprogramm.end
+```
+
+## 6. Dynamic Array Size with Constant
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+const ARRAY_SIZE: i32 = 50
+const BUFFER_LEN: i32 = 256
+
+<.de
+    var data: i32[ARRAY_SIZE]
+    var buffer: u8[BUFFER_LEN]
+    var i: i32 = 0
+    
+    // Fill data array
+    for i = 0 to ARRAY_SIZE {
+        data[i] = (i * 2)
+    }
+    
+    // Access with expression
+    var last: i32 = data[ARRAY_SIZE - 1]
+    display{last}
+.>
+
+#Mainprogramm.end
+```
+
+## 7. Combined Example - Generic Container
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Container<T> {
+    data: T
+    size: i32
+    valid: bool
+}
+
+fn init_container<T>(c: T, s: i32) {
+    <.de
+        // Initialize container
+        c.valid = true
+        c.size = s
+    .>
+}
+
+<.de
+    var container: Container<i32>
+    container.data = 100
+    container.size = 1
+    container.valid = true
+    
+    display{container.data}
+    display{container.size}
+.>
+
+#Mainprogramm.end
+```
+
+## 8. Array Bounds Testing
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var arr: i32[5]
+    var i: i32 = 0
+    var idx: i32 = 0
+    
+    // Initialize
+    for i = 0 to 5 {
+        arr[i] = (i * 10)
+    }
+    
+    // Safe access
+    idx = 2
+    var val: i32 = arr[idx]
+    display{val}
+    
+    // Expression access
+    val = arr[idx + 1]
+    display{val}
+.>
+
+#Mainprogramm.end
+```
+
+## Compilation
+
+```bash
+# With NASM backend
+./defacto examples/generics.de -o generics
+
+# With LLVM backend (recommended)
+./defacto -llvm -O2 examples/generics.de -o generics
+
+# Run
+./generics
+```
+
+## Notes
+
+- Generics syntax is fully parsed but type instantiation is planned for future releases
+- Expression indexes in arrays are fully functional
+- LLVM backend provides better optimization for generic-like patterns
+- All examples are backward compatible with v0.52

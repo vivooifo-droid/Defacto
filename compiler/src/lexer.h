@@ -160,6 +160,40 @@ public:
                 adv();adv();
                 out.emplace_back(TT::SEC_CLOSE,".>",l,c); continue;
             }
+            
+            // Generics support - angle brackets for type parameters
+            // Need to distinguish between << (driver assign) and <T> (generics)
+            if (cur()=='<' && pk(1) != '=' && pk(1) != '<' && pk(1) != '.' && pk(1) != 'd') {
+                // Check if it's likely a generic type parameter (e.g., <T>, <T, U>)
+                size_t saved_pos = pos;
+                int saved_line = line;
+                int saved_col = col;
+                adv();  // consume '<'
+                skip_ws();
+                bool is_generic = isalpha(cur()) || cur() == '_';
+                pos = saved_pos;
+                line = saved_line;
+                col = saved_col;
+                
+                if (is_generic) {
+                    adv();
+                    out.emplace_back(TT::LANGLE, "<", l, c);
+                    continue;
+                }
+            }
+            if (cur()=='>' && pk(1) != '>' && pk(1) != '=' && pk(1) != '.') {
+                // Check if previous token was a type or identifier (likely closing generic)
+                if (!out.empty() && (out.back().type == TT::IDENT || 
+                                      out.back().type == TT::I32 || out.back().type == TT::I64 ||
+                                      out.back().type == TT::U8 || out.back().type == TT::STR ||
+                                      out.back().type == TT::PTR || out.back().type == TT::BOOL ||
+                                      out.back().type == TT::COMMA)) {
+                    adv();
+                    out.emplace_back(TT::RANGLE, ">", l, c);
+                    continue;
+                }
+            }
+            
             if (cur()=='"') { out.emplace_back(TT::STR_LIT, read_str(), l, c); continue; }
             if (isdigit(cur())) { out.emplace_back(TT::NUMBER, read_num(), l, c); continue; }
             if (isalpha(cur())||cur()=='_') {

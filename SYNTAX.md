@@ -1,6 +1,6 @@
 # Defacto Language Syntax Reference
 
-Version 0.45
+Version 0.53
 
 ## Table of Contents
 
@@ -9,16 +9,17 @@ Version 0.45
 3. [Code Sections](#code-sections)
 4. [Types](#types)
 5. [Variables and Constants](#variables-and-constants)
-6. [Structs](#structs)
-7. [Expressions](#expressions)
-8. [Statements](#statements)
-9. [Functions](#functions)
-10. [Drivers](#drivers)
-11. [Built-in Functions](#built-in-functions)
-12. [Registers](#registers)
-13. [Comments and Strings](#comments-and-strings)
-14. [Memory Management](#memory-management)
-15. [Language Limitations](#language-limitations)
+6. [Generics](#generics)
+7. [Structs](#structs)
+8. [Expressions](#expressions)
+9. [Statements](#statements)
+10. [Functions](#functions)
+11. [Drivers](#drivers)
+12. [Built-in Functions](#built-in-functions)
+13. [Registers](#registers)
+14. [Comments and Strings](#comments-and-strings)
+15. [Memory Management](#memory-management)
+16. [Language Limitations](#language-limitations)
 
 ---
 
@@ -95,10 +96,10 @@ All executable code must be inside sections:
 <.de
     var x: i32 = 0
     var msg: string = "hello"
-    
+
     display{msg}
     x = (x + 1)
-    
+
     var y: i32 = 10
     y = (y * 2)
 .>
@@ -122,7 +123,7 @@ Rules:
 | `i64` | 8 bytes | Signed integer |
 | `u8` | 1 byte | Unsigned byte |
 | `string` | pointer | Null-terminated string |
-| `pointer` | 4 bytes | Raw pointer |
+| `pointer` | 4/8 bytes | Raw pointer (platform-dependent) |
 | `bool` | 1 byte | Boolean (true/false) |
 
 ### Arrays
@@ -130,6 +131,10 @@ Rules:
 ```de
 var buf: u8[64]
 var arr: i32[10]
+
+// Dynamic size with constant (v0.53+)
+const SIZE: i32 = 100
+var data: i32[SIZE]
 ```
 
 ### Pointers
@@ -166,6 +171,63 @@ Rules:
 
 ---
 
+## Generics (v0.53+)
+
+Type parameters allow writing reusable code that works with multiple types.
+
+### Generic Functions
+
+```de
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
+fn identity<T>(value: T) {
+    <.de
+        display{value}
+    .>
+}
+```
+
+### Generic Structs
+
+```de
+struct Box<T> {
+    value: T
+}
+
+struct Pair<T, U> {
+    first: T
+    second: U
+}
+
+// Usage
+var box: Box<i32>
+box.value = 42
+
+var pair: Pair<i32, string>
+pair.first = 10
+```
+
+### Type Constraints (Future)
+
+```de
+// Future syntax - not yet implemented
+fn compare<T: comparable>(a: T, b: T) {
+    <.de
+        if a == b {
+            display{"equal"}
+        }
+    .>
+}
+```
+
+---
+
 ## Structs
 
 ### Definition
@@ -194,6 +256,17 @@ var ptr: *Point = &p
 ptr->x = 100
 ```
 
+### Generic Structs
+
+```de
+struct Container<T> {
+    data: T
+    size: i32
+}
+
+var container: Container<i32>
+```
+
 ---
 
 ## Expressions
@@ -206,6 +279,11 @@ ptr->x = 100
 | `-` | Subtraction | `x = (x - 1)` |
 | `*` | Multiplication | `x = (x * 2)` |
 | `/` | Division | `x = (x / 4)` |
+| `&` | Bitwise AND | `x = (a & b)` |
+| `|` | Bitwise OR | `x = (a | b)` |
+| `^` | Bitwise XOR | `x = (a ^ b)` |
+| `<<` | Left shift | `x = (a << 2)` |
+| `>>` | Right shift | `x = (a >> 1)` |
 
 ### Nested Expressions
 
@@ -214,6 +292,15 @@ x = (a + b + c)
 x = ((a + b) * c)
 x = -5
 result = (a * b) + (c / d)
+```
+
+### Compound Assignment (v0.51+)
+
+```de
+x += 1    // x = (x + 1)
+y -= 5    // y = (y - 5)
+z *= 2    // z = (z * 2)
+w /= 4    // w = (w / 4)
 ```
 
 ---
@@ -229,6 +316,10 @@ x = (x + 1)
 arr[i] = x
 p.x = 100
 *ptr = value
+
+// Expression indexes (v0.53+)
+arr[i + 1] = 42
+arr[i * 2 + j] = 100
 ```
 
 ### If/Else
@@ -335,6 +426,27 @@ fn add(a: i32, b: i32) {
 }
 
 call #add
+```
+
+### With Generics (v0.53+)
+
+```de
+fn identity<T>(value: T) {
+    <.de
+        display{value}
+    .>
+}
+
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
+call #identity
+call #swap
 ```
 
 ---
@@ -487,9 +599,10 @@ dealloc{ptr}
 
 ## Language Limitations
 
-- No expression indexes in arrays: `arr[i + 1]` not supported
 - Interrupt directives parsed but not generated
+- Expression indexes in arrays: `arr[i + 1]` supported (v0.53+)
 - No nested struct definitions inside sections
+- Generics require explicit type specification
 
 ---
 
@@ -531,41 +644,77 @@ dealloc{ptr}
 #Mainprogramm.end
 ```
 
-### For Loop
+### Generic Swap
 
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
 
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
 <.de
-    for i = 0 to 10 {
-        display{i}
-    }
+    var x: i32 = 10
+    var y: i32 = 20
+    
+    call #swap
+    
+    display{x}
+    display{y}
 .>
 
 #Mainprogramm.end
 ```
 
-### Driver Usage
+### Array with Expression Index
 
 ```de
 #Mainprogramm.start
 #NO_RUNTIME
 #SAFE
 
-driver keyboard {
-    type = keyboard
+<.de
+    var arr: i32[10]
+    var i: i32 = 0
+    
+    // Fill array
+    for i = 0 to 10 {
+        arr[i] = (i * i)
+    }
+    
+    // Access with expression index
+    var x: i32 = arr[i - 1]
+    display{x}
+.>
+
+#Mainprogramm.end
+```
+
+### Generic Box
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+struct Box<T> {
+    value: T
 }
 
 <.de
-    var key: i32 = 0
-    var msg: string = "Press a key"
-
-    display{msg}
-    call #keyboard
-    readkey{key}
-    display{key}
+    var int_box: Box<i32>
+    int_box.value = 42
+    display{int_box.value}
+    
+    var str_box: Box<string>
+    str_box.value = "Hello"
+    display{str_box.value}
 .>
 
 #Mainprogramm.end
@@ -581,6 +730,9 @@ driver keyboard {
 
 # Specify output
 ./defacto program.de -o output
+
+# With LLVM backend
+./defacto -llvm -O2 program.de -o output
 
 # Assembly output only
 ./defacto -S program.de
@@ -598,4 +750,15 @@ driver keyboard {
 |------|----------|--------|
 | `-kernel` | All | Binary (x86-32) |
 | `-terminal` | Linux | ELF 32-bit |
+| `-terminal64` | Linux | ELF 64-bit |
 | `-terminal-macos` | macOS | Mach-O 64-bit |
+| `-terminal-arm64` | macOS/Linux | Mach-O/ELF 64-bit (ARM64) |
+
+### Optimization Levels (LLVM only)
+
+| Flag | Description |
+|------|-------------|
+| `-O0` | No optimization (debug) |
+| `-O1` | Basic optimizations |
+| `-O2` | Standard optimizations |
+| `-O3` | Aggressive optimizations |

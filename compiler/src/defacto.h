@@ -40,6 +40,7 @@ enum class TT {
     AMP, STAR, TOK_NULL, ALLOC, DEALLOC,
     LOGIC_AND, LOGIC_OR, LOGIC_NOT,
     ARROW, TYPE,
+    LANGLE, RANGLE,  // For generics <T>
     EOF_T
 };
 
@@ -60,7 +61,9 @@ enum class NT {
     STRUCT_DECL, STRUCT_FIELD_ACCESS, ENUM_DECL,
     PTR_ADDR, PTR_DEREF, ALLOC_NODE, DEALLOC_NODE,
     ARRAY_INIT, LOGIC_EXPR,
-    SWITCH_STMT, CASE_LABEL, ASM_STMT
+    SWITCH_STMT, CASE_LABEL, ASM_STMT,
+    ARRAY_SLICE, ARRAY_ACCESS, BOUNDS_CHECK,  // Improved arrays
+    GENERIC_INST, TYPE_PARAM  // Generics support
 };
 
 struct Node { NT kind; virtual ~Node() = default; };
@@ -76,6 +79,11 @@ struct SectionNode : Node {
 struct StructDecl : Node {
     std::string name;
     std::vector<std::pair<std::string, std::string>> fields;  // field name -> type
+    
+    // Generics support
+    std::vector<TypeParam> type_params;  // Generic type parameters
+    std::map<std::string, std::string> type_substitutions;  // T -> i32 for instantiated structs
+    
     StructDecl() { kind = NT::STRUCT_DECL; }
 };
 
@@ -115,11 +123,23 @@ struct ProgramNode : Node {
     ProgramNode() { kind = NT::PROGRAM; }
 };
 
+// Generics support - type parameters
+struct TypeParam {
+    std::string name;      // T, U, etc.
+    std::string constraint; // optional constraint (e.g., "comparable")
+};
+
 struct VarDecl : Node {
     std::string name, type, init;
     int arr_size = 0;
+    std::string arr_size_expr;  // Expression for array size (e.g., "N", "10 + 5")
     bool is_arr  = false;
     bool is_const = false;
+    
+    // Generics support
+    std::vector<TypeParam> type_params;  // For generic functions/structs
+    std::string instantiated_type;  // Concrete type after instantiation
+    
     VarDecl() { kind = NT::VAR_DECL; }
 };
 
@@ -128,6 +148,11 @@ struct FuncDecl : Node {
     std::vector<std::pair<std::string, std::string>> params;  // param name -> type
     std::string return_type;
     std::unique_ptr<SectionNode> body;
+    
+    // Generics support
+    std::vector<TypeParam> type_params;  // Generic type parameters
+    std::map<std::string, std::string> type_substitutions;  // T -> i32, etc.
+    
     FuncDecl() { kind = NT::FUNC_DECL; }
 };
 
@@ -297,4 +322,29 @@ struct AllocNode : Node {
 struct DeallocNode : Node {
     std::string ptr;  // Pointer to free
     DeallocNode() { kind = NT::DEALLOC_NODE; }
+};
+
+// Improved arrays - slice support
+struct ArraySlice : Node {
+    std::string array_name;
+    std::string start_expr;  // Start index expression
+    std::string end_expr;    // End index expression
+    ArraySlice() { kind = NT::ARRAY_SLICE; }
+};
+
+// Array with expression index
+struct ArrayAccess : Node {
+    std::string array_name;
+    std::string index_expr;  // Can be expression like "i + 1"
+    bool is_assignment = false;
+    std::string value;  // Value to assign (if is_assignment)
+    ArrayAccess() { kind = NT::ARRAY_ACCESS; }
+};
+
+// Bounds check node (for runtime checks)
+struct BoundsCheck : Node {
+    std::string index;
+    std::string bound;
+    std::string array_name;
+    BoundsCheck() { kind = NT::BOUNDS_CHECK; }
 };

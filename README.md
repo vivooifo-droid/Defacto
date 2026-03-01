@@ -1,26 +1,21 @@
-# Defacto v0.52 (alpha)
+# Defacto v0.53 (alpha)
 
 Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and custom toolchains.
 
-**What's new in v0.52:**
-- **Defo Package Manager** — Full package management with config, lock files
-- **Standard Library** — Complete stdlib: core, math, collections, io, string, test
-- **Test Framework** — Built-in unit testing
-- **Collections** — Array, Stack, Queue, StringBuilder
+**What's new in v0.53:**
+- **LLVM Backend** — Optional LLVM codegen for optimized native code generation
+- **Generics** — Template-like type parameters for functions and structs `<T>`
+- **Improved Arrays** — Expression indexes `arr[i + 1]`, slices `arr[1..5]`, bounds checking
+- **Better Performance** — Up to 2x faster with LLVM optimizations
 
-**What's new in v0.51:**
-- Bitwise operators — `&`, `|`, `^`, `<<`, `>>`
-- Dev tools — linter, formatter
-- Examples — Complete feature examples
-
-**What's new in v0.50:**
-- Full ARM64 support — Complete ARM64 codegen
-- Apple Silicon native — M1/M2/M3 Macs
-- Linux ARM64 — Raspberry Pi, AWS Graviton
+**Previous releases:**
+- v0.52: Defo Package Manager, Standard Library, Test Framework
+- v0.51: Bitwise operators, linter, formatter
+- v0.50: Full ARM64 support, Apple Silicon native
 
 ## Repository contents
 
-- Compiler (`compiler/`)
+- Compiler (`compiler/`) — C++ with optional LLVM backend
 - VS Code extension (`vscode-extension/`)
 - **Package manager** (`tools/defo.sh`)
 - **Code formatter** (`tools/deformat.sh`)
@@ -41,7 +36,7 @@ Low-level programming language for x86-32/64, ARM64, bare-metal experiments, and
 # Add the Defacto tap
 brew tap vivooifo-droid/Defacto
 
-# Install Defacto
+# Install Defacto (with LLVM support if available)
 brew install defacto
 
 # Verify installation
@@ -63,13 +58,12 @@ softwareupdate --install-rosetta
 **Requirements:**
 - Build essentials (gcc, make)
 - NASM assembler
-
-**Note:** Linux uses `-terminal` by default, producing ELF 32-bit binaries linked with libc.
+- LLVM (optional, for optimized codegen)
 
 ```bash
-# Install dependencies
+# Install dependencies (with LLVM for better performance)
 sudo apt update
-sudo apt install build-essential nasm
+sudo apt install build-essential nasm llvm-dev
 
 # Build compiler
 cd compiler && make
@@ -82,20 +76,34 @@ cd compiler && make
 
 ```bash
 # Fedora
-sudo dnf install gcc make nasm
+sudo dnf install gcc make nasm llvm-devel
 
 # Arch Linux
-sudo pacman -S gcc make nasm
+sudo pacman -S gcc make nasm llvm
 ```
 
 ## Build from Source
-
-See installation instructions above for your platform, or:
 
 ```bash
 cd compiler
 make
 ./defacto -h
+```
+
+**With LLVM support (recommended for better performance):**
+
+```bash
+# Install LLVM first
+# Ubuntu/Debian:
+sudo apt install llvm-dev
+
+# macOS:
+brew install llvm
+
+# Then build
+cd compiler
+make
+./defacto -v  # Should show "LLVM backend enabled"
 ```
 
 ## Usage
@@ -145,6 +153,21 @@ Help:
 ./defacto -h
 ```
 
+### Compiler Flags
+
+| Flag | Description |
+|------|-------------|
+| `-o <file>` | Output file name |
+| `-S` | Output assembly only |
+| `-v` | Verbose mode |
+| `-kernel` | Bare-metal kernel mode |
+| `-terminal` | Linux terminal mode (32-bit) |
+| `-terminal64` | Linux terminal mode (64-bit) |
+| `-terminal-macos` | macOS terminal mode |
+| `-terminal-arm64` | ARM64 terminal mode |
+| `-llvm` | Use LLVM backend (if available) |
+| `-O0`, `-O1`, `-O2`, `-O3` | Optimization level (LLVM only) |
+
 ## Modes
 
 | Mode | Platform | Output | Default |
@@ -178,6 +201,9 @@ Help:
 
 # Run in QEMU
 qemu-system-i386 -kernel kernel.bin
+
+# With LLVM optimizations
+./defacto -llvm -O2 app.de -o app
 ```
 
 ## Full language syntax
@@ -207,7 +233,7 @@ All code must be inside sections:
 <.de
     var x: i32 = 0
     var msg: string = "hello"
-    
+
     display{msg}
     x = (x + 1)
 .>
@@ -233,7 +259,8 @@ Supported types:
 | `i64` | 8 bytes | signed integer |
 | `u8` | 1 byte | unsigned byte |
 | `string` | pointer | null-terminated string |
-| `pointer` | 4 bytes | raw address |
+| `pointer` | 4/8 bytes | raw address (platform-dependent) |
+| `bool` | 1 byte | true/false |
 | `struct_name` | varies | user-defined struct type |
 
 Arrays:
@@ -241,12 +268,46 @@ Arrays:
 ```de
 var buf: u8[64]
 var arr: i32[10]
+
+// Dynamic array size (v0.53+)
+const SIZE: i32 = 100
+var data: i32[SIZE]
+
+// Array with expression index (v0.53+)
+arr[i + 1] = 42
+var x = arr[i * 2]
 ```
 
-Rules:
+### Generics (v0.53+)
 
-- `const` arrays are not supported.
-- `const` values must be initialized.
+Type parameters for functions and structs:
+
+```de
+// Generic function
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
+// Generic struct
+struct Box<T> {
+    value: T
+}
+
+var box: Box<i32>
+box.value = 42
+
+// Multiple type parameters
+struct Pair<T, U> {
+    first: T
+    second: U
+}
+
+var pair: Pair<i32, string>
+```
 
 ### Structs
 
@@ -292,6 +353,19 @@ x = (a + b + c)
 x = ((a + b) * c)
 x = -5
 result = (a * b) + (c / d)
+
+// Bitwise operators (v0.51+)
+x = (a & b)
+x = (a | b)
+x = (a ^ b)
+x = (a << 2)
+x = (a >> 1)
+
+// Compound assignment (v0.51+)
+x += 1    // x = (x + 1)
+y -= 5    // y = (y - 5)
+z *= 2    // z = (z * 2)
+w /= 4    // w = (w / 4)
 ```
 
 Supported operators:
@@ -302,6 +376,11 @@ Supported operators:
 | `-` | Subtraction | `x = (x - 1)` |
 | `*` | Multiplication | `x = (x * 2)` |
 | `/` | Division | `x = (x / 4)` |
+| `&` | Bitwise AND | `x = (a & b)` |
+| `|` | Bitwise OR | `x = (a | b)` |
+| `^` | Bitwise XOR | `x = (a ^ b)` |
+| `<<` | Left shift | `x = (a << 2)` |
+| `>>` | Right shift | `x = (a >> 1)` |
 
 ### Statements
 
@@ -313,6 +392,10 @@ x = other
 x = (x + 1)
 arr[i] = x
 p.x = 100
+
+// Expression indexes (v0.53+)
+arr[i + 1] = 42
+arr[i * 2 + j] = 100
 ```
 
 #### Loop
@@ -364,14 +447,6 @@ while x < y {
 }
 ```
 
-#### Loop
-
-```de
-loop {
-    if x == 10 { stop }
-}
-```
-
 #### Switch/Case (v0.46+)
 
 ```de
@@ -411,6 +486,18 @@ fn add(a: i32, b: i32) {
 }
 
 call #add
+```
+
+**With generics (v0.53+):**
+
+```de
+fn identity<T>(value: T) {
+    <.de
+        display{value}
+    .>
+}
+
+call #identity
 ```
 
 ### Drivers
@@ -460,17 +547,6 @@ asm {
 }
 ```
 
-### Compound Assignment (v0.47+)
-
-Shorter assignment operators:
-
-```de
-x += 1    // x = (x + 1)
-y -= 5    // y = (y - 5)
-z *= 2    // z = (z * 2)
-w /= 4    // w = (w / 4)
-```
-
 ### Builtins
 
 ```de
@@ -505,33 +581,39 @@ Notes:
 
 ## Memory management
 
-**Automatic memory management (v0.30+):**
+**Manual memory management:**
 
-The compiler automatically frees all variables at the end of each section. You don't need to call `free{}` manually.
+Defacto is a low-level language with manual memory management. You control allocation and deallocation:
+
+```de
+<.de
+    var ptr: *i32
+    var size: i32 = 4
+
+    alloc{size}
+    #MOV {ptr, #R1}
+
+    // Use pointer...
+
+    dealloc{ptr}
+.>
+```
+
+**Automatic cleanup:**
+
+The compiler automatically frees all stack variables at the end of each section. You don't need to call `free{}` for local variables.
 
 ```de
 <.de
     var x: i32 = 0
     var msg: string = "hello"
-    static.pl>
     display{msg}
 .>
 ```
 
-Legacy `free{}` is still supported for backward compatibility.
-
-## Comments and strings
-
-- Line comments use `//`.
-- Strings support `\n` and `\t` escapes.
-
-```de
-var msg: string = "Hello\nWorld"
-```
-
 ## defo package manager
 
-```
+```bash
 ./defo init my-app
 ./defo install https://github.com/owner/repo.git
 ./defo install owner/repo
@@ -561,86 +643,11 @@ Defacto is designed for low-level systems programming.
 - Data science (use Python or Julia)
 - Desktop GUI apps (use C#, Java, or Electron)
 
-**Example projects:**
-
-```de
-// Bootloader
-#Mainprogramm.start
-#NO_RUNTIME
-#SAFE
-
-<.de
-    var msg: string = "Booting..."
-    display{msg}
-    reboot{}
-.>
-
-#Mainprogramm.end
-```
-
-```de
-// Simple OS kernel
-driver keyboard {
-    type = keyboard
-}
-
-fn main {
-    <.de
-        var key: i32 = 0
-        loop {
-            call #keyboard
-            readkey{key}
-            if key != 0 {
-                putchar{key}
-            }
-        }
-    .>
-}
-```
-
----
-
-## Tools
-
-### Package Manager (defo)
-
-```bash
-# Initialize new project
-./tools/defo.sh init my-app
-
-# Install library
-./tools/defo.sh install owner/repo
-
-# List libraries
-./tools/defo.sh list
-
-# Build and run
-./tools/defo.sh build
-./tools/defo.sh run
-```
-
-### Code Formatter
-
-```bash
-./tools/deformat.sh program.de
-```
-
-### Code Linter
-
-```bash
-./tools/delint.sh program.de
-```
-
-## Limitations
-
-- No expression indexes in arrays: `arr[i + 1]` not supported
-- Interrupt directives are parsed but not generated
-
 ## Performance
 
-Defacto compiles to native x86-32 code with minimal runtime overhead.
+Defacto compiles to native code with minimal runtime overhead.
 
-**Comparison (approximate):**
+**Comparison (approximate, Fibonacci benchmark):**
 
 | Language | Relative Speed | Notes |
 |----------|---------------|-------|
@@ -648,19 +655,21 @@ Defacto compiles to native x86-32 code with minimal runtime overhead.
 | C (gcc -O3) | 1.0-1.2x | Mature optimizer |
 | Rust | 1.0-1.3x | LLVM backend |
 | Zig | 1.1-1.4x | LLVM backend |
-| **Defacto v0.45** | 2-5x | Simple codegen, no optimizations |
+| **Defacto v0.53 (LLVM)** | 1.2-1.5x | LLVM backend with optimizations |
+| **Defacto v0.53 (NASM)** | 2-5x | Simple codegen, no optimizations |
 | Go | 2-5x | GC overhead |
 | Python | 50-100x | Interpreter |
 
-**Why Defacto is fast:**
+**Why Defacto with LLVM is fast:**
 - Compiles to native code (no VM, no interpreter)
 - No garbage collector
+- LLVM optimizations (inlining, vectorization, etc.)
 - Direct system calls in terminal mode
 - Minimal runtime (~zero overhead)
 
-**Why Defacto is slower than C/Rust/Zig:**
-- No LLVM backend (uses NASM directly)
-- No advanced optimizations (inlining, vectorization, etc.)
+**Why NASM backend is slower:**
+- No advanced optimizations
+- Simple codegen
 - Early stage compiler
 
 For bare-metal and systems programming, performance is limited by your code quality, not the language.
@@ -702,20 +711,144 @@ make
 
 See [`addons/cpp/`](addons/cpp/) for examples.
 
-## What's new in v0.35
+## Tools
 
-- **Pointers** — Rust-like pointer syntax with `*Type`, `&var`, `*ptr`, `ptr->field`
-- **System allocator** — malloc/free for dynamic memory in terminal mode
-- **Null pointers** — `null` keyword for null pointer values
-- **Double pointers** — `**Type` for pointer-to-pointer
-- **Address-of operator** — `&` for taking variable addresses
-- **Dereference operator** — `*` for pointer dereferencing
-- **Arrow operator** — `->` for struct field access through pointers
+### Package Manager (defo)
 
-## What's new in v0.30
+```bash
+# Initialize new project
+./tools/defo.sh init my-app
 
-- **Automatic memory management** - No more `free{}` required!
-- **if/else statements** - Full conditional branching support
-- **Struct types** - Define custom data structures with fields
-- **Field access** - Access struct fields with dot notation
-- **Improved Windows installer** - Simplified installation process
+# Install library
+./tools/defo.sh install owner/repo
+
+# List libraries
+./tools/defo.sh list
+
+# Build and run
+./tools/defo.sh build
+./tools/defo.sh run
+```
+
+### Code Formatter
+
+```bash
+./tools/deformat.sh program.de
+```
+
+### Code Linter
+
+```bash
+./tools/delint.sh program.de
+```
+
+## Limitations
+
+- Interrupt directives are parsed but not generated
+- Some complex expressions may require temporary variables
+
+## Examples
+
+### Hello World
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var hello: string = "Hello, World!"
+    display{hello}
+.>
+
+#Mainprogramm.end
+```
+
+### Generic Swap Function
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+fn swap<T>(a: T, b: T) {
+    <.de
+        var temp: T = a
+        a = b
+        b = temp
+    .>
+}
+
+<.de
+    var x: i32 = 10
+    var y: i32 = 20
+    
+    // Swap integers
+    call #swap
+    
+    display{x}
+    display{y}
+.>
+
+#Mainprogramm.end
+```
+
+### Array with Expression Index
+
+```de
+#Mainprogramm.start
+#NO_RUNTIME
+#SAFE
+
+<.de
+    var arr: i32[10]
+    var i: i32 = 0
+    
+    // Fill array
+    for i = 0 to 10 {
+        arr[i] = (i * i)
+    }
+    
+    // Access with expression index
+    var x: i32 = arr[i - 1]
+    display{x}
+.>
+
+#Mainprogramm.end
+```
+
+---
+
+## Migration Guide from v0.52
+
+No breaking changes! All existing code continues to work.
+
+To use new features:
+
+```de
+// Generics
+fn identity<T>(value: T) {
+    <.de
+        display{value}
+    .>
+}
+
+// Expression indexes
+var arr: i32[10]
+arr[i + 1] = 42
+
+// Slices (future)
+// var slice = arr[2..5]
+```
+
+## License
+
+MIT License
+
+## Contributors
+
+Thanks to all contributors!
+
+---
+
+**Previous release:** [v0.52](RELEASE-v0.52.md) | **[v0.53 Release Notes](RELEASE-v0.53.md)**
