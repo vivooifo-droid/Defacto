@@ -3,6 +3,9 @@
 #include "src/parser.h"
 #include "src/codegen.h"
 #include "src/arm64_codegen.h"
+#ifdef HAS_LLVM
+#include "src/llvm_codegen.h"
+#endif
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
@@ -27,7 +30,7 @@ static std::string sh_quote(const std::string& s){
 
 static void usage(const char* prog){
     std::cout
-        <<"Defacto Compiler v0.49\n\n"
+        <<"Defacto Compiler v0.53\n\n"
         <<"Usage: "<<prog<<" [options] <file.de>\n\n"
         <<"Options:\n"
         <<"  -o <file>       output file (default: a.out)\n"
@@ -37,6 +40,10 @@ static void usage(const char* prog){
         <<"  -terminal64     terminal mode: Linux 64-bit syscalls\n"
         <<"  -terminal-macos terminal mode: macOS x86_64 syscalls\n"
         <<"  -terminal-arm64 terminal mode: macOS/Linux ARM64 syscalls\n"
+#ifdef HAS_LLVM
+        <<"  -llvm           use LLVM backend for optimized codegen\n"
+        <<"  -O0, -O1, -O2, -O3  optimization level (LLVM only, default: -O2)\n"
+#endif
         <<"  -v              verbose\n"
         <<"  -h              help\n\n"
         <<"Examples:\n"
@@ -44,7 +51,11 @@ static void usage(const char* prog){
         <<"  "<<prog<<" -terminal64 hello.de     # Linux 64-bit\n"
         <<"  "<<prog<<" -terminal-macos app.de   # macOS x86_64\n"
         <<"  "<<prog<<" -terminal-arm64 app.de   # macOS/ARM64, Linux/ARM64\n"
-        <<"  "<<prog<<" -kernel -o kernel.bin os.de\n";
+        <<"  "<<prog<<" -kernel -o kernel.bin os.de\n"
+#ifdef HAS_LLVM
+        <<"  "<<prog<<" -llvm -O2 app.de         # LLVM backend with optimizations\n"
+#endif
+        ;
 }
 
 int main(int argc, char** argv){
@@ -53,6 +64,10 @@ int main(int argc, char** argv){
     std::string input, output="a.out";
     bool asm_only=false, verbose=false;
     bool bare_metal=true, macos_terminal=false, linux64_terminal=false, arm64_terminal=false, macos_arm64=false;
+    
+    // LLVM backend options
+    bool use_llvm = false;
+    int opt_level = 2;  // Default -O2
 
     // Auto-detect platform
     #ifdef __APPLE__
@@ -75,6 +90,13 @@ int main(int argc, char** argv){
         else if(a=="-terminal64") { bare_metal=false; macos_terminal=false; linux64_terminal=true; arm64_terminal=false; }
         else if(a=="-terminal-macos") { bare_metal=false; macos_terminal=true; linux64_terminal=false; arm64_terminal=false; }
         else if(a=="-terminal-arm64") { bare_metal=false; macos_terminal=false; linux64_terminal=false; arm64_terminal=true; }
+#ifdef HAS_LLVM
+        else if(a=="-llvm")     use_llvm=true;
+        else if(a=="-O0")       opt_level=0;
+        else if(a=="-O1")       opt_level=1;
+        else if(a=="-O2")       opt_level=2;
+        else if(a=="-O3")       opt_level=3;
+#endif
         else if(a=="-o"){if(++i>=argc){err("'-o' requires filename");return 1;} output=argv[i];}
         else if(a[0]!='-') input=a;
         else{err("unknown option '"+a+"'");return 1;}
@@ -161,18 +183,50 @@ int main(int argc, char** argv){
             std::cout<<"  no_runtime: "<<ast->no_runtime<<"\n";
             std::cout<<"  functions:  "<<ast->functions.size()<<"\n";
             std::cout<<"  mode: "<<(bare_metal?"kernel (bare-metal)":(arm64_terminal?"ARM64 terminal":(linux64_terminal?"Linux 64-bit":"Linux 32-bit")) )<<"\n";
+#ifdef HAS_LLVM
+            std::cout<<"  backend: "<<(use_llvm?"LLVM":"NASM")<<"\n";
+            if(use_llvm) std::cout<<"  optimization: -O"<<opt_level<<"\n";
+#endif
         }
 
-        if (arm64_terminal) {
-            // Use ARM64 codegen
-            ARM64CodeGen cg;
-            cg.set_mode(macos_arm64);
-            cg.emit(ast.get(), asm_file);
-        } else {
-            // Use x86 codegen
-            CodeGen cg;
-            cg.set_mode(bare_metal, macos_terminal, linux64_terminal, arm64_terminal);
-            cg.emit(ast.get(), asm_file);
+#ifdef HAS_LLVM
+        if (use_llvm) {
+            // Use LLVM backend
+            if(verbose) std::cout<<"generating LLVM IR...\n";
+            LLVMCodeGen cg;
+            cg.set_bare_metal(bare_metal);
+            cg.set_64bit(linux64_terminal || macos_terminal || arm64_terminal);
+            std::string ir = cg.generate(ast->main_sec, linux64_terminal || macos_terminal);
+            
+            // Write LLVM IR to file
+            std::string ll_file = stem + ".ll";
+            std::ofstream ll_out(ll_file);
+            ll_out << ir;
+            ll_out.close();
+            
+            if(verbose) std::cout<<"  written: "<<ll_file<<"\n";
+            
+            // Use llc to compile to assembly
+            const std::string cmd_llc = "llc -O"+std::to_string(opt_level)+" "+sh_quote(ll_file)+" -o "+sh_quote(asm_file);
+            if(verbose) std::cout<<"$ "<<cmd_llc<<"\n";
+            if(std::system(cmd_llc.c_str())!=0){err("LLVM backend (llc) failed");return 1;}
+            
+            // Continue with normal assembly/linking process
+        } else
+#endif
+        {
+            // Use NASM backend (original codegen)
+            if (arm64_terminal) {
+                // Use ARM64 codegen
+                ARM64CodeGen cg;
+                cg.set_mode(macos_arm64);
+                cg.emit(ast.get(), asm_file);
+            } else {
+                // Use x86 codegen
+                CodeGen cg;
+                cg.set_mode(bare_metal, macos_terminal, linux64_terminal, arm64_terminal);
+                cg.emit(ast.get(), asm_file);
+            }
         }
 
         if(asm_only){std::cout<<"done: "<<asm_file<<"\n";return 0;}
