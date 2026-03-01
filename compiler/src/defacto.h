@@ -75,6 +75,12 @@ struct SectionNode : Node {
     SectionNode() { kind = NT::SECTION; }
 };
 
+// Generics support - type parameters (must be before StructDecl)
+struct TypeParam {
+    std::string name;      // T, U, etc.
+    std::string constraint; // optional constraint (e.g., "comparable")
+};
+
 // Struct support - must be before ProgramNode
 struct StructDecl : Node {
     std::string name;
@@ -121,12 +127,6 @@ struct ProgramNode : Node {
     std::vector<std::unique_ptr<ExternDecl>> externs;  // Extern function declarations
     std::vector<std::string> imports;  // List of imported libraries
     ProgramNode() { kind = NT::PROGRAM; }
-};
-
-// Generics support - type parameters
-struct TypeParam {
-    std::string name;      // T, U, etc.
-    std::string constraint; // optional constraint (e.g., "comparable")
 };
 
 struct VarDecl : Node {
